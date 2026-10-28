@@ -10,70 +10,105 @@ html, body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #fff;
 }
 canvas { position: fixed; inset: 0; z-index: 1; }
+
 #info {
   position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-  background: rgba(0,0,0,0.85); color: #fff; padding: 12px 24px;
-  border-radius: 30px; text-align: center; z-index: 30; font-size: 14px;
+  background: rgba(0,0,0,0.85); color: #fff; padding: 12px 28px;
+  border-radius: 30px; text-align: center; z-index: 30; font-size: 15px;
   font-weight: bold; border: 1px solid #ff2a74; box-shadow: 0 4px 20px rgba(255, 42, 116, 0.4);
+  letter-spacing: 1px;
 }
+
 .panel {
-  position: absolute; background: rgba(18, 18, 18, 0.95);
-  border: 1px solid #333; border-radius: 12px; padding: 16px; z-index: 20;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.8);
+  position: absolute; background: rgba(18, 18, 18, 0.96);
+  border: 1px solid #444; border-radius: 14px; padding: 18px; z-index: 20;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.9); display: none;
 }
-#admin-panel { top: 80px; left: 20px; width: 300px; display: none; }
-#playlist-panel { top: 80px; right: 20px; width: 280px; max-height: 350px; overflow-y: auto; }
-#controls { position: fixed; bottom: 35px; left: 50%; transform: translateX(-50%); z-index: 30; }
+#admin-panel { top: 80px; left: 20px; width: 320px; }
+#playlist-panel { top: 80px; right: 20px; width: 300px; max-height: 400px; overflow-y: auto; }
+
+#controls {
+  position: fixed; bottom: 35px; left: 50%; transform: translateX(-50%);
+  z-index: 30; display: flex; gap: 12px; align-items: center;
+}
+
 input[type="text"] {
   width: calc(100% - 18px); padding: 10px; background: #111;
-  border: 1px solid #444; color: #fff; border-radius: 8px; margin-bottom: 10px; outline: none;
+  border: 1px solid #555; color: #fff; border-radius: 8px; margin-bottom: 10px; outline: none;
 }
+
 button {
   background: #ff2a74; color: white; border: none; padding: 10px 16px;
   font-size: 13px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s;
 }
 button:hover { background: #ff4785; }
+
 #live-btn {
-  background: #2ed573; padding: 14px 35px; font-size: 16px; border-radius: 50px;
-  box-shadow: 0 4px 20px rgba(46, 213, 115, 0.5);
+  background: #2ed573; padding: 14px 40px; font-size: 16px; border-radius: 50px;
+  box-shadow: 0 4px 25px rgba(46, 213, 115, 0.6);
 }
 #live-btn:hover { background: #26af5f; }
+
+.sub-btn { background: #333; padding: 10px 16px; font-size: 14px; border-radius: 8px; }
+.sub-btn:hover { background: #444; }
+
 #admin-toggle {
-  position: fixed; top: 20px; right: 20px; background: #333;
-  font-size: 12px; padding: 8px 12px; border-radius: 20px; z-index: 40; cursor: pointer;
+  position: fixed; top: 20px; right: 20px; background: #222;
+  font-size: 12px; padding: 8px 14px; border-radius: 20px; z-index: 40; cursor: pointer;
+  border: 1px solid #555;
 }
+
 .item-card {
   background: #222; padding: 10px; margin-bottom: 8px; border-radius: 8px;
   font-size: 13px; display: flex; justify-content: space-between; align-items: center;
-  cursor: pointer; transition: 0.2s;
+  cursor: pointer; transition: 0.2s; border: 1px solid transparent;
 }
 .item-card:hover { background: #333; }
 .item-info { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 10px; flex: 1; }
 .delete-btn { background: #ff4757; padding: 5px 10px; font-size: 11px; }
+
+.studio-header {
+  font-size: 15px; color: #ff2a74; font-weight: bold; margin-bottom: 10px;
+  display: flex; justify-content: space-between; align-items: center;
+}
 </style>
 </head>
 <body>
 
 <canvas id="canvas"></canvas>
-<div id="info">📻 Global Live FM - Click Listen Live</div>
+<div id="info">📻 Global Live FM</div>
 
-<button id="admin-toggle" onclick="toggleAdmin()">⚙️ Admin Mode</button>
+<button id="admin-toggle" onclick="toggleAdmin()">⚙️ Admin Studio</button>
 
+<!-- Admin Studio Panel -->
 <div class="panel" id="admin-panel">
-  <h3 style="margin:0 0 10px 0; font-size:15px; color:#ff2a74;">🔒 Admin Studio</h3>
-  <p style="font-size:11px; color:#aaa; margin:0 0 8px 0;">Tip: Click any song in the queue below to play it instantly for everyone!</p>
-  <input type="text" id="query-input" placeholder="Search song name...">
-  <button id="search-btn" style="width:100%;">Search via Backend</button>
-  <div id="search-results" style="margin-top:12px; max-height:150px; overflow-y:auto;"></div>
+  <div class="studio-header">
+    <span>🎛️ Studio Master Console</span>
+  </div>
+  <p style="font-size:11px; color:#aaa; margin:0 0 10px 0;">Click any track in queue to broadcast live instantly.</p>
+  
+  <input type="text" id="query-input" placeholder="Search song from SVN API...">
+  <button id="search-btn" style="width:100%; margin-bottom:10px;">Search Track</button>
+  <div id="search-results" style="max-height:140px; overflow-y:auto; margin-bottom:12px;"></div>
+
+  <div style="display:flex; gap:8px;">
+    <button class="sub-btn" style="flex:1;" onclick="adminSkip()">⏭️ Skip Next</button>
+    <button class="sub-btn" style="flex:1;" onclick="togglePlayPause()" id="pause-play-btn">⏸️ Pause</button>
+  </div>
 </div>
 
+<!-- Global Queue Panel (Admin Only View) -->
 <div class="panel" id="playlist-panel">
-  <h3 style="margin:0 0 10px 0; font-size:15px; color:#2ed573;">🎶 Global Station Queue</h3>
+  <div class="studio-header" style="color:#2ed573;">
+    <span>🎶 Master Station Queue</span>
+  </div>
   <div id="playlist-container" style="font-size:13px; color:#aaa;">Loading queue...</div>
 </div>
 
+<!-- Listener Main Controls -->
 <div id="controls">
   <button id="live-btn" onclick="playLiveRadio()">🔴 LISTEN LIVE 24/7</button>
+  <button class="sub-btn" onclick="toggleMute()" id="mute-btn" style="display:none;">🔊 Mute</button>
 </div>
 
 <audio id="audio-element" crossorigin="anonymous" controlslist="nodownload noplaybackrate" disablepictureinpicture></audio>
@@ -92,7 +127,7 @@ window.onresize = function() {
 };
 
 var nrt=0, npt=0, dots=[], lines=[];
-var config = { minRadius: 45, maxRadius: 85, multiplier: 45, colorSpeed: 20, hueStart: 220, centerImage: "https://i.imgur.com/8Q5N8bB.png" };
+var config = { minRadius: 50, maxRadius: 90, multiplier: 45, colorSpeed: 20, hueStart: 220, centerImage: "https://i.imgur.com/8Q5N8bB.png" };
 
 var bgImage = new Image();
 bgImage.src = config.centerImage;
@@ -130,7 +165,6 @@ let activeIndex = 0;
 let isAdmin = false;
 let lastSyncedIndex = -1;
 
-// Fetch and sync state periodically
 function pollGlobalState() {
   fetch('/api/playlist')
     .then(res => res.json())
@@ -139,9 +173,8 @@ function pollGlobalState() {
       let newIndex = data.currentIndex || 0;
       let seekTime = data.seekTime || 0;
       
-      renderPlaylistUI();
+      if (isAdmin) renderPlaylistUI();
 
-      // If playing and station index changed on server, sync immediately
       if (playing) {
         if (newIndex !== lastSyncedIndex) {
           lastSyncedIndex = newIndex;
@@ -158,53 +191,48 @@ setInterval(pollGlobalState, 3000);
 function renderPlaylistUI() {
   const container = document.getElementById("playlist-container");
   if (globalPlaylist.length === 0) {
-    container.innerHTML = "No songs in global queue.";
+    container.innerHTML = "No tracks in queue.";
     return;
   }
 
   let html = "";
   globalPlaylist.forEach((song, index) => {
     let highlight = (index === activeIndex) ? "border: 1px solid #2ed573; background:#112211;" : "";
-    let clickAction = isAdmin ? `onclick="adminSelectSong(${index})"` : "";
     html += `
-      <div class="item-card" style="${highlight}" ${clickAction} title="${isAdmin ? 'Click to play this song for everyone' : ''}">
+      <div class="item-card" style="${highlight}" onclick="adminSelectSong(${index})" title="Click to broadcast this track">
         <div class="item-info">${index === activeIndex ? '▶ ' : ''}${song.title}</div>
-        <button class="delete-btn" onclick="event.stopPropagation(); deleteGlobalSong(${index})" style="display:none;" id="del-btn-${index}">X</button>
+        <button class="delete-btn" onclick="event.stopPropagation(); deleteGlobalSong(${index})">X</button>
       </div>
     `;
   });
   container.innerHTML = html;
-  updateAdminUI();
 }
 
 function toggleAdmin() {
-  const panel = document.getElementById("admin-panel");
-  if (panel.style.display === "block") {
-    panel.style.display = "none";
+  const adminPanel = document.getElementById("admin-panel");
+  const playlistPanel = document.getElementById("playlist-panel");
+
+  if (isAdmin) {
+    adminPanel.style.display = "none";
+    playlistPanel.style.display = "none";
     isAdmin = false;
-    updateAdminUI();
+    document.getElementById("admin-toggle").innerText = "⚙️ Admin Studio";
   } else {
-    let pass = prompt("Enter Admin Password:");
+    let pass = prompt("Enter Studio Admin Password:");
     if (pass === "admin123") {
-      panel.style.display = "block";
+      adminPanel.style.display = "block";
+      playlistPanel.style.display = "block";
       isAdmin = true;
-      updateAdminUI();
-      alert("Admin Mode Unlocked! Click any song in queue to broadcast it.");
+      document.getElementById("admin-toggle").innerText = "🔒 Close Studio";
+      renderPlaylistUI();
+      alert("Studio Unlocked!");
     } else {
-      alert("Wrong Password!");
+      alert("Incorrect Password!");
     }
   }
 }
 
-function updateAdminUI() {
-  document.querySelectorAll(".delete-btn").forEach(el => {
-    el.style.display = isAdmin ? "block" : "none";
-  });
-}
-
-// Admin clicks song to play instantly for all users
 function adminSelectSong(index) {
-  if (!isAdmin) return;
   fetch('/api/play', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -218,8 +246,31 @@ function adminSelectSong(index) {
   });
 }
 
+function adminSkip() {
+  if (globalPlaylist.length === 0) return;
+  let nextIdx = (activeIndex + 1) % globalPlaylist.length;
+  adminSelectSong(nextIdx);
+}
+
+function togglePlayPause() {
+  const btn = document.getElementById("pause-play-btn");
+  if (audioEl.paused) {
+    audioEl.play();
+    btn.innerText = "⏸️ Pause";
+  } else {
+    audioEl.pause();
+    btn.innerText = "▶️ Resume";
+  }
+}
+
+function toggleMute() {
+  const muteBtn = document.getElementById("mute-btn");
+  audioEl.muted = !audioEl.muted;
+  muteBtn.innerText = audioEl.muted ? "🔇 Unmute" : "🔊 Mute";
+}
+
 function deleteGlobalSong(index) {
-  if (!confirm("Delete this song?")) return;
+  if (!confirm("Delete track from global station?")) return;
   fetch(`/api/playlist/${index}`, { method: 'DELETE' })
     .then(res => res.json())
     .then(data => {
@@ -242,7 +293,7 @@ document.getElementById("search-btn").addEventListener("click", () => {
     .then(data => {
       const songs = data.results || [];
       if (songs.length === 0) {
-        resultsContainer.innerHTML = "No songs found.";
+        resultsContainer.innerHTML = "No tracks found.";
         return;
       }
 
@@ -252,7 +303,7 @@ document.getElementById("search-btn").addEventListener("click", () => {
         html += `
           <div class="item-card">
             <div class="item-info" title="${s.title}">${s.title}</div>
-            <button onclick="addGlobalSong('${songObj}')">Save</button>
+            <button onclick="addGlobalSong('${songObj}')" style="padding:4px 10px; font-size:11px;">Save</button>
           </div>
         `;
       });
@@ -274,12 +325,12 @@ window.addGlobalSong = function(encodedObj) {
   .then(data => {
     if (data.success) {
       globalPlaylist = data.playlist;
-      renderPlaylistUI();
-      document.getElementById("info").innerHTML = `Saved: ${songData.title}`;
-      setTimeout(() => { document.getElementById("info").innerHTML = "🔴 LISTEN LIVE 24/7"; }, 3000);
+      if (isAdmin) renderPlaylistUI();
+      document.getElementById("info").innerHTML = `Added to Station`;
+      setTimeout(() => { document.getElementById("info").innerHTML = "📻 Global Live FM"; }, 2500);
     }
   })
-  .catch(err => { alert("Error saving song."); });
+  .catch(err => { alert("Error saving track."); });
 };
 
 function playLiveRadio() {
@@ -289,12 +340,15 @@ function playLiveRadio() {
     .then(data => {
       globalPlaylist = Array.isArray(data.playlist) ? data.playlist : [];
       if (globalPlaylist.length === 0) {
-        alert("Global playlist is empty! Admin needs to add songs.");
+        alert("Station queue is empty! Admin needs to add tracks.");
         return;
       }
       activeIndex = data.currentIndex || 0;
       lastSyncedIndex = activeIndex;
       playSongAtIndex(activeIndex, data.seekTime || 0);
+
+      document.getElementById("live-btn").style.display = "none";
+      document.getElementById("mute-btn").style.display = "block";
     });
 }
 
@@ -306,7 +360,9 @@ function playSongAtIndex(index, seekTime = 0) {
   if (!song || !song.url) return;
 
   if (song.image) { bgImage.src = song.image; }
-  document.getElementById("info").innerHTML = `🔴 LIVE: ${song.title}`;
+  
+  // Listener view keeps interface clean without song titles on main banner
+  document.getElementById("info").innerHTML = "📻 Global Live FM (On Air)";
 
   audioEl.src = song.url;
   audioEl.currentTime = seekTime;
@@ -318,7 +374,7 @@ function playSongAtIndex(index, seekTime = 0) {
       playing = true;
       render();
     }
-    renderPlaylistUI();
+    if (isAdmin) renderPlaylistUI();
   }).catch(err => { document.getElementById("info").innerHTML = "Tap screen to start audio playback."; });
 }
 
