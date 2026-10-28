@@ -5,7 +5,7 @@ app.use(express.json());
 
 let state = {
   playlist: [],
-  stationStartTime: Date.now() // Station start epoch base
+  stationStartTime: Date.now() // Precise Epoch Timestamp in Milliseconds
 };
 
 app.use((req, res, next) => {
@@ -16,40 +16,41 @@ app.use((req, res, next) => {
   next();
 });
 
-// Calculate exact live track and offset using absolute station loop timeline
+// Calculate live playback state with Millisecond Precision
 function getLivePlaybackState() {
   if (state.playlist.length === 0) {
     return { playlist: [], currentIndex: 0, seekTime: 0 };
   }
 
-  // Total duration of all songs in playlist
-  const totalPlaylistDuration = state.playlist.reduce((acc, song) => acc + (song.duration || 180), 0);
-  if (totalPlaylistDuration <= 0) {
+  // Total duration in milliseconds (default 180s = 180000ms)
+  const totalPlaylistDurationMs = state.playlist.reduce((acc, song) => acc + ((song.duration || 180) * 1000), 0);
+  if (totalPlaylistDurationMs <= 0) {
     return { playlist: state.playlist, currentIndex: 0, seekTime: 0 };
   }
 
-  // Elapsed seconds since station started playing continuously
-  const elapsedSeconds = Math.floor((Date.now() - state.stationStartTime) / 1000);
-  const timeInLoop = elapsedSeconds % totalPlaylistDuration;
+  // Elapsed time in milliseconds
+  const elapsedMs = Date.now() - state.stationStartTime;
+  const timeInLoopMs = elapsedMs % totalPlaylistDurationMs;
 
-  let accumulated = 0;
+  let accumulatedMs = 0;
   let currentIndex = 0;
-  let seekTime = 0;
+  let seekTimeSec = 0;
 
   for (let i = 0; i < state.playlist.length; i++) {
-    const songDuration = state.playlist[i].duration || 180;
-    if (timeInLoop < accumulated + songDuration) {
+    const songDurationMs = (state.playlist[i].duration || 180) * 1000;
+    if (timeInLoopMs < accumulatedMs + songDurationMs) {
       currentIndex = i;
-      seekTime = timeInLoop - accumulated;
+      // Exact seek time in float seconds (e.g., 18.452 seconds)
+      seekTimeSec = (timeInLoopMs - accumulatedMs) / 1000;
       break;
     }
-    accumulated += songDuration;
+    accumulatedMs += songDurationMs;
   }
 
   return {
     playlist: state.playlist,
     currentIndex: currentIndex,
-    seekTime: seekTime
+    seekTime: parseFloat(seekTimeSec.toFixed(3)) // Exact millisecond accuracy
   };
 }
 
@@ -67,7 +68,7 @@ app.get('/api/search', async (req, res) => {
       primaryArtists: s.primaryArtists || s.artist || "Unknown",
       image: s.image?.[s.image.length - 1]?.link || s.image?.[s.image.length - 1]?.url || "",
       url: s.downloadUrl?.[s.downloadUrl.length - 1]?.link || s.downloadUrl?.[s.downloadUrl.length - 1]?.url || s.url || s.audio,
-      duration: 180 // Default 3 mins fixed duration for precise math sync
+      duration: 180
     })).filter(s => s.url);
 
     res.json({ results: cleanSongs });
@@ -87,28 +88,21 @@ app.post('/api/playlist', (req, res) => {
   if (!state.playlist.some(s => s.url === newSong.url)) {
     newSong.duration = 180;
     if (state.playlist.length === 0) {
-      state.stationStartTime = Date.now(); // Reset loop base if queue was empty
+      state.stationStartTime = Date.now();
     }
     state.playlist.push(newSong);
   }
   res.json({ success: true, ...getLivePlaybackState() });
 });
 
-// Admin manual track override jump
 app.post('/api/play', (req, res) => {
   const { index } = req.body;
   if (index !== undefined && index >= 0 && index < state.playlist.length) {
-    // Adjust stationStartTime so that the selected song starts right now at seekTime = 0
-    let pastDurationSum = 0;
+    let pastDurationSumMs = 0;
     for (let i = 0; i < index; i++) {
-      pastDurationSum += (state.playlist[i].duration || 180);
+      pastDurationSumMs += ((state.playlist[i].duration || 180) * 1000);
     }
-    const totalDuration = state.playlist.reduce((acc, song) => acc + (song.duration || 180), 0);
-    const now = Date.now();
-    const currentLoopTime = Math.floor((now - state.stationStartTime) / 1000) % totalDuration;
-    
-    // Shift stationStartTime to align target song at current timeline slot
-    state.stationStartTime = now - (pastDurationSum * 1000);
+    state.stationStartTime = Date.now() - pastDurationSumMs;
   }
   res.json({ success: true, ...getLivePlaybackState() });
 });
@@ -117,9 +111,10 @@ app.delete('/api/playlist/:index', (req, res) => {
   const index = parseInt(req.params.index);
   if (index >= 0 && index < state.playlist.length) {
     state.playlist.splice(index, 1);
-    state.stationStartTime = Date.now(); // Reset loop anchor safely on delete
+    state.stationStartTime = Date.now();
   }
   res.json({ success: true, ...getLivePlaybackState() });
 });
 
 export default app;
+
