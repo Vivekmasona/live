@@ -124,7 +124,6 @@ bgImage.src = config.centerImage;
 var AudioContext = window.AudioContext || window.webkitAudioContext;
 var actx, analyser, sourceNode, frequencyData, frequencyDataLen;
 var playing = false;
-var dotEmitter, lineEmitter;
 var audioEl = document.getElementById("audio-element");
 
 if ('mediaSession' in navigator) {
@@ -150,6 +149,7 @@ function initAudioContext() {
 }
 
 let globalPlaylist = [];
+let stationStartTime = Date.now();
 let activeIndex = -1;
 
 let pressTimer;
@@ -180,35 +180,46 @@ function closeStudio() {
   document.getElementById("studio-modal").style.display = "none";
 }
 
-// Optimized Polling: 15 seconds interval to keep Vercel function load minimal & clean
-function pollGlobalState() {
-  fetch('/api/playlist')
-    .then(res => res.json())
-    .then(data => {
-      globalPlaylist = Array.isArray(data.playlist) ? data.playlist : [];
-      let newIndex = data.currentIndex || 0;
-      let seekTime = data.seekTime || 0;
-      
-      if (document.getElementById("studio-modal").style.display === "flex") {
-        renderPlaylistUI();
-      }
+// Local Clock Tick Engine (Zero Server Requests, 100% Millisecond Accurate)
+function localClockTick() {
+  if (globalPlaylist.length === 0) return;
 
-      if (playing && globalPlaylist.length > 0) {
-        if (newIndex !== activeIndex || Math.abs(audioEl.currentTime - seekTime) > 2) {
-          activeIndex = newIndex;
-          playSongAtIndex(activeIndex, seekTime);
-        }
-      }
-    })
-    .catch(err => console.error("Sync error:", err));
+  const totalDurationMs = globalPlaylist.reduce((acc, song) => acc + ((song.duration || 180) * 1000), 0);
+  if (totalDurationMs <= 0) return;
+
+  const elapsedMs = Math.max(0, Date.now() - stationStartTime);
+  const timeInLoopMs = elapsedMs % totalDurationMs;
+
+  let accumulatedMs = 0;
+  let targetIndex = 0;
+  let targetSeekSec = 0;
+
+  for (let i = 0; i < globalPlaylist.length; i++) {
+    const songDurationMs = (globalPlaylist[i].duration || 180) * 1000;
+    if (timeInLoopMs < accumulatedMs + songDurationMs) {
+      targetIndex = i;
+      targetSeekSec = (timeInLoopMs - accumulatedMs) / 1000;
+      break;
+    }
+    accumulatedMs += songDurationMs;
+  }
+
+  if (targetIndex !== activeIndex) {
+    activeIndex = targetIndex;
+    playSongAtIndex(activeIndex, targetSeekSec);
+  } else {
+    // Minor drift correction
+    if (Math.abs(audioEl.currentTime - targetSeekSec) > 1.5) {
+      audioEl.currentTime = targetSeekSec;
+    }
+  }
+
+  if (document.getElementById("studio-modal").style.display === "flex") {
+    renderPlaylistUI();
+  }
 }
 
-setInterval(pollGlobalState, 15000);
-
-// Audio ended fallback trigger for continuous endless looping
-audioEl.addEventListener('ended', () => {
-  pollGlobalState();
-});
+setInterval(localClockTick, 1000);
 
 function renderPlaylistUI() {
   const container = document.getElementById("playlist-container");
@@ -238,9 +249,9 @@ function adminSelectSong(index) {
   })
   .then(res => res.json())
   .then(data => {
-    globalPlaylist = data.playlist;
-    activeIndex = data.currentIndex;
-    playSongAtIndex(activeIndex, data.seekTime);
+    globalPlaylist = Array.isArray(data.playlist) ? data.playlist : [];
+    stationStartTime = data.stationStartTime || Date.now();
+    localClockTick();
     renderPlaylistUI();
   });
 }
@@ -250,9 +261,9 @@ function deleteGlobalSong(index) {
   fetch(`/api/playlist/${index}`, { method: 'DELETE' })
     .then(res => res.json())
     .then(data => {
-      globalPlaylist = data.playlist;
-      activeIndex = data.currentIndex;
-      playSongAtIndex(activeIndex, data.seekTime);
+      globalPlaylist = Array.isArray(data.playlist) ? data.playlist : [];
+      stationStartTime = data.stationStartTime || Date.now();
+      localClockTick();
       renderPlaylistUI();
     });
 }
@@ -300,7 +311,8 @@ window.addGlobalSong = function(encodedObj) {
   .then(res => res.json())
   .then(data => {
     if (data.success) {
-      globalPlaylist = data.playlist;
+      globalPlaylist = Array.isArray(data.playlist) ? data.playlist : [];
+      stationStartTime = data.stationStartTime || stationStartTime;
       renderPlaylistUI();
     }
   })
@@ -308,19 +320,19 @@ window.addGlobalSong = function(encodedObj) {
 };
 
 window.addEventListener('load', () => {
-  autoPlayLiveRadio();
+  fetchInitialState();
 });
 
-function autoPlayLiveRadio() {
+function fetchInitialState() {
   initAudioContext();
   fetch('/api/playlist')
     .then(res => res.json())
     .then(data => {
       globalPlaylist = Array.isArray(data.playlist) ? data.playlist : [];
+      stationStartTime = data.stationStartTime || Date.now();
       if (globalPlaylist.length === 0) return;
       
-      activeIndex = data.currentIndex || 0;
-      playSongAtIndex(activeIndex, data.seekTime || 0);
+      localClockTick();
     })
     .catch(err => {
       document.getElementById("controls").style.display = "block";
@@ -329,7 +341,7 @@ function autoPlayLiveRadio() {
 
 function startLiveAudio() {
   document.getElementById("controls").style.display = "none";
-  autoPlayLiveRadio();
+  fetchInitialState();
 }
 
 function playSongAtIndex(index, seekTime = 0) {
@@ -353,8 +365,8 @@ function playSongAtIndex(index, seekTime = 0) {
   audioEl.play().then(() => {
     document.getElementById("controls").style.display = "none";
     if (!playing) {
-      dotEmitter = setInterval(emitDot, 50);
-      lineEmitter = setInterval(emitLine, 100);
+      setInterval(emitDot, 50);
+      setInterval(emitLine, 100);
       playing = true;
       render();
     }
@@ -364,10 +376,11 @@ function playSongAtIndex(index, seekTime = 0) {
 }
 
 // Visualizers
+var dots = [], lines = [];
 function emitDot(){ if (dots.length > 80) return; dots.push({ xp: w/2, yp: h/2, xv: Math.random()*0.4-0.2, yv: Math.random()*0.4-0.2, rad: Math.random()*(10-2)+2, hue: Math.random()*50-25 }); }
 function emitLine(){ if (lines.length > 30) return; lines.push({ xp: w/2, yp: h/2, xv: Math.random()*0.4-0.2, yv: Math.random()*0.4-0.2, hue: Math.random()*50-25 }); }
 function clear(){ ctx.beginPath(); var grd = ctx.createLinearGradient(w/2, 0, w/2, h); grd.addColorStop(0, "hsl("+(config.hueStart + npt * config.colorSpeed)+", 35%, 8%"); grd.addColorStop(1, "hsl("+(config.hueStart + npt * config.colorSpeed)+", 75%, 3%"); ctx.fillStyle = grd; ctx.fillRect(0, 0, w, h); ctx.closePath(); }
-function drawDots(){ var avg = averageFrequency(); for(let i = 0; i < dots.length; i++){ ctx.beginPath(); var grd = ctx.createRadialGradient(dots[i].xp + dots[i].rad, dots[i].yp + dots[i].rad, 0, dots[i].xp + dots[i].rad, dots[i].yp + dots[i].rad, dots[i].rad); grd.addColorStop(0, "hsla("+(config.hueStart + npt * config.colorSpeed + dots[i].hue)+", 50%, 50%, "+(avg / 400)+"%)"); grd.addColorStop(1, "hsla("+(config.hueStart + npt * config.colorSpeed + dots[i].hue)+", 50%, 50%, 0%)"); ctx.fillStyle = grd; grd.fillRect(dots[i].xp, dots[i].yp, dots[i].rad*2, dots[i].rad*2); ctx.closePath(); if(dots[i].xp > w || dots[i].xp < 0 || dots[i].yp > w || dots[i].yp < 0){ dots[i] = dots[dots.length-1]; dots.pop(); } else { dots[i].xp += dots[i].xv * Math.pow(avg/1000, 1.5); dots[i].yp += dots[i].yv * Math.pow(avg/1000, 1.5); } } }
+function drawDots(){ var avg = averageFrequency(); for(let i = 0; i < dots.length; i++){ ctx.beginPath(); var grd = ctx.createRadialGradient(dots[i].xp + dots[i].rad, dots[i].yp + dots[i].rad, 0, dots[i].xp + dots[i].rad, dots[i].yp + dots[i].rad, dots[i].rad); grd.addColorStop(0, "hsla("+(config.hueStart + npt * config.colorSpeed + dots[i].hue)+", 50%, 50%, "+(avg / 400)+"%)"); grd.addColorStop(1, "hsla("+(config.hueStart + npt * config.colorSpeed + dots[i].hue)+", 50%, 50%, 0%)"); ctx.fillStyle = grd; ctx.fillRect(dots[i].xp, dots[i].yp, dots[i].rad*2, dots[i].rad*2); ctx.closePath(); if(dots[i].xp > w || dots[i].xp < 0 || dots[i].yp > w || dots[i].yp < 0){ dots[i] = dots[dots.length-1]; dots.pop(); } else { dots[i].xp += dots[i].xv * Math.pow(avg/1000, 1.5); dots[i].yp += dots[i].yv * Math.pow(avg/1000, 1.5); } } }
 function drawLines() { var avg = averageFrequency(); var maxDist = 100; for (let i = 0; i < lines.length; i++) { for (let j = 0; j < lines.length; j++) { var proDist = 100 / maxDist; var opacity = 100 - dist(lines[j].xp, lines[j].yp, lines[i].xp, lines[i].yp) * proDist; if (dist(lines[j].xp, lines[j].yp, lines[i].xp, lines[i].yp) < maxDist) { ctx.beginPath(); ctx.lineWidth = 1; ctx.strokeStyle = "hsla(" + (config.hueStart + npt * config.colorSpeed) + ", 50%, 50%, " + (opacity - 50) + "%)"; ctx.moveTo(lines[i].xp, lines[i].yp); ctx.lineTo(lines[j].xp, lines[j].yp); ctx.stroke(); ctx.closePath(); } } if (lines[i].xp > w || lines[i].xp < 0 || lines[i].yp > w || lines[i].yp < 0) { lines[i] = lines[lines.length - 1]; lines.pop(); } else { lines[i].xp += lines[i].xv * avg/500; lines[i].yp += lines[i].yv * avg/500; } } }
 function getBassPulse() { if (!frequencyData) return 0; var bassSum = 0; for (let i = 0; i < 8; i++) { bassSum += frequencyData[i]; } return bassSum / 8; }
 function drawSpectrum() { 
@@ -395,5 +408,4 @@ function averageFrequency() { var avg = 0; for (let i = 0; i < frequencyData.len
 
 </body>
 </html>
-
 
