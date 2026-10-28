@@ -3,38 +3,39 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Global 24/7 Live FM Radio</title>
+<title>Global Live FM Studio</title>
 <style>
 html, body {
-  margin: 0px; padding: 0px; overflow: hidden; background: #000;
+  margin: 0px; padding: 0px; overflow: hidden; background: #0c0c0e;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #fff;
 }
 canvas { position: fixed; inset: 0; z-index: 1; }
 
-#info {
-  position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-  background: rgba(0,0,0,0.85); color: #fff; padding: 12px 28px;
-  border-radius: 30px; text-align: center; z-index: 30; font-size: 15px;
-  font-weight: bold; border: 1px solid #ff2a74; box-shadow: 0 4px 20px rgba(255, 42, 116, 0.4);
-  letter-spacing: 1px;
+/* Studio Header / Brand (Long press here for Admin password) */
+#brand-header {
+  position: fixed; top: 15px; left: 20px;
+  background: rgba(18, 18, 22, 0.9); color: #fff; padding: 10px 20px;
+  border-radius: 20px; z-index: 40; font-size: 14px; font-weight: bold;
+  border: 1px solid #333; user-select: none; cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
 }
 
-.panel {
-  position: absolute; background: rgba(18, 18, 18, 0.96);
-  border: 1px solid #444; border-radius: 14px; padding: 18px; z-index: 20;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.9); display: none;
+/* Studio Drawer Modal (Hidden by default) */
+#studio-modal {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100;
+  display: none; align-items: center; justify-content: center; backdrop-filter: blur(8px);
 }
-#admin-panel { top: 80px; left: 20px; width: 320px; }
-#playlist-panel { top: 80px; right: 20px; width: 300px; max-height: 400px; overflow-y: auto; }
-
-#controls {
-  position: fixed; bottom: 35px; left: 50%; transform: translateX(-50%);
-  z-index: 30; display: flex; gap: 12px; align-items: center;
+.studio-container {
+  background: #141418; width: 90%; max-width: 420px; max-height: 85vh;
+  border: 1px solid #333; border-radius: 16px; padding: 20px;
+  box-shadow: 0 15px 50px rgba(0,0,0,0.9); display: flex; flex-direction: column; gap: 15px;
+  overflow-y: auto;
 }
+.studio-title { font-size: 16px; color: #ff2a74; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
 
 input[type="text"] {
-  width: calc(100% - 18px); padding: 10px; background: #111;
-  border: 1px solid #555; color: #fff; border-radius: 8px; margin-bottom: 10px; outline: none;
+  width: calc(100% - 20px); padding: 10px; background: #1f1f26;
+  border: 1px solid #444; color: #fff; border-radius: 8px; outline: none; font-size: 13px;
 }
 
 button {
@@ -43,72 +44,70 @@ button {
 }
 button:hover { background: #ff4785; }
 
+.sub-btn { background: #2a2a35; padding: 10px; border-radius: 8px; font-size: 13px; }
+.sub-btn:hover { background: #3a3a48; }
+
+/* Listener Controls at Bottom */
+#controls {
+  position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+  z-index: 30; display: flex; gap: 15px; align-items: center;
+}
+
 #live-btn {
-  background: #2ed573; padding: 14px 40px; font-size: 16px; border-radius: 50px;
-  box-shadow: 0 4px 25px rgba(46, 213, 115, 0.6);
+  background: #2ed573; padding: 14px 45px; font-size: 16px; border-radius: 50px;
+  box-shadow: 0 4px 25px rgba(46, 213, 115, 0.5); color: #000; font-weight: bold;
 }
 #live-btn:hover { background: #26af5f; }
 
-.sub-btn { background: #333; padding: 10px 16px; font-size: 14px; border-radius: 8px; }
-.sub-btn:hover { background: #444; }
-
-#admin-toggle {
-  position: fixed; top: 20px; right: 20px; background: #222;
-  font-size: 12px; padding: 8px 14px; border-radius: 20px; z-index: 40; cursor: pointer;
-  border: 1px solid #555;
-}
-
 .item-card {
-  background: #222; padding: 10px; margin-bottom: 8px; border-radius: 8px;
+  background: #1c1c24; padding: 10px; border-radius: 8px;
   font-size: 13px; display: flex; justify-content: space-between; align-items: center;
-  cursor: pointer; transition: 0.2s; border: 1px solid transparent;
+  cursor: pointer; border: 1px solid #2a2a35; margin-bottom: 8px;
 }
-.item-card:hover { background: #333; }
+.item-card:hover { border-color: #ff2a74; }
 .item-info { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 10px; flex: 1; }
-.delete-btn { background: #ff4757; padding: 5px 10px; font-size: 11px; }
-
-.studio-header {
-  font-size: 15px; color: #ff2a74; font-weight: bold; margin-bottom: 10px;
-  display: flex; justify-content: space-between; align-items: center;
-}
+.delete-btn { background: #ff4757; padding: 5px 10px; font-size: 11px; border-radius: 6px; }
 </style>
 </head>
 <body>
 
 <canvas id="canvas"></canvas>
-<div id="info">📻 Global Live FM</div>
 
-<button id="admin-toggle" onclick="toggleAdmin()">⚙️ Admin Studio</button>
+<!-- Brand Header (Long Press to open Studio Admin) -->
+<div id="brand-header" id="brand-title">🎙️ Global FM Studio</div>
 
-<!-- Admin Studio Panel -->
-<div class="panel" id="admin-panel">
-  <div class="studio-header">
-    <span>🎛️ Studio Master Console</span>
-  </div>
-  <p style="font-size:11px; color:#aaa; margin:0 0 10px 0;">Click any track in queue to broadcast live instantly.</p>
-  
-  <input type="text" id="query-input" placeholder="Search song from SVN API...">
-  <button id="search-btn" style="width:100%; margin-bottom:10px;">Search Track</button>
-  <div id="search-results" style="max-height:140px; overflow-y:auto; margin-bottom:12px;"></div>
-
-  <div style="display:flex; gap:8px;">
-    <button class="sub-btn" style="flex:1;" onclick="adminSkip()">⏭️ Skip Next</button>
-    <button class="sub-btn" style="flex:1;" onclick="togglePlayPause()" id="pause-play-btn">⏸️ Pause</button>
-  </div>
-</div>
-
-<!-- Global Queue Panel (Admin Only View) -->
-<div class="panel" id="playlist-panel">
-  <div class="studio-header" style="color:#2ed573;">
-    <span>🎶 Master Station Queue</span>
-  </div>
-  <div id="playlist-container" style="font-size:13px; color:#aaa;">Loading queue...</div>
-</div>
-
-<!-- Listener Main Controls -->
+<!-- Listener Bottom Controls -->
 <div id="controls">
-  <button id="live-btn" onclick="playLiveRadio()">🔴 LISTEN LIVE 24/7</button>
+  <button id="live-btn" onclick="playLiveRadio()">🔴 LISTEN LIVE</button>
   <button class="sub-btn" onclick="toggleMute()" id="mute-btn" style="display:none;">🔊 Mute</button>
+</div>
+
+<!-- Studio Admin Modal (Password Protected via Long Press) -->
+<div id="studio-modal">
+  <div class="studio-container">
+    <div class="studio-title">
+      <span>🎛️ Studio Master Console</span>
+      <button onclick="closeStudio()" style="background:#333; padding:4px 10px; font-size:11px;">✕</button>
+    </div>
+    
+    <div style="font-size:12px; color:#aaa;">Search songs via backend SVN API & manage live station:</div>
+    
+    <div style="display:flex; gap:8px;">
+      <input type="text" id="query-input" placeholder="Search track name...">
+      <button id="search-btn">Search</button>
+    </div>
+    <div id="search-results" style="max-height:130px; overflow-y:auto;"></div>
+
+    <div style="border-top:1px solid #2a2a35; padding-top:10px;">
+      <div style="font-size:13px; color:#2ed573; margin-bottom:8px; font-weight:bold;">🎶 Master Station Queue</div>
+      <div id="playlist-container" style="max-height:160px; overflow-y:auto; font-size:12px; color:#aaa;">Loading queue...</div>
+    </div>
+
+    <div style="display:flex; gap:8px; border-top:1px solid #2a2a35; padding-top:10px;">
+      <button class="sub-btn" style="flex:1;" onclick="adminSkip()">⏭️ Skip Next</button>
+      <button class="sub-btn" style="flex:1;" onclick="togglePlayPause()" id="pause-play-btn">⏸️ Pause</button>
+    </div>
+  </div>
 </div>
 
 <audio id="audio-element" crossorigin="anonymous" controlslist="nodownload noplaybackrate" disablepictureinpicture></audio>
@@ -127,7 +126,7 @@ window.onresize = function() {
 };
 
 var nrt=0, npt=0, dots=[], lines=[];
-var config = { minRadius: 50, maxRadius: 90, multiplier: 45, colorSpeed: 20, hueStart: 220, centerImage: "https://i.imgur.com/8Q5N8bB.png" };
+var config = { minRadius: 55, maxRadius: 95, multiplier: 45, colorSpeed: 20, hueStart: 220, centerImage: "https://i.imgur.com/8Q5N8bB.png" };
 
 var bgImage = new Image();
 bgImage.src = config.centerImage;
@@ -162,8 +161,36 @@ function initAudioContext() {
 
 let globalPlaylist = [];
 let activeIndex = 0;
-let isAdmin = false;
 let lastSyncedIndex = -1;
+
+// Long Press Logic on Brand Header for Admin Studio Password
+let pressTimer;
+const brandHeader = document.getElementById("brand-header");
+
+brandHeader.addEventListener('mousedown', startLongPress);
+brandHeader.addEventListener('touchstart', startLongPress);
+brandHeader.addEventListener('mouseup', cancelLongPress);
+brandHeader.addEventListener('touchend', cancelLongPress);
+
+function startLongPress(e) {
+  pressTimer = setTimeout(() => {
+    let pass = prompt("Enter Studio Admin Password:");
+    if (pass === "admin123") {
+      document.getElementById("studio-modal").style.display = "flex";
+      renderPlaylistUI();
+    } else if (pass !== null) {
+      alert("Wrong Password!");
+    }
+  }, 800); // 800ms long press
+}
+
+function cancelLongPress() {
+  clearTimeout(pressTimer);
+}
+
+function closeStudio() {
+  document.getElementById("studio-modal").style.display = "none";
+}
 
 function pollGlobalState() {
   fetch('/api/playlist')
@@ -173,7 +200,9 @@ function pollGlobalState() {
       let newIndex = data.currentIndex || 0;
       let seekTime = data.seekTime || 0;
       
-      if (isAdmin) renderPlaylistUI();
+      if (document.getElementById("studio-modal").style.display === "flex") {
+        renderPlaylistUI();
+      }
 
       if (playing) {
         if (newIndex !== lastSyncedIndex) {
@@ -197,39 +226,15 @@ function renderPlaylistUI() {
 
   let html = "";
   globalPlaylist.forEach((song, index) => {
-    let highlight = (index === activeIndex) ? "border: 1px solid #2ed573; background:#112211;" : "";
+    let highlight = (index === activeIndex) ? "border-color: #2ed573; background:#112211;" : "";
     html += `
-      <div class="item-card" style="${highlight}" onclick="adminSelectSong(${index})" title="Click to broadcast this track">
+      <div class="item-card" style="${highlight}" onclick="adminSelectSong(${index})">
         <div class="item-info">${index === activeIndex ? '▶ ' : ''}${song.title}</div>
         <button class="delete-btn" onclick="event.stopPropagation(); deleteGlobalSong(${index})">X</button>
       </div>
     `;
   });
   container.innerHTML = html;
-}
-
-function toggleAdmin() {
-  const adminPanel = document.getElementById("admin-panel");
-  const playlistPanel = document.getElementById("playlist-panel");
-
-  if (isAdmin) {
-    adminPanel.style.display = "none";
-    playlistPanel.style.display = "none";
-    isAdmin = false;
-    document.getElementById("admin-toggle").innerText = "⚙️ Admin Studio";
-  } else {
-    let pass = prompt("Enter Studio Admin Password:");
-    if (pass === "admin123") {
-      adminPanel.style.display = "block";
-      playlistPanel.style.display = "block";
-      isAdmin = true;
-      document.getElementById("admin-toggle").innerText = "🔒 Close Studio";
-      renderPlaylistUI();
-      alert("Studio Unlocked!");
-    } else {
-      alert("Incorrect Password!");
-    }
-  }
 }
 
 function adminSelectSong(index) {
@@ -270,7 +275,7 @@ function toggleMute() {
 }
 
 function deleteGlobalSong(index) {
-  if (!confirm("Delete track from global station?")) return;
+  if (!confirm("Delete track?")) return;
   fetch(`/api/playlist/${index}`, { method: 'DELETE' })
     .then(res => res.json())
     .then(data => {
@@ -325,9 +330,7 @@ window.addGlobalSong = function(encodedObj) {
   .then(data => {
     if (data.success) {
       globalPlaylist = data.playlist;
-      if (isAdmin) renderPlaylistUI();
-      document.getElementById("info").innerHTML = `Added to Station`;
-      setTimeout(() => { document.getElementById("info").innerHTML = "📻 Global Live FM"; }, 2500);
+      renderPlaylistUI();
     }
   })
   .catch(err => { alert("Error saving track."); });
@@ -360,9 +363,6 @@ function playSongAtIndex(index, seekTime = 0) {
   if (!song || !song.url) return;
 
   if (song.image) { bgImage.src = song.image; }
-  
-  // Listener view keeps interface clean without song titles on main banner
-  document.getElementById("info").innerHTML = "📻 Global Live FM (On Air)";
 
   audioEl.src = song.url;
   audioEl.currentTime = seekTime;
@@ -374,14 +374,16 @@ function playSongAtIndex(index, seekTime = 0) {
       playing = true;
       render();
     }
-    if (isAdmin) renderPlaylistUI();
-  }).catch(err => { document.getElementById("info").innerHTML = "Tap screen to start audio playback."; });
+    if (document.getElementById("studio-modal").style.display === "flex") {
+      renderPlaylistUI();
+    }
+  }).catch(err => console.log("Playback error"));
 }
 
 // Visualizers
 function emitDot(){ if (dots.length > 80) return; dots.push({ xp: w/2, yp: h/2, xv: Math.random()*0.4-0.2, yv: Math.random()*0.4-0.2, rad: Math.random()*(10-2)+2, hue: Math.random()*50-25 }); }
 function emitLine(){ if (lines.length > 30) return; lines.push({ xp: w/2, yp: h/2, xv: Math.random()*0.4-0.2, yv: Math.random()*0.4-0.2, hue: Math.random()*50-25 }); }
-function clear(){ ctx.beginPath(); var grd = ctx.createLinearGradient(w/2, 0, w/2, h); grd.addColorStop(0, "hsl("+(config.hueStart + npt * config.colorSpeed)+", 35%, 10%"); grd.addColorStop(1, "hsl("+(config.hueStart + npt * config.colorSpeed)+", 75%, 5%"); ctx.fillStyle = grd; ctx.fillRect(0, 0, w, h); ctx.closePath(); }
+function clear(){ ctx.beginPath(); var grd = ctx.createLinearGradient(w/2, 0, w/2, h); grd.addColorStop(0, "hsl("+(config.hueStart + npt * config.colorSpeed)+", 35%, 8%"); grd.addColorStop(1, "hsl("+(config.hueStart + npt * config.colorSpeed)+", 75%, 3%"); ctx.fillStyle = grd; ctx.fillRect(0, 0, w, h); ctx.closePath(); }
 function drawDots(){ var avg = averageFrequency(); for(let i = 0; i < dots.length; i++){ ctx.beginPath(); var grd = ctx.createRadialGradient(dots[i].xp + dots[i].rad, dots[i].yp + dots[i].rad, 0, dots[i].xp + dots[i].rad, dots[i].yp + dots[i].rad, dots[i].rad); grd.addColorStop(0, "hsla("+(config.hueStart + npt * config.colorSpeed + dots[i].hue)+", 50%, 50%, "+(avg / 400)+"%)"); grd.addColorStop(1, "hsla("+(config.hueStart + npt * config.colorSpeed + dots[i].hue)+", 50%, 50%, 0%)"); ctx.fillStyle = grd; ctx.fillRect(dots[i].xp, dots[i].yp, dots[i].rad*2, dots[i].rad*2); ctx.closePath(); if(dots[i].xp > w || dots[i].xp < 0 || dots[i].yp > w || dots[i].yp < 0){ dots[i] = dots[dots.length-1]; dots.pop(); } else { dots[i].xp += dots[i].xv * Math.pow(avg/1000, 1.5); dots[i].yp += dots[i].yv * Math.pow(avg/1000, 1.5); } } }
 function drawLines() { var avg = averageFrequency(); var maxDist = 100; for (let i = 0; i < lines.length; i++) { for (let j = 0; j < lines.length; j++) { var proDist = 100 / maxDist; var opacity = 100 - dist(lines[j].xp, lines[j].yp, lines[i].xp, lines[i].yp) * proDist; if (dist(lines[j].xp, lines[j].yp, lines[i].xp, lines[i].yp) < maxDist) { ctx.beginPath(); ctx.lineWidth = 1; ctx.strokeStyle = "hsla(" + (config.hueStart + npt * config.colorSpeed) + ", 50%, 50%, " + (opacity - 50) + "%)"; ctx.moveTo(lines[i].xp, lines[i].yp); ctx.lineTo(lines[j].xp, lines[j].yp); ctx.stroke(); ctx.closePath(); } } if (lines[i].xp > w || lines[i].xp < 0 || lines[i].yp > w || lines[i].yp < 0) { lines[i] = lines[lines.length - 1]; lines.pop(); } else { lines[i].xp += lines[i].xv * avg/500; lines[i].yp += lines[i].yv * avg/500; } } }
 function getBassPulse() { if (!frequencyData) return 0; var bassSum = 0; for (let i = 0; i < 8; i++) { bassSum += frequencyData[i]; } return bassSum / 8; }
