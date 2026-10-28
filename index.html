@@ -73,7 +73,6 @@ button:hover { background: #ff4785; }
   <button id="live-btn" onclick="playLiveRadio()">🔴 LISTEN LIVE 24/7</button>
 </div>
 
-<!-- Locked audio element to prevent browser notifications/seeking -->
 <audio id="audio-element" crossorigin="anonymous" controlslist="nodownload noplaybackrate" disablepictureinpicture></audio>
 
 <script src="https://codepen.io/Tibixx/pen/BbBxRG.js"></script>
@@ -101,7 +100,6 @@ var playing = false;
 var dotEmitter, lineEmitter;
 var audioEl = document.getElementById("audio-element");
 
-// Disable Chrome Media Session & notification controls completely
 if ('mediaSession' in navigator) {
   navigator.mediaSession.metadata = null;
   ['play', 'pause', 'seekbackward', 'seekforward', 'seekto', 'previoustrack', 'nexttrack'].forEach(action => {
@@ -245,7 +243,7 @@ window.addGlobalSong = function(encodedObj) {
   .catch(err => { alert("Error saving song."); });
 };
 
-// --- TRUE 24/7 GLOBAL MIDNIGHT CLOCK SYNC ALGORITHM ---
+// --- STABLE CONTINUOUS TIME-SYNC ALGORITHM ---
 function playLiveRadio() {
   initAudioContext();
   fetchGlobalPlaylist((playlist) => {
@@ -255,9 +253,10 @@ function playLiveRadio() {
     }
 
     const totalDuration = playlist.reduce((acc, song) => acc + (song.duration || 180), 0);
-    const now = new Date();
-    const secondsSinceMidnight = (now.getHours() * 3600) + (now.getMinutes() * 60) + now.getSeconds();
-    const timeInCycle = secondsSinceMidnight % totalDuration;
+    
+    // Using absolute epoch seconds for continuous sync without jumps or daily resets
+    const currentEpochSeconds = Math.floor(Date.now() / 1000);
+    const timeInCycle = currentEpochSeconds % totalDuration;
 
     let accumulated = 0;
     let targetSong = playlist[0];
@@ -290,7 +289,7 @@ function playLiveRadio() {
   });
 }
 
-// When current song finishes on the clock cycle, re-sync smoothly to the next live track
+// Seamlessly move to the next track when current finishes
 audioEl.addEventListener('ended', () => {
   playLiveRadio();
 });
