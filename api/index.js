@@ -17,7 +17,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// Universal Server Clock & Automatic Queue Loop State Engine
 function updatePlaybackState() {
   if (state.playlist.length === 0) return;
   const currentSong = state.playlist[state.currentIndex] || state.playlist[0];
@@ -107,3 +106,4 @@ app.delete('/api/playlist/:index', (req, res) => {
 });
 
 export default app;
+
