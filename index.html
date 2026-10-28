@@ -180,21 +180,20 @@ function closeStudio() {
   document.getElementById("studio-modal").style.display = "none";
 }
 
-// Polling with sub-second / millisecond drift correction
+// Continuous State Polling for Perfect Sync
 function pollGlobalState() {
   fetch('/api/playlist')
     .then(res => res.json())
     .then(data => {
       globalPlaylist = Array.isArray(data.playlist) ? data.playlist : [];
       let newIndex = data.currentIndex || 0;
-      let seekTime = data.seekTime || 0; // Float seconds with millisecond precision
+      let seekTime = data.seekTime || 0;
       
       if (document.getElementById("studio-modal").style.display === "flex") {
         renderPlaylistUI();
       }
 
       if (playing && globalPlaylist.length > 0) {
-        // Re-sync if track changed or drift exceeds 400ms (0.4s)
         if (newIndex !== activeIndex || Math.abs(audioEl.currentTime - seekTime) > 0.4) {
           activeIndex = newIndex;
           playSongAtIndex(activeIndex, seekTime);
@@ -205,6 +204,11 @@ function pollGlobalState() {
 }
 
 setInterval(pollGlobalState, 2000);
+
+// Audio ended fallback trigger for continuous endless looping
+audioEl.addEventListener('ended', () => {
+  pollGlobalState();
+});
 
 function renderPlaylistUI() {
   const container = document.getElementById("playlist-container");
