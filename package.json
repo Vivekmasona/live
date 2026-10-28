@@ -1,0 +1,13 @@
+{
+  "name": "global-live-fm",
+  "version": "1.0.0",
+  "description": "24/7 Global Live FM Radio with Vercel KV and SVN API",
+  "main": "index.html",
+  "dependencies": {
+    "@vercel/kv": "^1.0.1"
+  },
+  "engines": {
+    "node": ">=18.x"
+  },
+  "private": true
+}
