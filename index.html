@@ -21,7 +21,7 @@ canvas { position: fixed; inset: 0; z-index: 1; }
 .badge { background: #1f1f26; padding: 5px 12px; border-radius: 15px; font-size: 11px; color: #aaa; border: 1px solid #333; }
 .live-dot { width: 10px; height: 10px; background: #ff2a74; border-radius: 50%; box-shadow: 0 0 10px #ff2a74; }
 
-/* Fullscreen Modern Admin Studio Console Modal */
+/* Admin Studio Console Modal */
 #studio-modal {
   position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 100;
   display: none; align-items: center; justify-content: center; backdrop-filter: blur(15px);
@@ -45,7 +45,6 @@ button {
 }
 button:hover { background: #ff4785; }
 
-/* Fallback Listen Live Button (if browser blocks autoplay) */
 #controls {
   position: fixed; bottom: 35px; left: 50%; transform: translateX(-50%);
   z-index: 30; display: none;
@@ -78,12 +77,12 @@ button:hover { background: #ff4785; }
   </div>
 </div>
 
-<!-- Fallback Play Button if browser policy restricts autoplay -->
+<!-- Fallback Play Button -->
 <div id="controls">
   <button id="live-btn" onclick="startLiveAudio()">🔴 TAP TO START LIVE FM</button>
 </div>
 
-<!-- Fullscreen Modern Admin Studio Console Modal -->
+<!-- Admin Studio Console Modal -->
 <div id="studio-modal">
   <div class="studio-container">
     <div class="studio-title">
@@ -187,6 +186,7 @@ function closeStudio() {
   document.getElementById("studio-modal").style.display = "none";
 }
 
+// Strict Server Polling Synchronization (har 2 second me check karega ki server par kaun sa song aur kaun sa time chal raha hai)
 function pollGlobalState() {
   fetch('/api/playlist')
     .then(res => res.json())
@@ -205,7 +205,8 @@ function pollGlobalState() {
           activeIndex = newIndex;
           playSongAtIndex(activeIndex, seekTime);
         } else {
-          if (Math.abs(audioEl.currentTime - seekTime) > 3) {
+          // Agar kisi device me time 2 second se zyada drift ho jaye toh use server time par snap kar do
+          if (Math.abs(audioEl.currentTime - seekTime) > 2) {
             audioEl.currentTime = seekTime;
           }
         }
@@ -214,7 +215,7 @@ function pollGlobalState() {
     .catch(err => console.error("Sync error:", err));
 }
 
-setInterval(pollGlobalState, 3000);
+setInterval(pollGlobalState, 2000);
 
 function renderPlaylistUI() {
   const container = document.getElementById("playlist-container");
@@ -312,7 +313,6 @@ window.addGlobalSong = function(encodedObj) {
   .catch(err => { alert("Error saving track."); });
 };
 
-// Automatic Play on page load (Live FM style)
 window.addEventListener('load', () => {
   autoPlayLiveRadio();
 });
@@ -330,7 +330,6 @@ function autoPlayLiveRadio() {
       playSongAtIndex(activeIndex, data.seekTime || 0);
     })
     .catch(err => {
-      // If browser blocks autoplay, show fallback button
       document.getElementById("controls").style.display = "block";
     });
 }
@@ -364,7 +363,6 @@ function playSongAtIndex(index, seekTime = 0) {
       renderPlaylistUI();
     }
   }).catch(err => {
-    // Show fallback play button if browser policy blocks
     document.getElementById("controls").style.display = "block";
   });
 }
