@@ -1,8 +1,10 @@
 import express from 'express';
-import { kv } from '@vercel/kv';
 
 const app = express();
 app.use(express.json());
+
+// In-memory fallback / lightweight global storage array
+let globalPlaylist = [];
 
 // CORS Middleware
 app.use((req, res, next) => {
@@ -13,11 +15,11 @@ app.use((req, res, next) => {
   next();
 });
 
-// 1. Search Endpoint (SVN API integration)
+// 1. Search Endpoint (SVN API)
 app.get('/api/search', async (req, res) => {
   try {
     const query = req.query.q;
-    if (!query) return res.status(400).json({ error: 'Search query is required' });
+    if (!query) return res.status(400).json({ error: 'Query required' });
 
     const svnRes = await fetch(`https://svn-vivekfy.vercel.app/search/songs?query=${encodeURIComponent(query)}`);
     const svnData = await svnRes.json();
@@ -36,52 +38,31 @@ app.get('/api/search', async (req, res) => {
   }
 });
 
-// 2. Get Playlist Endpoint
-app.get('/api/playlist', async (req, res) => {
-  try {
-    let playlist = await kv.get('global_fm_playlist');
-    res.json(playlist || []);
-  } catch (err) {
-    res.json([]);
-  }
+// 2. Get Playlist
+app.get('/api/playlist', (req, res) => {
+  res.json(globalPlaylist);
 });
 
-// 3. Add Song Endpoint
-app.post('/api/playlist', async (req, res) => {
-  try {
-    const newSong = req.body;
-    if (!newSong.url || !newSong.title) {
-      return res.status(400).json({ error: 'Invalid song data' });
-    }
-
-    let playlist = await kv.get('global_fm_playlist');
-    if (!playlist) playlist = [];
-
-    if (!playlist.some(s => s.url === newSong.url)) {
-      playlist.push(newSong);
-      await kv.set('global_fm_playlist', playlist);
-    }
-    res.json({ success: true, playlist });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+// 3. Add Song (Save)
+app.post('/api/playlist', (req, res) => {
+  const newSong = req.body;
+  if (!newSong.url || !newSong.title) {
+    return res.status(400).json({ error: 'Invalid song data' });
   }
+
+  if (!globalPlaylist.some(s => s.url === newSong.url)) {
+    globalPlaylist.push(newSong);
+  }
+  res.json({ success: true, playlist: globalPlaylist });
 });
 
-// 4. Delete Song Endpoint
-app.delete('/api/playlist/:index', async (req, res) => {
-  try {
-    const index = parseInt(req.params.index);
-    let playlist = await kv.get('global_fm_playlist');
-    if (!playlist) playlist = [];
-
-    if (index >= 0 && index < playlist.length) {
-      playlist.splice(index, 1);
-      await kv.set('global_fm_playlist', playlist);
-    }
-    res.json({ success: true, playlist });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+// 4. Delete Song
+app.delete('/api/playlist/:index', (req, res) => {
+  const index = parseInt(req.params.index);
+  if (index >= 0 && index < globalPlaylist.length) {
+    globalPlaylist.splice(index, 1);
   }
+  res.json({ success: true, playlist: globalPlaylist });
 });
 
 export default app;
