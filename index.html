@@ -45,7 +45,9 @@ button:hover { background: #ff4785; }
 .item-card {
   background: #222; padding: 10px; margin-bottom: 8px; border-radius: 8px;
   font-size: 13px; display: flex; justify-content: space-between; align-items: center;
+  cursor: pointer; transition: 0.2s;
 }
+.item-card:hover { background: #333; }
 .item-info { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 10px; flex: 1; }
 .delete-btn { background: #ff4757; padding: 5px 10px; font-size: 11px; }
 </style>
@@ -59,9 +61,10 @@ button:hover { background: #ff4785; }
 
 <div class="panel" id="admin-panel">
   <h3 style="margin:0 0 10px 0; font-size:15px; color:#ff2a74;">🔒 Admin Studio</h3>
+  <p style="font-size:11px; color:#aaa; margin:0 0 8px 0;">Tip: Click any song in the queue below to play it instantly for everyone!</p>
   <input type="text" id="query-input" placeholder="Search song name...">
   <button id="search-btn" style="width:100%;">Search via Backend</button>
-  <div id="search-results" style="margin-top:12px; max-height:160px; overflow-y:auto;"></div>
+  <div id="search-results" style="margin-top:12px; max-height:150px; overflow-y:auto;"></div>
 </div>
 
 <div class="panel" id="playlist-panel">
@@ -123,18 +126,34 @@ function initAudioContext() {
 }
 
 let globalPlaylist = [];
+let activeIndex = 0;
 let isAdmin = false;
+let lastSyncedIndex = -1;
 
-function fetchGlobalPlaylist(callback) {
+// Fetch and sync state periodically
+function pollGlobalState() {
   fetch('/api/playlist')
     .then(res => res.json())
     .then(data => {
-      globalPlaylist = Array.isArray(data) ? data : [];
+      globalPlaylist = Array.isArray(data.playlist) ? data.playlist : [];
+      let newIndex = data.currentIndex || 0;
+      let seekTime = data.seekTime || 0;
+      
       renderPlaylistUI();
-      if (callback) callback(globalPlaylist);
+
+      // If playing and station index changed on server, sync immediately
+      if (playing) {
+        if (newIndex !== lastSyncedIndex) {
+          lastSyncedIndex = newIndex;
+          activeIndex = newIndex;
+          playSongAtIndex(activeIndex, seekTime);
+        }
+      }
     })
-    .catch(err => console.error("Error fetching playlist:", err));
+    .catch(err => console.error("Sync error:", err));
 }
+
+setInterval(pollGlobalState, 3000);
 
 function renderPlaylistUI() {
   const container = document.getElementById("playlist-container");
@@ -145,10 +164,12 @@ function renderPlaylistUI() {
 
   let html = "";
   globalPlaylist.forEach((song, index) => {
+    let highlight = (index === activeIndex) ? "border: 1px solid #2ed573; background:#112211;" : "";
+    let clickAction = isAdmin ? `onclick="adminSelectSong(${index})"` : "";
     html += `
-      <div class="item-card">
-        <div class="item-info" title="${song.title}">${song.title}</div>
-        <button class="delete-btn" onclick="deleteGlobalSong(${index})" style="display:none;" id="del-btn-${index}">X</button>
+      <div class="item-card" style="${highlight}" ${clickAction} title="${isAdmin ? 'Click to play this song for everyone' : ''}">
+        <div class="item-info">${index === activeIndex ? '▶ ' : ''}${song.title}</div>
+        <button class="delete-btn" onclick="event.stopPropagation(); deleteGlobalSong(${index})" style="display:none;" id="del-btn-${index}">X</button>
       </div>
     `;
   });
@@ -168,7 +189,7 @@ function toggleAdmin() {
       panel.style.display = "block";
       isAdmin = true;
       updateAdminUI();
-      alert("Admin Mode Unlocked!");
+      alert("Admin Mode Unlocked! Click any song in queue to broadcast it.");
     } else {
       alert("Wrong Password!");
     }
@@ -181,12 +202,30 @@ function updateAdminUI() {
   });
 }
 
+// Admin clicks song to play instantly for all users
+function adminSelectSong(index) {
+  if (!isAdmin) return;
+  fetch('/api/play', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ index: index })
+  })
+  .then(res => res.json())
+  .then(data => {
+    activeIndex = data.currentIndex;
+    lastSyncedIndex = activeIndex;
+    playSongAtIndex(activeIndex, 0);
+  });
+}
+
 function deleteGlobalSong(index) {
   if (!confirm("Delete this song?")) return;
   fetch(`/api/playlist/${index}`, { method: 'DELETE' })
     .then(res => res.json())
     .then(data => {
       globalPlaylist = data.playlist;
+      activeIndex = data.currentIndex;
+      lastSyncedIndex = activeIndex;
       renderPlaylistUI();
     });
 }
@@ -243,58 +282,45 @@ window.addGlobalSong = function(encodedObj) {
   .catch(err => { alert("Error saving song."); });
 };
 
-// --- STABLE CONTINUOUS TIME-SYNC ALGORITHM ---
 function playLiveRadio() {
   initAudioContext();
-  fetchGlobalPlaylist((playlist) => {
-    if (playlist.length === 0) {
-      alert("Global playlist is empty! Admin needs to add songs.");
-      return;
-    }
-
-    const totalDuration = playlist.reduce((acc, song) => acc + (song.duration || 180), 0);
-    
-    // Using absolute epoch seconds for continuous sync without jumps or daily resets
-    const currentEpochSeconds = Math.floor(Date.now() / 1000);
-    const timeInCycle = currentEpochSeconds % totalDuration;
-
-    let accumulated = 0;
-    let targetSong = playlist[0];
-    let seekTime = 0;
-
-    for (let i = 0; i < playlist.length; i++) {
-      const songDur = playlist[i].duration || 180;
-      if (timeInCycle < accumulated + songDur) {
-        targetSong = playlist[i];
-        seekTime = timeInCycle - accumulated;
-        break;
+  fetch('/api/playlist')
+    .then(res => res.json())
+    .then(data => {
+      globalPlaylist = Array.isArray(data.playlist) ? data.playlist : [];
+      if (globalPlaylist.length === 0) {
+        alert("Global playlist is empty! Admin needs to add songs.");
+        return;
       }
-      accumulated += songDur;
-    }
-
-    if (targetSong.image) { bgImage.src = targetSong.image; }
-    document.getElementById("info").innerHTML = `🔴 LIVE: ${targetSong.title}`;
-
-    audioEl.src = targetSong.url;
-    audioEl.currentTime = seekTime;
-
-    audioEl.play().then(() => {
-      if (!playing) {
-        dotEmitter = setInterval(emitDot, 50);
-        lineEmitter = setInterval(emitLine, 100);
-        playing = true;
-        render();
-      }
-    }).catch(err => { document.getElementById("info").innerHTML = "Tap screen to start audio playback."; });
-  });
+      activeIndex = data.currentIndex || 0;
+      lastSyncedIndex = activeIndex;
+      playSongAtIndex(activeIndex, data.seekTime || 0);
+    });
 }
 
-// Seamlessly move to the next track when current finishes
-audioEl.addEventListener('ended', () => {
-  playLiveRadio();
-});
+function playSongAtIndex(index, seekTime = 0) {
+  if (globalPlaylist.length === 0) return;
+  activeIndex = index % globalPlaylist.length;
+  const song = globalPlaylist[activeIndex];
 
-fetchGlobalPlaylist();
+  if (!song || !song.url) return;
+
+  if (song.image) { bgImage.src = song.image; }
+  document.getElementById("info").innerHTML = `🔴 LIVE: ${song.title}`;
+
+  audioEl.src = song.url;
+  audioEl.currentTime = seekTime;
+
+  audioEl.play().then(() => {
+    if (!playing) {
+      dotEmitter = setInterval(emitDot, 50);
+      lineEmitter = setInterval(emitLine, 100);
+      playing = true;
+      render();
+    }
+    renderPlaylistUI();
+  }).catch(err => { document.getElementById("info").innerHTML = "Tap screen to start audio playback."; });
+}
 
 // Visualizers
 function emitDot(){ if (dots.length > 80) return; dots.push({ xp: w/2, yp: h/2, xv: Math.random()*0.4-0.2, yv: Math.random()*0.4-0.2, rad: Math.random()*(10-2)+2, hue: Math.random()*50-25 }); }
