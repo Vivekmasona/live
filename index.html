@@ -21,7 +21,7 @@ canvas { position: fixed; inset: 0; z-index: 1; }
 .badge { background: #1f1f26; padding: 5px 12px; border-radius: 15px; font-size: 11px; color: #aaa; border: 1px solid #333; }
 .live-dot { width: 10px; height: 10px; background: #ff2a74; border-radius: 50%; box-shadow: 0 0 10px #ff2a74; }
 
-/* Admin Studio Unique Console Modal */
+/* Admin Studio Console Modal */
 #studio-modal {
   position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100;
   display: none; align-items: center; justify-content: center; backdrop-filter: blur(12px);
@@ -48,7 +48,6 @@ button:hover { background: #ff4785; }
 .sub-btn { background: #2a2a35; padding: 10px; border-radius: 8px; font-size: 13px; text-align: center; }
 .sub-btn:hover { background: #3a3a48; }
 
-/* Listener Clean Bottom Button */
 #controls {
   position: fixed; bottom: 35px; left: 50%; transform: translateX(-50%);
   z-index: 30;
@@ -60,9 +59,9 @@ button:hover { background: #ff4785; }
 }
 #live-btn:hover { background: #26af5f; }
 
-/* Studio Controls Layout inside Modal */
 .studio-row { width: 100%; display: flex; align-items: center; gap: 10px; }
-input[type="range"] { flex: 1; accent-color: #ff2a74; cursor: pointer; height: 5px; background: #333; border-radius: 5px; }
+input[type="range"] { flex: 1; accent-color: #ff2a74; cursor: pointer; height: 5px; background: #333; border-radius: 5px; pointer-events: none; } /* Locked seekbar for global sync */
+input[type="range"].volume-slider { pointer-events: auto; } /* Active volume */
 
 .item-card {
   background: #1c1c24; padding: 10px; border-radius: 8px;
@@ -78,7 +77,7 @@ input[type="range"] { flex: 1; accent-color: #ff2a74; cursor: pointer; height: 5
 
 <canvas id="canvas"></canvas>
 
-<!-- Top Header (Long press on "Bihar FM Studio" to open Admin Studio Console) -->
+<!-- Top Header (Long press on "Bihar FM Studio" for Admin Password) -->
 <div id="studio-header">
   <div class="brand-title" id="brand-title">Bihar FM Studio</div>
   <div style="display:flex; gap:10px; align-items:center;">
@@ -87,12 +86,11 @@ input[type="range"] { flex: 1; accent-color: #ff2a74; cursor: pointer; height: 5
   </div>
 </div>
 
-<!-- Clean Listener Controls -->
 <div id="controls">
   <button id="live-btn" onclick="playLiveRadio()">🔴 LISTEN LIVE</button>
 </div>
 
-<!-- Admin Studio Unique Console Modal (All Controls Inside) -->
+<!-- Admin Studio Console Modal -->
 <div id="studio-modal">
   <div class="studio-container">
     <div class="studio-title">
@@ -100,7 +98,6 @@ input[type="range"] { flex: 1; accent-color: #ff2a74; cursor: pointer; height: 5
       <button onclick="closeStudio()" style="background:#333; padding:4px 10px; font-size:11px;">✕</button>
     </div>
     
-    <!-- Search Box & Results -->
     <div style="font-size:12px; color:#aaa;">Search tracks via SVN API & Save to Queue:</div>
     <div style="display:flex; gap:8px;">
       <input type="text" id="query-input" placeholder="Search song name...">
@@ -108,15 +105,14 @@ input[type="range"] { flex: 1; accent-color: #ff2a74; cursor: pointer; height: 5
     </div>
     <div id="search-results" style="max-height:120px; overflow-y:auto;"></div>
 
-    <!-- Master Queue List -->
     <div style="border-top:1px solid #2a2a35; padding-top:8px;">
       <div style="font-size:13px; color:#2ed573; margin-bottom:6px; font-weight:bold;">🎶 Master Station Queue</div>
       <div id="playlist-container" style="max-height:140px; overflow-y:auto; font-size:12px; color:#aaa;">Loading queue...</div>
     </div>
 
-    <!-- Seek Bar & Timing -->
+    <!-- Global Synced Seek Bar (Locked from manual user skipping) -->
     <div style="border-top:1px solid #2a2a35; padding-top:10px; display:flex; flex-direction:column; gap:6px;">
-      <div style="font-size:12px; color:#ff2a74; font-weight:bold;">⏱️ Live Seek Bar</div>
+      <div style="font-size:12px; color:#ff2a74; font-weight:bold;">⏱️ Global Live Progress</div>
       <div class="studio-row">
         <span style="font-size:11px; color:#aaa;" id="current-time">0:00</span>
         <input type="range" id="seek-bar" value="0" max="100" step="1">
@@ -127,11 +123,11 @@ input[type="range"] { flex: 1; accent-color: #ff2a74; cursor: pointer; height: 5
     <!-- Volume & Mute Control -->
     <div class="studio-row" style="background:#1a1a22; padding:8px 12px; border-radius:8px;">
       <span style="font-size:12px; color:#aaa;">🔊 Volume</span>
-      <input type="range" id="volume-bar" min="0" max="1" step="0.05" value="1">
+      <input type="range" id="volume-bar" class="volume-slider" min="0" max="1" step="0.05" value="1">
       <button class="sub-btn" onclick="toggleMute()" id="mute-btn" style="padding:5px 10px; font-size:11px;">Mute</button>
     </div>
 
-    <!-- Master Action Buttons (Play/Pause, Skip) -->
+    <!-- Master Action Buttons -->
     <div style="display:flex; gap:8px; border-top:1px solid #2a2a35; padding-top:10px;">
       <button class="sub-btn" style="flex:1;" onclick="adminSkip()">⏭️ Skip Next</button>
       <button class="sub-btn" style="flex:1;" onclick="togglePlayPause()" id="pause-play-btn">⏸️ Pause</button>
@@ -192,7 +188,7 @@ let globalPlaylist = [];
 let activeIndex = 0;
 let lastSyncedIndex = -1;
 
-// Long Press on "Bihar FM Studio" Header for Admin Password
+// Long Press on Header for Admin Password
 let pressTimer;
 const brandTitle = document.getElementById("brand-title");
 
@@ -238,6 +234,11 @@ function pollGlobalState() {
           lastSyncedIndex = newIndex;
           activeIndex = newIndex;
           playSongAtIndex(activeIndex, seekTime);
+        } else {
+          // Continuous drift correction for absolute sync without manual jumping
+          if (Math.abs(audioEl.currentTime - seekTime) > 3) {
+            audioEl.currentTime = seekTime;
+          }
         }
       }
     })
@@ -246,7 +247,7 @@ function pollGlobalState() {
 
 setInterval(pollGlobalState, 3000);
 
-// Volume & Seekbar Controls inside Studio
+// Volume & Seekbar Display
 const volumeBar = document.getElementById("volume-bar");
 volumeBar.addEventListener("input", (e) => {
   audioEl.volume = e.target.value;
@@ -462,3 +463,4 @@ function averageFrequency() { var avg = 0; for (let i = 0; i < frequencyData.len
 
 </body>
 </html>
+
