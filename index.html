@@ -48,7 +48,6 @@ button:hover { background: #ff4785; }
 }
 .item-info { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 10px; flex: 1; }
 .delete-btn { background: #ff4757; padding: 5px 10px; font-size: 11px; }
-.admin-controls { margin-top: 15px; border-top: 1px solid #333; padding-top: 10px; display: none; }
 </style>
 </head>
 <body>
@@ -58,19 +57,13 @@ button:hover { background: #ff4785; }
 
 <button id="admin-toggle" onclick="toggleAdmin()">⚙️ Admin Mode</button>
 
-<!-- Admin Panel -->
 <div class="panel" id="admin-panel">
-  <h3 style="margin:0 0 10px 0; font-size:15px; color:#ff2a74;">🔒 Admin Studio (DJ Mode)</h3>
+  <h3 style="margin:0 0 10px 0; font-size:15px; color:#ff2a74;">🔒 Admin Studio</h3>
   <input type="text" id="query-input" placeholder="Search song name...">
   <button id="search-btn" style="width:100%;">Search via Backend</button>
-  <div id="search-results" style="margin-top:12px; max-height:140px; overflow-y:auto;"></div>
-  
-  <div class="admin-controls" id="admin-dj-controls">
-    <button onclick="adminSkipSong()" style="width:100%; background:#2ed573; color:#000;">⏭️ Skip to Next Song</button>
-  </div>
+  <div id="search-results" style="margin-top:12px; max-height:160px; overflow-y:auto;"></div>
 </div>
 
-<!-- Global Playlist Panel -->
 <div class="panel" id="playlist-panel">
   <h3 style="margin:0 0 10px 0; font-size:15px; color:#2ed573;">🎶 Global Station Queue</h3>
   <div id="playlist-container" style="font-size:13px; color:#aaa;">Loading queue...</div>
@@ -80,6 +73,7 @@ button:hover { background: #ff4785; }
   <button id="live-btn" onclick="playLiveRadio()">🔴 LISTEN LIVE 24/7</button>
 </div>
 
+<!-- Locked audio element to prevent browser notifications/seeking -->
 <audio id="audio-element" crossorigin="anonymous" controlslist="nodownload noplaybackrate" disablepictureinpicture></audio>
 
 <script src="https://codepen.io/Tibixx/pen/BbBxRG.js"></script>
@@ -107,6 +101,7 @@ var playing = false;
 var dotEmitter, lineEmitter;
 var audioEl = document.getElementById("audio-element");
 
+// Disable Chrome Media Session & notification controls completely
 if ('mediaSession' in navigator) {
   navigator.mediaSession.metadata = null;
   ['play', 'pause', 'seekbackward', 'seekforward', 'seekto', 'previoustrack', 'nexttrack'].forEach(action => {
@@ -130,15 +125,13 @@ function initAudioContext() {
 }
 
 let globalPlaylist = [];
-let currentIndex = 0;
 let isAdmin = false;
 
 function fetchGlobalPlaylist(callback) {
   fetch('/api/playlist')
     .then(res => res.json())
     .then(data => {
-      globalPlaylist = Array.isArray(data.playlist) ? data.playlist : [];
-      currentIndex = data.currentIndex || 0;
+      globalPlaylist = Array.isArray(data) ? data : [];
       renderPlaylistUI();
       if (callback) callback(globalPlaylist);
     })
@@ -154,10 +147,9 @@ function renderPlaylistUI() {
 
   let html = "";
   globalPlaylist.forEach((song, index) => {
-    let activeStyle = (index === currentIndex) ? "border: 1px solid #2ed573;" : "";
     html += `
-      <div class="item-card" style="${activeStyle}">
-        <div class="item-info" title="${song.title}">${index === currentIndex ? '▶ ' : ''}${song.title}</div>
+      <div class="item-card">
+        <div class="item-info" title="${song.title}">${song.title}</div>
         <button class="delete-btn" onclick="deleteGlobalSong(${index})" style="display:none;" id="del-btn-${index}">X</button>
       </div>
     `;
@@ -168,15 +160,14 @@ function renderPlaylistUI() {
 
 function toggleAdmin() {
   const panel = document.getElementById("admin-panel");
-  const djControls = document.getElementById("admin-dj-controls");
   if (panel.style.display === "block") {
     panel.style.display = "none";
+    isAdmin = false;
     updateAdminUI();
   } else {
     let pass = prompt("Enter Admin Password:");
     if (pass === "admin123") {
       panel.style.display = "block";
-      djControls.style.display = "block";
       isAdmin = true;
       updateAdminUI();
       alert("Admin Mode Unlocked!");
@@ -190,7 +181,6 @@ function updateAdminUI() {
   document.querySelectorAll(".delete-btn").forEach(el => {
     el.style.display = isAdmin ? "block" : "none";
   });
-  document.getElementById("admin-dj-controls").style.display = isAdmin ? "block" : "none";
 }
 
 function deleteGlobalSong(index) {
@@ -199,28 +189,8 @@ function deleteGlobalSong(index) {
     .then(res => res.json())
     .then(data => {
       globalPlaylist = data.playlist;
-      currentIndex = data.currentIndex;
       renderPlaylistUI();
     });
-}
-
-// Admin Skip / Next Song Control
-function adminSkipSong() {
-  if (globalPlaylist.length === 0) return;
-  let nextIdx = (currentIndex + 1) % globalPlaylist.length;
-  
-  fetch('/api/control', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ index: nextIdx })
-  })
-  .then(res => res.json())
-  .then(data => {
-    globalPlaylist = data.playlist;
-    currentIndex = data.currentIndex;
-    renderPlaylistUI();
-    playSongAtIndex(currentIndex, 0);
-  });
 }
 
 document.getElementById("search-btn").addEventListener("click", () => {
@@ -267,7 +237,6 @@ window.addGlobalSong = function(encodedObj) {
   .then(data => {
     if (data.success) {
       globalPlaylist = data.playlist;
-      currentIndex = data.currentIndex;
       renderPlaylistUI();
       document.getElementById("info").innerHTML = `Saved: ${songData.title}`;
       setTimeout(() => { document.getElementById("info").innerHTML = "🔴 LISTEN LIVE 24/7"; }, 3000);
@@ -276,6 +245,7 @@ window.addGlobalSong = function(encodedObj) {
   .catch(err => { alert("Error saving song."); });
 };
 
+// --- TRUE 24/7 GLOBAL MIDNIGHT CLOCK SYNC ALGORITHM ---
 function playLiveRadio() {
   initAudioContext();
   fetchGlobalPlaylist((playlist) => {
@@ -283,48 +253,46 @@ function playLiveRadio() {
       alert("Global playlist is empty! Admin needs to add songs.");
       return;
     }
-    playSongAtIndex(currentIndex, 0);
+
+    const totalDuration = playlist.reduce((acc, song) => acc + (song.duration || 180), 0);
+    const now = new Date();
+    const secondsSinceMidnight = (now.getHours() * 3600) + (now.getMinutes() * 60) + now.getSeconds();
+    const timeInCycle = secondsSinceMidnight % totalDuration;
+
+    let accumulated = 0;
+    let targetSong = playlist[0];
+    let seekTime = 0;
+
+    for (let i = 0; i < playlist.length; i++) {
+      const songDur = playlist[i].duration || 180;
+      if (timeInCycle < accumulated + songDur) {
+        targetSong = playlist[i];
+        seekTime = timeInCycle - accumulated;
+        break;
+      }
+      accumulated += songDur;
+    }
+
+    if (targetSong.image) { bgImage.src = targetSong.image; }
+    document.getElementById("info").innerHTML = `🔴 LIVE: ${targetSong.title}`;
+
+    audioEl.src = targetSong.url;
+    audioEl.currentTime = seekTime;
+
+    audioEl.play().then(() => {
+      if (!playing) {
+        dotEmitter = setInterval(emitDot, 50);
+        lineEmitter = setInterval(emitLine, 100);
+        playing = true;
+        render();
+      }
+    }).catch(err => { document.getElementById("info").innerHTML = "Tap screen to start audio playback."; });
   });
 }
 
-function playSongAtIndex(index, seekTime = 0) {
-  if (globalPlaylist.length === 0) return;
-  currentIndex = index % globalPlaylist.length;
-  const song = globalPlaylist[currentIndex];
-
-  if (song.image) { bgImage.src = song.image; }
-  document.getElementById("info").innerHTML = `🔴 LIVE: ${song.title}`;
-
-  audioEl.src = song.url;
-  audioEl.currentTime = seekTime;
-
-  audioEl.play().then(() => {
-    if (!playing) {
-      dotEmitter = setInterval(emitDot, 50);
-      lineEmitter = setInterval(emitLine, 100);
-      playing = true;
-      render();
-    }
-    renderPlaylistUI();
-  }).catch(err => { document.getElementById("info").innerHTML = "Tap screen to start audio playback."; });
-}
-
-// When song ends naturally, play next song from 0 seconds smoothly
+// When current song finishes on the clock cycle, re-sync smoothly to the next live track
 audioEl.addEventListener('ended', () => {
-  if (globalPlaylist.length > 0) {
-    let nextIdx = (currentIndex + 1) % globalPlaylist.length;
-    fetch('/api/control', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ index: nextIdx })
-    })
-    .then(res => res.json())
-    .then(data => {
-      globalPlaylist = data.playlist;
-      currentIndex = data.currentIndex;
-      playSongAtIndex(currentIndex, 0);
-    });
-  }
+  playLiveRadio();
 });
 
 fetchGlobalPlaylist();
@@ -351,7 +319,7 @@ function drawSpectrum() {
     var y3 = h / 2 + ((dynamicZoom) + Math.pow((avg * config.multiplier) * 0.09, 2)) * Math.sin(-Math.PI/2 + 2 * Math.PI * i / points + noiseRotate); 
     var nd1 = noise.simplex2(y1/100, npt)*10; 
     ctx.beginPath(); ctx.lineCap = "round"; ctx.lineWidth = 1.5; ctx.strokeStyle = "hsla("+(config.hueStart + npt * config.colorSpeed)+", 50%, "+(20+(Math.pow(avg * 3, 2)))+"%, 100%)"; ctx.moveTo(x1+nd1, y1+nd1); ctx.lineTo(x2+nd1, y2+nd1); ctx.stroke(); ctx.closePath(); 
-    ctx.beginPath(); ctx.lineCard = "round"; ctx.lineWidth = 3.5; ctx.strokeStyle = "hsla("+(config.hueStart + npt * config.colorSpeed)+", 50%, "+(30+(Math.pow(avg * 3, 2)))+"%, 100%)"; ctx.moveTo(x1+nd1, y1+nd1); ctx.lineTo(x3+nd1, y3+nd1); ctx.stroke(); ctx.closePath(); 
+    ctx.beginPath(); ctx.lineCap = "round"; ctx.lineWidth = 3.5; ctx.strokeStyle = "hsla("+(config.hueStart + npt * config.colorSpeed)+", 50%, "+(30+(Math.pow(avg * 3, 2)))+"%, 100%)"; ctx.moveTo(x1+nd1, y1+nd1); ctx.lineTo(x3+nd1, y3+nd1); ctx.stroke(); ctx.closePath(); 
   } 
 }
 function render() { if (!playing) return; clear(); drawDots(); drawSpectrum(); drawLines(); requestAnimationFrame(render); }
