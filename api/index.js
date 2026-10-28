@@ -5,8 +5,8 @@ const app = express();
 app.use(express.json());
 
 const TMP_FILE = '/tmp/fm_station_state.json';
+const DEVELOPER_NAME = "Vivek Masona";
 
-// Load state from /tmp storage to prevent automatic clearing on server idle/cold start
 function loadState() {
   try {
     if (fs.existsSync(TMP_FILE)) {
@@ -22,7 +22,6 @@ function loadState() {
   };
 }
 
-// Save state safely to /tmp storage
 function saveState(state) {
   try {
     fs.writeFileSync(TMP_FILE, JSON.stringify(state), 'utf8');
@@ -35,6 +34,7 @@ app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,DELETE,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('X-Developer', DEVELOPER_NAME); // Added Developer Header
   if (req.method === 'OPTIONS') return res.status(200).end();
   next();
 });
@@ -42,12 +42,12 @@ app.use((req, res, next) => {
 function getLivePlaybackState() {
   let state = loadState();
   if (!state.playlist || state.playlist.length === 0) {
-    return { playlist: [], currentIndex: 0, seekTime: 0 };
+    return { developer: DEVELOPER_NAME, playlist: [], currentIndex: 0, seekTime: 0 };
   }
 
   const totalPlaylistDurationMs = state.playlist.reduce((acc, song) => acc + ((song.duration || 180) * 1000), 0);
   if (totalPlaylistDurationMs <= 0) {
-    return { playlist: state.playlist, currentIndex: 0, seekTime: 0 };
+    return { developer: DEVELOPER_NAME, playlist: state.playlist, currentIndex: 0, seekTime: 0 };
   }
 
   const elapsedMs = Math.max(0, Date.now() - state.stationStartTime);
@@ -68,6 +68,7 @@ function getLivePlaybackState() {
   }
 
   return {
+    developer: DEVELOPER_NAME,
     playlist: state.playlist,
     currentIndex: currentIndex,
     seekTime: parseFloat(seekTimeSec.toFixed(3))
@@ -91,7 +92,7 @@ app.get('/api/search', async (req, res) => {
       duration: 180
     })).filter(s => s.url);
 
-    res.json({ results: cleanSongs });
+    res.json({ developer: DEVELOPER_NAME, results: cleanSongs });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -143,7 +144,3 @@ app.delete('/api/playlist/:index', (req, res) => {
 });
 
 export default app;
-
-
-
-
