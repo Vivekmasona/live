@@ -147,10 +147,10 @@ button:hover { background: #ff4785; }
 
 <button id="admin-toggle" onclick="toggleAdmin()">⚙️ Admin Mode</button>
 
-<!-- Admin Panel (Only for You) -->
+<!-- Admin Panel -->
 <div class="panel" id="admin-panel">
   <h3 style="margin:0 0 10px 0; font-size:15px; color:#ff2a74;">🔒 Admin Studio</h3>
-  <input type="text" id="query-input" placeholder="Search song via backend...">
+  <input type="text" id="query-input" placeholder="Search song name...">
   <button id="search-btn" style="width:100%;">Search SVN API</button>
   <div id="search-results" style="margin-top:12px; max-height:160px; overflow-y:auto;"></div>
 </div>
@@ -260,7 +260,7 @@ function toggleAdmin() {
     updateAdminUI();
   } else {
     let pass = prompt("Enter Admin Password:");
-    if (pass === "admin123") { // Yahan aap apna password badal sakte hain
+    if (pass === "admin123") {
       panel.style.display = "block";
       updateAdminUI();
       alert("Admin Mode Unlocked!");
@@ -290,18 +290,18 @@ function deleteGlobalSong(index) {
     });
 }
 
-// --- ADMIN SEARCH VIA BACKEND ---
+// --- DIRECT SVN API SEARCH ---
 document.getElementById("search-btn").addEventListener("click", () => {
   const query = document.getElementById("query-input").value.trim();
   if (!query) return;
 
   const resultsContainer = document.getElementById("search-results");
-  resultsContainer.innerHTML = "Searching via API...";
+  resultsContainer.innerHTML = "Searching...";
 
-  fetch(`/api/playlist?search=${encodeURIComponent(query)}`)
+  fetch(`https://svn-vivekfy.vercel.app/search/songs?query=${encodeURIComponent(query)}`)
     .then(res => res.json())
-    .then(data => {
-      const songs = data.results || [];
+    .then(jsonData => {
+      const songs = jsonData?.data?.results || jsonData?.results || [];
       if (songs.length === 0) {
         resultsContainer.innerHTML = "No songs found.";
         return;
@@ -309,17 +309,25 @@ document.getElementById("search-btn").addEventListener("click", () => {
 
       let html = "";
       songs.slice(0, 5).forEach((s) => {
-        const songObj = encodeURIComponent(JSON.stringify(s));
-        html += `
-          <div class="item-card">
-            <div class="item-info" title="${s.title}">${s.title}</div>
-            <button onclick="addGlobalSong('${songObj}')">Save</button>
-          </div>
-        `;
+        const title = s.name || s.title || "Unknown";
+        const primaryArtists = s.primaryArtists || s.artist || "Unknown";
+        let imageUrl = s.image?.[s.image.length - 1]?.link || s.image?.[s.image.length - 1]?.url || config.centerImage;
+        let audioUrl = s.downloadUrl?.[s.downloadUrl.length - 1]?.link || s.downloadUrl?.[s.downloadUrl.length - 1]?.url || s.url || s.audio;
+
+        if (audioUrl) {
+          const songObj = encodeURIComponent(JSON.stringify({ title, primaryArtists, image: imageUrl, url: audioUrl }));
+          html += `
+            <div class="item-card">
+              <div class="item-info" title="${title}">${title}</div>
+              <button onclick="addGlobalSong('${songObj}')">Save</button>
+            </div>
+          `;
+        }
       });
       resultsContainer.innerHTML = html;
     })
     .catch(err => {
+      console.error(err);
       resultsContainer.innerHTML = "Search Error.";
     });
 });
@@ -327,7 +335,6 @@ document.getElementById("search-btn").addEventListener("click", () => {
 window.addGlobalSong = function(encodedObj) {
   const songData = JSON.parse(decodeURIComponent(encodedObj));
   
-  // Audio duration measure karna taaki clock sync sahi se chale
   const tempAudio = new Audio(songData.url);
   tempAudio.onloadedmetadata = function() {
     songData.duration = Math.floor(tempAudio.duration) || 180;
@@ -404,7 +411,6 @@ audioEl.addEventListener('ended', () => {
   playLiveRadio();
 });
 
-// Load playlist on startup
 fetchGlobalPlaylist();
 
 // --- Visualizer Functions ---
