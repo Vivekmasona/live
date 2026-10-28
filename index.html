@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Global Live FM Studio</title>
+<title>Bihar FM Studio</title>
 <style>
 html, body {
   margin: 0px; padding: 0px; overflow: hidden; background: #0c0c0e;
@@ -11,101 +11,96 @@ html, body {
 }
 canvas { position: fixed; inset: 0; z-index: 1; }
 
-/* Studio Header / Brand (Long press here for Admin password) */
-#brand-header {
-  position: fixed; top: 15px; left: 20px;
-  background: rgba(18, 18, 22, 0.9); color: #fff; padding: 10px 20px;
-  border-radius: 20px; z-index: 40; font-size: 14px; font-weight: bold;
-  border: 1px solid #333; user-select: none; cursor: pointer;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+#studio-header {
+  position: fixed; top: 15px; left: 15px; right: 15px;
+  background: rgba(18, 18, 22, 0.95); padding: 10px 18px;
+  border-radius: 25px; z-index: 40; display: flex; justify-content: space-between; align-items: center;
+  border: 1px solid #2a2a35; box-shadow: 0 4px 20px rgba(0,0,0,0.8); user-select: none;
 }
+.brand-title { font-size: 14px; font-weight: bold; color: #fff; cursor: pointer; }
+.badge { background: #1f1f26; padding: 5px 12px; border-radius: 15px; font-size: 11px; color: #aaa; border: 1px solid #333; }
+.live-dot { width: 10px; height: 10px; background: #ff2a74; border-radius: 50%; box-shadow: 0 0 10px #ff2a74; }
 
-/* Studio Drawer Modal (Hidden by default) */
+/* Fullscreen Modern Admin Studio Console Modal */
 #studio-modal {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100;
-  display: none; align-items: center; justify-content: center; backdrop-filter: blur(8px);
+  position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 100;
+  display: none; align-items: center; justify-content: center; backdrop-filter: blur(15px);
 }
 .studio-container {
-  background: #141418; width: 90%; max-width: 420px; max-height: 85vh;
-  border: 1px solid #333; border-radius: 16px; padding: 20px;
-  box-shadow: 0 15px 50px rgba(0,0,0,0.9); display: flex; flex-direction: column; gap: 15px;
+  background: #141418; width: 92%; max-width: 500px; max-height: 85vh;
+  border: 1px solid #333; border-radius: 20px; padding: 24px;
+  box-shadow: 0 25px 70px rgba(0,0,0,0.95); display: flex; flex-direction: column; gap: 16px;
   overflow-y: auto;
 }
-.studio-title { font-size: 16px; color: #ff2a74; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+.studio-title { font-size: 18px; color: #ff2a74; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
 
 input[type="text"] {
-  width: calc(100% - 20px); padding: 10px; background: #1f1f26;
-  border: 1px solid #444; color: #fff; border-radius: 8px; outline: none; font-size: 13px;
+  width: calc(100% - 20px); padding: 12px; background: #1f1f26;
+  border: 1px solid #444; color: #fff; border-radius: 10px; outline: none; font-size: 14px;
 }
 
 button {
-  background: #ff2a74; color: white; border: none; padding: 10px 16px;
-  font-size: 13px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s;
+  background: #ff2a74; color: white; border: none; padding: 12px 18px;
+  font-size: 14px; font-weight: bold; border-radius: 10px; cursor: pointer; transition: 0.2s;
 }
 button:hover { background: #ff4785; }
 
-.sub-btn { background: #2a2a35; padding: 10px; border-radius: 8px; font-size: 13px; }
-.sub-btn:hover { background: #3a3a48; }
-
-/* Listener Controls at Bottom */
+/* Fallback Listen Live Button (if browser blocks autoplay) */
 #controls {
-  position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
-  z-index: 30; display: flex; gap: 15px; align-items: center;
+  position: fixed; bottom: 35px; left: 50%; transform: translateX(-50%);
+  z-index: 30; display: none;
 }
-
 #live-btn {
   background: #2ed573; padding: 14px 45px; font-size: 16px; border-radius: 50px;
   box-shadow: 0 4px 25px rgba(46, 213, 115, 0.5); color: #000; font-weight: bold;
 }
-#live-btn:hover { background: #26af5f; }
 
 .item-card {
-  background: #1c1c24; padding: 10px; border-radius: 8px;
-  font-size: 13px; display: flex; justify-content: space-between; align-items: center;
-  cursor: pointer; border: 1px solid #2a2a35; margin-bottom: 8px;
+  background: #1c1c24; padding: 12px; border-radius: 10px;
+  font-size: 14px; display: flex; justify-content: space-between; align-items: center;
+  cursor: pointer; border: 1px solid #2a2a35; margin-bottom: 8px; transition: 0.2s;
 }
-.item-card:hover { border-color: #ff2a74; }
+.item-card:hover { border-color: #2ed573; background: #17221a; }
 .item-info { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 10px; flex: 1; }
-.delete-btn { background: #ff4757; padding: 5px 10px; font-size: 11px; border-radius: 6px; }
+.delete-btn { background: #ff4757; padding: 6px 12px; font-size: 12px; border-radius: 6px; }
 </style>
 </head>
 <body>
 
 <canvas id="canvas"></canvas>
 
-<!-- Brand Header (Long Press to open Studio Admin) -->
-<div id="brand-header" id="brand-title">🎙️ Global FM Studio</div>
-
-<!-- Listener Bottom Controls -->
-<div id="controls">
-  <button id="live-btn" onclick="playLiveRadio()">🔴 LISTEN LIVE</button>
-  <button class="sub-btn" onclick="toggleMute()" id="mute-btn" style="display:none;">🔊 Mute</button>
+<!-- Top Header (Long press on "Bihar FM Studio" for Admin Password) -->
+<div id="studio-header">
+  <div class="brand-title" id="brand-title">Bihar FM Studio</div>
+  <div style="display:flex; gap:10px; align-items:center;">
+    <div class="badge">Live 24/7</div>
+    <div class="live-dot"></div>
+  </div>
 </div>
 
-<!-- Studio Admin Modal (Password Protected via Long Press) -->
+<!-- Fallback Play Button if browser policy restricts autoplay -->
+<div id="controls">
+  <button id="live-btn" onclick="startLiveAudio()">🔴 TAP TO START LIVE FM</button>
+</div>
+
+<!-- Fullscreen Modern Admin Studio Console Modal -->
 <div id="studio-modal">
   <div class="studio-container">
     <div class="studio-title">
       <span>🎛️ Studio Master Console</span>
-      <button onclick="closeStudio()" style="background:#333; padding:4px 10px; font-size:11px;">✕</button>
+      <button onclick="closeStudio()" style="background:#333; padding:6px 12px; font-size:12px;">✕</button>
     </div>
     
-    <div style="font-size:12px; color:#aaa;">Search songs via backend SVN API & manage live station:</div>
-    
-    <div style="display:flex; gap:8px;">
+    <div style="font-size:13px; color:#aaa;">Search songs via SVN API & Save to Queue:</div>
+    <div style="display:flex; gap:10px;">
       <input type="text" id="query-input" placeholder="Search track name...">
       <button id="search-btn">Search</button>
     </div>
-    <div id="search-results" style="max-height:130px; overflow-y:auto;"></div>
+    <div id="search-results" style="max-height:150px; overflow-y:auto;"></div>
 
     <div style="border-top:1px solid #2a2a35; padding-top:10px;">
-      <div style="font-size:13px; color:#2ed573; margin-bottom:8px; font-weight:bold;">🎶 Master Station Queue</div>
-      <div id="playlist-container" style="max-height:160px; overflow-y:auto; font-size:12px; color:#aaa;">Loading queue...</div>
-    </div>
-
-    <div style="display:flex; gap:8px; border-top:1px solid #2a2a35; padding-top:10px;">
-      <button class="sub-btn" style="flex:1;" onclick="adminSkip()">⏭️ Skip Next</button>
-      <button class="sub-btn" style="flex:1;" onclick="togglePlayPause()" id="pause-play-btn">⏸️ Pause</button>
+      <div style="font-size:14px; color:#2ed573; margin-bottom:8px; font-weight:bold;">🎶 Station Playlist Queue (Click to Play Live)</div>
+      <div id="playlist-container" style="max-height:220px; overflow-y:auto; font-size:13px; color:#aaa;">Loading queue...</div>
     </div>
   </div>
 </div>
@@ -163,14 +158,14 @@ let globalPlaylist = [];
 let activeIndex = 0;
 let lastSyncedIndex = -1;
 
-// Long Press Logic on Brand Header for Admin Studio Password
+// Long Press on Header for Admin Password
 let pressTimer;
-const brandHeader = document.getElementById("brand-header");
+const brandTitle = document.getElementById("brand-title");
 
-brandHeader.addEventListener('mousedown', startLongPress);
-brandHeader.addEventListener('touchstart', startLongPress);
-brandHeader.addEventListener('mouseup', cancelLongPress);
-brandHeader.addEventListener('touchend', cancelLongPress);
+brandTitle.addEventListener('mousedown', startLongPress);
+brandTitle.addEventListener('touchstart', startLongPress);
+brandTitle.addEventListener('mouseup', cancelLongPress);
+brandTitle.addEventListener('touchend', cancelLongPress);
 
 function startLongPress(e) {
   pressTimer = setTimeout(() => {
@@ -181,7 +176,7 @@ function startLongPress(e) {
     } else if (pass !== null) {
       alert("Wrong Password!");
     }
-  }, 800); // 800ms long press
+  }, 800);
 }
 
 function cancelLongPress() {
@@ -209,6 +204,10 @@ function pollGlobalState() {
           lastSyncedIndex = newIndex;
           activeIndex = newIndex;
           playSongAtIndex(activeIndex, seekTime);
+        } else {
+          if (Math.abs(audioEl.currentTime - seekTime) > 3) {
+            audioEl.currentTime = seekTime;
+          }
         }
       }
     })
@@ -229,7 +228,7 @@ function renderPlaylistUI() {
     let highlight = (index === activeIndex) ? "border-color: #2ed573; background:#112211;" : "";
     html += `
       <div class="item-card" style="${highlight}" onclick="adminSelectSong(${index})">
-        <div class="item-info">${index === activeIndex ? '▶ ' : ''}${song.title}</div>
+        <div class="item-info">${index === activeIndex ? '▶ [ON AIR] ' : ''}${song.title}</div>
         <button class="delete-btn" onclick="event.stopPropagation(); deleteGlobalSong(${index})">X</button>
       </div>
     `;
@@ -249,29 +248,6 @@ function adminSelectSong(index) {
     lastSyncedIndex = activeIndex;
     playSongAtIndex(activeIndex, 0);
   });
-}
-
-function adminSkip() {
-  if (globalPlaylist.length === 0) return;
-  let nextIdx = (activeIndex + 1) % globalPlaylist.length;
-  adminSelectSong(nextIdx);
-}
-
-function togglePlayPause() {
-  const btn = document.getElementById("pause-play-btn");
-  if (audioEl.paused) {
-    audioEl.play();
-    btn.innerText = "⏸️ Pause";
-  } else {
-    audioEl.pause();
-    btn.innerText = "▶️ Resume";
-  }
-}
-
-function toggleMute() {
-  const muteBtn = document.getElementById("mute-btn");
-  audioEl.muted = !audioEl.muted;
-  muteBtn.innerText = audioEl.muted ? "🔇 Unmute" : "🔊 Mute";
 }
 
 function deleteGlobalSong(index) {
@@ -336,23 +312,32 @@ window.addGlobalSong = function(encodedObj) {
   .catch(err => { alert("Error saving track."); });
 };
 
-function playLiveRadio() {
+// Automatic Play on page load (Live FM style)
+window.addEventListener('load', () => {
+  autoPlayLiveRadio();
+});
+
+function autoPlayLiveRadio() {
   initAudioContext();
   fetch('/api/playlist')
     .then(res => res.json())
     .then(data => {
       globalPlaylist = Array.isArray(data.playlist) ? data.playlist : [];
-      if (globalPlaylist.length === 0) {
-        alert("Station queue is empty! Admin needs to add tracks.");
-        return;
-      }
+      if (globalPlaylist.length === 0) return;
+      
       activeIndex = data.currentIndex || 0;
       lastSyncedIndex = activeIndex;
       playSongAtIndex(activeIndex, data.seekTime || 0);
-
-      document.getElementById("live-btn").style.display = "none";
-      document.getElementById("mute-btn").style.display = "block";
+    })
+    .catch(err => {
+      // If browser blocks autoplay, show fallback button
+      document.getElementById("controls").style.display = "block";
     });
+}
+
+function startLiveAudio() {
+  document.getElementById("controls").style.display = "none";
+  autoPlayLiveRadio();
 }
 
 function playSongAtIndex(index, seekTime = 0) {
@@ -368,6 +353,7 @@ function playSongAtIndex(index, seekTime = 0) {
   audioEl.currentTime = seekTime;
 
   audioEl.play().then(() => {
+    document.getElementById("controls").style.display = "none";
     if (!playing) {
       dotEmitter = setInterval(emitDot, 50);
       lineEmitter = setInterval(emitLine, 100);
@@ -377,7 +363,10 @@ function playSongAtIndex(index, seekTime = 0) {
     if (document.getElementById("studio-modal").style.display === "flex") {
       renderPlaylistUI();
     }
-  }).catch(err => console.log("Playback error"));
+  }).catch(err => {
+    // Show fallback play button if browser policy blocks
+    document.getElementById("controls").style.display = "block";
+  });
 }
 
 // Visualizers
