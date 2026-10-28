@@ -17,7 +17,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// Auto-advance song if duration is completed
 function updatePlaybackState() {
   if (state.playlist.length === 0) return;
   const currentSong = state.playlist[state.currentIndex] || state.playlist[0];
@@ -30,7 +29,6 @@ function updatePlaybackState() {
   }
 }
 
-// Search Endpoint
 app.get('/api/search', async (req, res) => {
   try {
     const query = req.query.q;
@@ -53,7 +51,6 @@ app.get('/api/search', async (req, res) => {
   }
 });
 
-// Get Current Playlist State & Seek Time
 app.get('/api/playlist', (req, res) => {
   updatePlaybackState();
   const currentSong = state.playlist[state.currentIndex];
@@ -66,7 +63,6 @@ app.get('/api/playlist', (req, res) => {
   });
 });
 
-// Add Song
 app.post('/api/playlist', (req, res) => {
   updatePlaybackState();
   const newSong = req.body;
@@ -83,7 +79,6 @@ app.post('/api/playlist', (req, res) => {
   res.json({ success: true, playlist: state.playlist });
 });
 
-// Admin Play Specific Song on Click
 app.post('/api/play', (req, res) => {
   const { index } = req.body;
   if (index !== undefined && index >= 0 && index < state.playlist.length) {
@@ -93,7 +88,6 @@ app.post('/api/play', (req, res) => {
   res.json({ success: true, currentIndex: state.currentIndex });
 });
 
-// Delete Song
 app.delete('/api/playlist/:index', (req, res) => {
   updatePlaybackState();
   const index = parseInt(req.params.index);
@@ -112,4 +106,5 @@ app.delete('/api/playlist/:index', (req, res) => {
 });
 
 export default app;
+
 
