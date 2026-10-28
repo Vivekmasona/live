@@ -63,7 +63,7 @@ button:hover { background: #ff4785; }
 
 <div class="panel" id="admin-panel">
   <h3 style="margin:0 0 10px 0; font-size:15px; color:#ff2a74;">🔒 Admin Studio</h3>
-  <input type="text5" id="query-input" placeholder="Search song name..." style="width:calc(100% - 18px); padding:10px; background:#111; border:1px solid #444; color:#fff; border-radius:8px; margin-bottom:10px;">
+  <input type="text" id="query-input" placeholder="Search song name...">
   <button id="search-btn" style="width:100%;">Search via Backend</button>
   <div id="search-results" style="margin-top:12px; max-height:160px; overflow-y:auto;"></div>
 </div>
@@ -77,7 +77,9 @@ button:hover { background: #ff4785; }
   <button id="live-btn" onclick="playLiveRadio()">🔴 LISTEN LIVE 24/7</button>
 </div>
 
-<audio id="audio-element" crossorigin="anonymous"></audio>
+<!-- Preload secondary audio element for gapless background buffer -->
+<audio id="audio-element" crossorigin="anonymous" preload="auto"></audio>
+<audio id="next-audio-element" crossorigin="anonymous" preload="auto" style="display:none;"></audio>
 
 <script src="https://codepen.io/Tibixx/pen/BbBxRG.js"></script>
 
@@ -103,6 +105,7 @@ var actx, analyser, sourceNode, frequencyData, frequencyDataLen;
 var playing = false;
 var dotEmitter, lineEmitter;
 var audioEl = document.getElementById("audio-element");
+var nextAudioEl = document.getElementById("next-audio-element");
 
 function initAudioContext() {
   if (!actx && AudioContext) {
@@ -243,6 +246,7 @@ window.addGlobalSong = function(encodedObj) {
   .catch(err => { alert("Error saving song."); });
 };
 
+// --- 24/7 GLOBAL CLOCK TIME-SYNC WITH GAPLESS BUFFER & PRELOAD ---
 function playLiveRadio() {
   initAudioContext();
   fetchGlobalPlaylist((playlist) => {
@@ -258,13 +262,17 @@ function playLiveRadio() {
 
     let accumulated = 0;
     let targetSong = playlist[0];
+    let nextSong = playlist[0];
     let seekTime = 0;
+    let targetIndex = 0;
 
     for (let i = 0; i < playlist.length; i++) {
       const songDur = playlist[i].duration || 180;
       if (timeInCycle < accumulated + songDur) {
         targetSong = playlist[i];
         seekTime = timeInCycle - accumulated;
+        targetIndex = i;
+        nextSong = playlist[(i + 1) % playlist.length];
         break;
       }
       accumulated += songDur;
@@ -275,6 +283,12 @@ function playLiveRadio() {
 
     audioEl.src = targetSong.url;
     audioEl.currentTime = seekTime;
+
+    // Preload next song in background for gapless loop
+    if (nextSong && nextSong.url) {
+      nextAudioEl.src = nextSong.url;
+      nextAudioEl.load();
+    }
 
     audioEl.play().then(() => {
       if (!playing) {
@@ -287,14 +301,17 @@ function playLiveRadio() {
   });
 }
 
-audioEl.addEventListener('ended', () => { playLiveRadio(); });
+audioEl.addEventListener('ended', () => {
+  playLiveRadio();
+});
+
 fetchGlobalPlaylist();
 
 // Visualizer functions
 function emitDot(){ if (dots.length > 80) return; dots.push({ xp: w/2, yp: h/2, xv: Math.random()*0.4-0.2, yv: Math.random()*0.4-0.2, rad: Math.random()*(10-2)+2, hue: Math.random()*50-25 }); }
 function emitLine(){ if (lines.length > 30) return; lines.push({ xp: w/2, yp: h/2, xv: Math.random()*0.4-0.2, yv: Math.random()*0.4-0.2, hue: Math.random()*50-25 }); }
 function clear(){ ctx.beginPath(); var grd = ctx.createLinearGradient(w/2, 0, w/2, h); grd.addColorStop(0, "hsl("+(config.hueStart + npt * config.colorSpeed)+", 35%, 10%"); grd.addColorStop(1, "hsl("+(config.hueStart + npt * config.colorSpeed)+", 75%, 5%"); ctx.fillStyle = grd; ctx.fillRect(0, 0, w, h); ctx.closePath(); }
-function drawDots(){ var avg = averageFrequency(); for(let i = 0; i < dots.length; i++){ ctx.beginPath(); var grd = ctx.createRadialGradient(dots[i].xp + dots[i].rad, dots[i].yp + dots[i].rad, 0, dots[i].xp + dots[i].rad, dots[i].yp + dots[i].rad, dots[i].rad); grd.addColorStop(0, "hsla("+(config.hueStart + npt * config.colorSpeed + dots[i].hue)+", 50%, 50%, "+(avg / 400)+"%)"); grd.addColorStop(1, "hsla("+(config.hueStart + npt * config.colorSpeed + dots[i].hue)+", 50%, 50%, 0%)"); ctx.fillStyle = grd; ctx.fillRect(dots[i].xp, dots[i].yp, dots[i].rad*2, dots[i].rad*2); ctx.closePath(); if(dots[i].xp > w || dots[i].xp < 0 || dots[i].yp > w || dots[i].yp < 0){ dots[i] = dots[dots.length-1]; dots.pop(); } else { dots[i].xp += dots[i].xv * Math.pow(avg/1000, 1.5); dots[i],dots[i].yp += dots[i].yv * Math.pow(avg/1000, 1.5); } } }
+function drawDots(){ var avg = averageFrequency(); for(let i = 0; i < dots.length; i++){ ctx.beginPath(); var grd = ctx.createRadialGradient(dots[i].xp + dots[i].rad, dots[i].yp + dots[i].rad, 0, dots[i].xp + dots[i].rad, dots[i].yp + dots[i].rad, dots[i].rad); grd.addColorStop(0, "hsla("+(config.hueStart + npt * config.colorSpeed + dots[i].hue)+", 50%, 50%, "+(avg / 400)+"%)"); grd.addColorStop(1, "hsla("+(config.hueStart + npt * config.colorSpeed + dots[i].hue)+", 50%, 50%, 0%)"); ctx.fillStyle = grd; ctx.fillRect(dots[i].xp, dots[i].yp, dots[i].rad*2, dots[i].rad*2); ctx.closePath(); if(dots[i].xp > w || dots[i].xp < 0 || dots[i].yp > w || dots[i].yp < 0){ dots[i] = dots[dots.length-1]; dots.pop(); } else { dots[i].xp += dots[i].xv * Math.pow(avg/1000, 1.5); dots[i].yp += dots[i].yv * Math.pow(avg/1000, 1.5); } } }
 function drawLines() { var avg = averageFrequency(); var maxDist = 100; for (let i = 0; i < lines.length; i++) { for (let j = 0; j < lines.length; j++) { var proDist = 100 / maxDist; var opacity = 100 - dist(lines[j].xp, lines[j].yp, lines[i].xp, lines[i].yp) * proDist; if (dist(lines[j].xp, lines[j].yp, lines[i].xp, lines[i].yp) < maxDist) { ctx.beginPath(); ctx.lineWidth = 1; ctx.strokeStyle = "hsla(" + (config.hueStart + npt * config.colorSpeed) + ", 50%, 50%, " + (opacity - 50) + "%)"; ctx.moveTo(lines[i].xp, lines[i].yp); ctx.lineTo(lines[j].xp, lines[j].yp); ctx.stroke(); ctx.closePath(); } } if (lines[i].xp > w || lines[i].xp < 0 || lines[i].yp > w || lines[i].yp < 0) { lines[i] = lines[lines.length - 1]; lines.pop(); } else { lines[i].xp += lines[i].xv * avg/500; lines[i].yp += lines[i].yv * avg/500; } } }
 function getBassPulse() { if (!frequencyData) return 0; var bassSum = 0; for (let i = 0; i < 8; i++) { bassSum += frequencyData[i]; } return bassSum / 8; }
 function drawSpectrum() { 
@@ -322,3 +339,5 @@ function averageFrequency() { var avg = 0; for (let i = 0; i < frequencyData.len
 
 </body>
 </html>
+
+
