@@ -5,7 +5,7 @@ app.use(express.json());
 
 let state = {
   playlist: [],
-  stationStartTime: Date.now() // Precise Epoch Timestamp in Milliseconds
+  stationStartTime: Date.now() // Absolute epoch base in milliseconds
 };
 
 app.use((req, res, next) => {
@@ -16,20 +16,23 @@ app.use((req, res, next) => {
   next();
 });
 
-// Calculate live playback state with Millisecond Precision
+// Calculate live playback state with Millisecond Precision and Continuous Infinity Loop
 function getLivePlaybackState() {
-  if (state.playlist.length === 0) {
+  if (!state.playlist || state.playlist.length === 0) {
     return { playlist: [], currentIndex: 0, seekTime: 0 };
   }
 
-  // Total duration in milliseconds (default 180s = 180000ms)
+  // Calculate total queue duration in milliseconds (default 180s per track = 180,000ms)
   const totalPlaylistDurationMs = state.playlist.reduce((acc, song) => acc + ((song.duration || 180) * 1000), 0);
+  
   if (totalPlaylistDurationMs <= 0) {
     return { playlist: state.playlist, currentIndex: 0, seekTime: 0 };
   }
 
-  // Elapsed time in milliseconds
-  const elapsedMs = Date.now() - state.stationStartTime;
+  // Absolute continuous elapsed time since station started
+  const elapsedMs = Math.max(0, Date.now() - state.stationStartTime);
+  
+  // Continuous infinity loop time calculation
   const timeInLoopMs = elapsedMs % totalPlaylistDurationMs;
 
   let accumulatedMs = 0;
@@ -40,7 +43,6 @@ function getLivePlaybackState() {
     const songDurationMs = (state.playlist[i].duration || 180) * 1000;
     if (timeInLoopMs < accumulatedMs + songDurationMs) {
       currentIndex = i;
-      // Exact seek time in float seconds (e.g., 18.452 seconds)
       seekTimeSec = (timeInLoopMs - accumulatedMs) / 1000;
       break;
     }
@@ -50,7 +52,7 @@ function getLivePlaybackState() {
   return {
     playlist: state.playlist,
     currentIndex: currentIndex,
-    seekTime: parseFloat(seekTimeSec.toFixed(3)) // Exact millisecond accuracy
+    seekTime: parseFloat(seekTimeSec.toFixed(3)) // Millisecond accuracy
   };
 }
 
@@ -68,7 +70,7 @@ app.get('/api/search', async (req, res) => {
       primaryArtists: s.primaryArtists || s.artist || "Unknown",
       image: s.image?.[s.image.length - 1]?.link || s.image?.[s.image.length - 1]?.url || "",
       url: s.downloadUrl?.[s.downloadUrl.length - 1]?.link || s.downloadUrl?.[s.downloadUrl.length - 1]?.url || s.url || s.audio,
-      duration: 180
+      duration: 180 // Standard 3 minutes fixed slot for clock sync
     })).filter(s => s.url);
 
     res.json({ results: cleanSongs });
@@ -95,6 +97,7 @@ app.post('/api/playlist', (req, res) => {
   res.json({ success: true, ...getLivePlaybackState() });
 });
 
+// Admin direct track click override
 app.post('/api/play', (req, res) => {
   const { index } = req.body;
   if (index !== undefined && index >= 0 && index < state.playlist.length) {
@@ -111,7 +114,7 @@ app.delete('/api/playlist/:index', (req, res) => {
   const index = parseInt(req.params.index);
   if (index >= 0 && index < state.playlist.length) {
     state.playlist.splice(index, 1);
-    state.stationStartTime = Date.now();
+    state.stationStartTime = Date.now(); // Reset anchor time safely
   }
   res.json({ success: true, ...getLivePlaybackState() });
 });
