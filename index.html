@@ -151,7 +151,6 @@ function initAudioContext() {
 
 let globalPlaylist = [];
 let activeIndex = -1;
-let lastSyncedIndex = -1;
 
 let pressTimer;
 const brandTitle = document.getElementById("brand-title");
@@ -181,22 +180,22 @@ function closeStudio() {
   document.getElementById("studio-modal").style.display = "none";
 }
 
-// Strict polling to maintain absolute clock sync across devices
+// Polling with sub-second / millisecond drift correction
 function pollGlobalState() {
   fetch('/api/playlist')
     .then(res => res.json())
     .then(data => {
       globalPlaylist = Array.isArray(data.playlist) ? data.playlist : [];
       let newIndex = data.currentIndex || 0;
-      let seekTime = data.seekTime || 0;
+      let seekTime = data.seekTime || 0; // Float seconds with millisecond precision
       
       if (document.getElementById("studio-modal").style.display === "flex") {
         renderPlaylistUI();
       }
 
       if (playing && globalPlaylist.length > 0) {
-        // If track changed on server or drift is greater than 2 seconds, re-sync instantly
-        if (newIndex !== activeIndex || Math.abs(audioEl.currentTime - seekTime) > 2) {
+        // Re-sync if track changed or drift exceeds 400ms (0.4s)
+        if (newIndex !== activeIndex || Math.abs(audioEl.currentTime - seekTime) > 0.4) {
           activeIndex = newIndex;
           playSongAtIndex(activeIndex, seekTime);
         }
@@ -205,7 +204,7 @@ function pollGlobalState() {
     .catch(err => console.error("Sync error:", err));
 }
 
-setInterval(pollGlobalState, 3000);
+setInterval(pollGlobalState, 2000);
 
 function renderPlaylistUI() {
   const container = document.getElementById("playlist-container");
@@ -338,13 +337,11 @@ function playSongAtIndex(index, seekTime = 0) {
 
   if (song.image) { bgImage.src = song.image; }
 
-  // Only reload source if URL changed to prevent stuttering
   if (audioEl.src !== song.url) {
     audioEl.src = song.url;
     audioEl.currentTime = seekTime;
   } else {
-    // If same song, just sync time offset smoothly
-    if (Math.abs(audioEl.currentTime - seekTime) > 2) {
+    if (Math.abs(audioEl.currentTime - seekTime) > 0.4) {
       audioEl.currentTime = seekTime;
     }
   }
@@ -394,4 +391,3 @@ function averageFrequency() { var avg = 0; for (let i = 0; i < frequencyData.len
 
 </body>
 </html>
-
