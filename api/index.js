@@ -5,8 +5,7 @@ app.use(express.json());
 
 let state = {
   playlist: [],
-  currentIndex: 0,
-  songStartTime: Date.now()
+  stationStartTime: Date.now() // Station start epoch base
 };
 
 app.use((req, res, next) => {
@@ -17,16 +16,41 @@ app.use((req, res, next) => {
   next();
 });
 
-function updatePlaybackState() {
-  if (state.playlist.length === 0) return;
-  const currentSong = state.playlist[state.currentIndex] || state.playlist[0];
-  const duration = (currentSong.duration || 180) * 1000;
-  const elapsed = Date.now() - state.songStartTime;
-
-  if (elapsed >= duration) {
-    state.currentIndex = (state.currentIndex + 1) % state.playlist.length;
-    state.songStartTime = Date.now();
+// Calculate exact live track and offset using absolute station loop timeline
+function getLivePlaybackState() {
+  if (state.playlist.length === 0) {
+    return { playlist: [], currentIndex: 0, seekTime: 0 };
   }
+
+  // Total duration of all songs in playlist
+  const totalPlaylistDuration = state.playlist.reduce((acc, song) => acc + (song.duration || 180), 0);
+  if (totalPlaylistDuration <= 0) {
+    return { playlist: state.playlist, currentIndex: 0, seekTime: 0 };
+  }
+
+  // Elapsed seconds since station started playing continuously
+  const elapsedSeconds = Math.floor((Date.now() - state.stationStartTime) / 1000);
+  const timeInLoop = elapsedSeconds % totalPlaylistDuration;
+
+  let accumulated = 0;
+  let currentIndex = 0;
+  let seekTime = 0;
+
+  for (let i = 0; i < state.playlist.length; i++) {
+    const songDuration = state.playlist[i].duration || 180;
+    if (timeInLoop < accumulated + songDuration) {
+      currentIndex = i;
+      seekTime = timeInLoop - accumulated;
+      break;
+    }
+    accumulated += songDuration;
+  }
+
+  return {
+    playlist: state.playlist,
+    currentIndex: currentIndex,
+    seekTime: seekTime
+  };
 }
 
 app.get('/api/search', async (req, res) => {
@@ -42,7 +66,8 @@ app.get('/api/search', async (req, res) => {
       title: s.name || s.title || "Unknown",
       primaryArtists: s.primaryArtists || s.artist || "Unknown",
       image: s.image?.[s.image.length - 1]?.link || s.image?.[s.image.length - 1]?.url || "",
-      url: s.downloadUrl?.[s.downloadUrl.length - 1]?.link || s.downloadUrl?.[s.downloadUrl.length - 1]?.url || s.url || s.audio
+      url: s.downloadUrl?.[s.downloadUrl.length - 1]?.link || s.downloadUrl?.[s.downloadUrl.length - 1]?.url || s.url || s.audio,
+      duration: 180 // Default 3 mins fixed duration for precise math sync
     })).filter(s => s.url);
 
     res.json({ results: cleanSongs });
@@ -52,57 +77,49 @@ app.get('/api/search', async (req, res) => {
 });
 
 app.get('/api/playlist', (req, res) => {
-  updatePlaybackState();
-  const currentSong = state.playlist[state.currentIndex];
-  const seekTime = currentSong ? Math.floor((Date.now() - state.songStartTime) / 1000) : 0;
-  
-  res.json({
-    playlist: state.playlist,
-    currentIndex: state.currentIndex,
-    seekTime: seekTime
-  });
+  res.json(getLivePlaybackState());
 });
 
 app.post('/api/playlist', (req, res) => {
-  updatePlaybackState();
   const newSong = req.body;
   if (!newSong.url || !newSong.title) return res.status(400).json({ error: 'Invalid data' });
 
   if (!state.playlist.some(s => s.url === newSong.url)) {
     newSong.duration = 180;
-    state.playlist.push(newSong);
-    if (state.playlist.length === 1) {
-      state.currentIndex = 0;
-      state.songStartTime = Date.now();
+    if (state.playlist.length === 0) {
+      state.stationStartTime = Date.now(); // Reset loop base if queue was empty
     }
+    state.playlist.push(newSong);
   }
-  res.json({ success: true, playlist: state.playlist });
+  res.json({ success: true, ...getLivePlaybackState() });
 });
 
+// Admin manual track override jump
 app.post('/api/play', (req, res) => {
   const { index } = req.body;
   if (index !== undefined && index >= 0 && index < state.playlist.length) {
-    state.currentIndex = index;
-    state.songStartTime = Date.now();
+    // Adjust stationStartTime so that the selected song starts right now at seekTime = 0
+    let pastDurationSum = 0;
+    for (let i = 0; i < index; i++) {
+      pastDurationSum += (state.playlist[i].duration || 180);
+    }
+    const totalDuration = state.playlist.reduce((acc, song) => acc + (song.duration || 180), 0);
+    const now = Date.now();
+    const currentLoopTime = Math.floor((now - state.stationStartTime) / 1000) % totalDuration;
+    
+    // Shift stationStartTime to align target song at current timeline slot
+    state.stationStartTime = now - (pastDurationSum * 1000);
   }
-  res.json({ success: true, currentIndex: state.currentIndex });
+  res.json({ success: true, ...getLivePlaybackState() });
 });
 
 app.delete('/api/playlist/:index', (req, res) => {
-  updatePlaybackState();
   const index = parseInt(req.params.index);
   if (index >= 0 && index < state.playlist.length) {
     state.playlist.splice(index, 1);
-    if (state.playlist.length === 0) {
-      state.currentIndex = 0;
-    } else {
-      if (state.currentIndex >= state.playlist.length) {
-        state.currentIndex = 0;
-      }
-      state.songStartTime = Date.now();
-    }
+    state.stationStartTime = Date.now(); // Reset loop anchor safely on delete
   }
-  res.json({ success: true, playlist: state.playlist, currentIndex: state.currentIndex });
+  res.json({ success: true, ...getLivePlaybackState() });
 });
 
 export default app;
