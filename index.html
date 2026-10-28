@@ -21,7 +21,6 @@ canvas { position: fixed; inset: 0; z-index: 1; }
 .badge { background: #1f1f26; padding: 5px 12px; border-radius: 15px; font-size: 11px; color: #aaa; border: 1px solid #333; }
 .live-dot { width: 10px; height: 10px; background: #ff2a74; border-radius: 50%; box-shadow: 0 0 10px #ff2a74; }
 
-/* Fullscreen Modern Admin Studio Console Modal */
 #studio-modal {
   position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 100;
   display: none; align-items: center; justify-content: center; backdrop-filter: blur(15px);
@@ -45,7 +44,6 @@ button {
 }
 button:hover { background: #ff4785; }
 
-/* Fallback Listen Live Button (if browser blocks autoplay) */
 #controls {
   position: fixed; bottom: 35px; left: 50%; transform: translateX(-50%);
   z-index: 30; display: none;
@@ -69,7 +67,6 @@ button:hover { background: #ff4785; }
 
 <canvas id="canvas"></canvas>
 
-<!-- Top Header (Long press on "Bihar FM Studio" for Admin Password) -->
 <div id="studio-header">
   <div class="brand-title" id="brand-title">Bihar FM Studio</div>
   <div style="display:flex; gap:10px; align-items:center;">
@@ -78,12 +75,10 @@ button:hover { background: #ff4785; }
   </div>
 </div>
 
-<!-- Fallback Play Button if browser policy restricts autoplay -->
 <div id="controls">
   <button id="live-btn" onclick="startLiveAudio()">🔴 TAP TO START LIVE FM</button>
 </div>
 
-<!-- Fullscreen Modern Admin Studio Console Modal -->
 <div id="studio-modal">
   <div class="studio-container">
     <div class="studio-title">
@@ -155,10 +150,9 @@ function initAudioContext() {
 }
 
 let globalPlaylist = [];
-let activeIndex = 0;
+let activeIndex = -1;
 let lastSyncedIndex = -1;
 
-// Long Press on Header for Admin Password
 let pressTimer;
 const brandTitle = document.getElementById("brand-title");
 
@@ -187,6 +181,7 @@ function closeStudio() {
   document.getElementById("studio-modal").style.display = "none";
 }
 
+// Strict polling to maintain absolute clock sync across devices
 function pollGlobalState() {
   fetch('/api/playlist')
     .then(res => res.json())
@@ -199,15 +194,11 @@ function pollGlobalState() {
         renderPlaylistUI();
       }
 
-      if (playing) {
-        if (newIndex !== lastSyncedIndex) {
-          lastSyncedIndex = newIndex;
+      if (playing && globalPlaylist.length > 0) {
+        // If track changed on server or drift is greater than 2 seconds, re-sync instantly
+        if (newIndex !== activeIndex || Math.abs(audioEl.currentTime - seekTime) > 2) {
           activeIndex = newIndex;
           playSongAtIndex(activeIndex, seekTime);
-        } else {
-          if (Math.abs(audioEl.currentTime - seekTime) > 3) {
-            audioEl.currentTime = seekTime;
-          }
         }
       }
     })
@@ -244,9 +235,10 @@ function adminSelectSong(index) {
   })
   .then(res => res.json())
   .then(data => {
+    globalPlaylist = data.playlist;
     activeIndex = data.currentIndex;
-    lastSyncedIndex = activeIndex;
-    playSongAtIndex(activeIndex, 0);
+    playSongAtIndex(activeIndex, data.seekTime);
+    renderPlaylistUI();
   });
 }
 
@@ -257,7 +249,7 @@ function deleteGlobalSong(index) {
     .then(data => {
       globalPlaylist = data.playlist;
       activeIndex = data.currentIndex;
-      lastSyncedIndex = activeIndex;
+      playSongAtIndex(activeIndex, data.seekTime);
       renderPlaylistUI();
     });
 }
@@ -312,7 +304,6 @@ window.addGlobalSong = function(encodedObj) {
   .catch(err => { alert("Error saving track."); });
 };
 
-// Automatic Play on page load (Live FM style)
 window.addEventListener('load', () => {
   autoPlayLiveRadio();
 });
@@ -326,11 +317,9 @@ function autoPlayLiveRadio() {
       if (globalPlaylist.length === 0) return;
       
       activeIndex = data.currentIndex || 0;
-      lastSyncedIndex = activeIndex;
       playSongAtIndex(activeIndex, data.seekTime || 0);
     })
     .catch(err => {
-      // If browser blocks autoplay, show fallback button
       document.getElementById("controls").style.display = "block";
     });
 }
@@ -349,8 +338,16 @@ function playSongAtIndex(index, seekTime = 0) {
 
   if (song.image) { bgImage.src = song.image; }
 
-  audioEl.src = song.url;
-  audioEl.currentTime = seekTime;
+  // Only reload source if URL changed to prevent stuttering
+  if (audioEl.src !== song.url) {
+    audioEl.src = song.url;
+    audioEl.currentTime = seekTime;
+  } else {
+    // If same song, just sync time offset smoothly
+    if (Math.abs(audioEl.currentTime - seekTime) > 2) {
+      audioEl.currentTime = seekTime;
+    }
+  }
 
   audioEl.play().then(() => {
     document.getElementById("controls").style.display = "none";
@@ -360,11 +357,7 @@ function playSongAtIndex(index, seekTime = 0) {
       playing = true;
       render();
     }
-    if (document.getElementById("studio-modal").style.display === "flex") {
-      renderPlaylistUI();
-    }
   }).catch(err => {
-    // Show fallback play button if browser policy blocks
     document.getElementById("controls").style.display = "block";
   });
 }
@@ -401,3 +394,4 @@ function averageFrequency() { var avg = 0; for (let i = 0; i < frequencyData.len
 
 </body>
 </html>
+
