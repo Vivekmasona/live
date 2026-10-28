@@ -219,7 +219,7 @@ function initAudioContext() {
   }
 }
 
-// --- FETCH GLOBAL PLAYLIST ---
+// --- FETCH GLOBAL PLAYLIST FROM BACKEND ---
 let globalPlaylist = [];
 
 function fetchGlobalPlaylist(callback) {
@@ -328,25 +328,29 @@ document.getElementById("search-btn").addEventListener("click", () => {
 window.addGlobalSong = function(encodedObj) {
   const songData = JSON.parse(decodeURIComponent(encodedObj));
   
-  const tempAudio = new Audio(songData.url);
-  tempAudio.onloadedmetadata = function() {
-    songData.duration = Math.floor(tempAudio.duration) || 180;
+  // Non-blocking duration fallback for immediate cloud saving
+  songData.duration = 180;
 
-    fetch('/api/playlist', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(songData)
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        globalPlaylist = data.playlist;
-        renderPlaylistUI();
-        document.getElementById("info").innerHTML = `Saved to Cloud: ${songData.title}`;
-        setTimeout(() => { document.getElementById("info").innerHTML = "🔴 LISTEN LIVE 24/7"; }, 3000);
-      }
-    });
-  };
+  fetch('/api/playlist', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(songData)
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      globalPlaylist = data.playlist;
+      renderPlaylistUI();
+      document.getElementById("info").innerHTML = `Saved to Cloud: ${songData.title}`;
+      setTimeout(() => { document.getElementById("info").innerHTML = "🔴 LISTEN LIVE 24/7"; }, 3000);
+    } else {
+      alert("Failed to save song.");
+    }
+  })
+  .catch(err => {
+    console.error("Save error:", err);
+    alert("Error saving song to cloud.");
+  });
 };
 
 // --- 24/7 GLOBAL CLOCK TIME-SYNC LOGIC ---
