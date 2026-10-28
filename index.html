@@ -77,9 +77,8 @@ button:hover { background: #ff4785; }
   <button id="live-btn" onclick="playLiveRadio()">🔴 LISTEN LIVE 24/7</button>
 </div>
 
-<!-- Preload secondary audio element for gapless background buffer -->
-<audio id="audio-element" crossorigin="anonymous" preload="auto"></audio>
-<audio id="next-audio-element" crossorigin="anonymous" preload="auto" style="display:none;"></audio>
+<!-- Controls disabled audio element -->
+<audio id="audio-element" crossorigin="anonymous" controlslist="nodownload noplaybackrate" disablepictureinpicture></audio>
 
 <script src="https://codepen.io/Tibixx/pen/BbBxRG.js"></script>
 
@@ -105,7 +104,14 @@ var actx, analyser, sourceNode, frequencyData, frequencyDataLen;
 var playing = false;
 var dotEmitter, lineEmitter;
 var audioEl = document.getElementById("audio-element");
-var nextAudioEl = document.getElementById("next-audio-element");
+
+// Disable Chrome Media Session notifications & skip controls completely
+if ('mediaSession' in navigator) {
+  navigator.mediaSession.metadata = null;
+  ['play', 'pause', 'seekbackward', 'seekforward', 'seekto', 'previoustrack', 'nexttrack'].forEach(action => {
+    try { navigator.mediaSession.setActionHandler(action, null); } catch(e) {}
+  });
+}
 
 function initAudioContext() {
   if (!actx && AudioContext) {
@@ -123,6 +129,7 @@ function initAudioContext() {
 }
 
 let globalPlaylist = [];
+let currentSongIndex = 0;
 
 function fetchGlobalPlaylist(callback) {
   fetch('/api/playlist')
@@ -246,7 +253,7 @@ window.addGlobalSong = function(encodedObj) {
   .catch(err => { alert("Error saving song."); });
 };
 
-// --- 24/7 GLOBAL CLOCK TIME-SYNC WITH GAPLESS BUFFER & PRELOAD ---
+// --- SYNCHRONIZED PLAYBACK & GAPLESS NEXT TRACK STARTING FROM 0 ---
 function playLiveRadio() {
   initAudioContext();
   fetchGlobalPlaylist((playlist) => {
@@ -262,47 +269,51 @@ function playLiveRadio() {
 
     let accumulated = 0;
     let targetSong = playlist[0];
-    let nextSong = playlist[0];
     let seekTime = 0;
-    let targetIndex = 0;
+    currentSongIndex = 0;
 
     for (let i = 0; i < playlist.length; i++) {
       const songDur = playlist[i].duration || 180;
       if (timeInCycle < accumulated + songDur) {
         targetSong = playlist[i];
         seekTime = timeInCycle - accumulated;
-        targetIndex = i;
-        nextSong = playlist[(i + 1) % playlist.length];
+        currentSongIndex = i;
         break;
       }
       accumulated += songDur;
     }
 
-    if (targetSong.image) { bgImage.src = targetSong.image; }
-    document.getElementById("info").innerHTML = `🔴 LIVE: ${targetSong.title}`;
-
-    audioEl.src = targetSong.url;
-    audioEl.currentTime = seekTime;
-
-    // Preload next song in background for gapless loop
-    if (nextSong && nextSong.url) {
-      nextAudioEl.src = nextSong.url;
-      nextAudioEl.load();
-    }
-
-    audioEl.play().then(() => {
-      if (!playing) {
-        dotEmitter = setInterval(emitDot, 50);
-        lineEmitter = setInterval(emitLine, 100);
-        playing = true;
-        render();
-      }
-    }).catch(err => { document.getElementById("info").innerHTML = "Tap screen to start audio playback."; });
+    playSongAtIndex(currentSongIndex, seekTime);
   });
 }
 
+function playSongAtIndex(index, seekTime = 0) {
+  if (globalPlaylist.length === 0) return;
+  currentSongIndex = index % globalPlaylist.length;
+  const song = globalPlaylist[currentSongIndex];
+
+  if (song.image) { bgImage.src = song.image; }
+  document.getElementById("info").innerHTML = `🔴 LIVE: ${song.title}`;
+
+  audioEl.src = song.url;
+  audioEl.currentTime = seekTime;
+
+  audioEl.play().then(() => {
+    if (!playing) {
+      dotEmitter = setInterval(emitDot, 50);
+      lineEmitter = setInterval(emitLine, 100);
+      playing = true;
+      render();
+    }
+  }).catch(err => { document.getElementById("info").innerHTML = "Tap screen to start audio playback."; });
+}
+
+// When a song ends naturally, start the next song cleanly from 0 seconds (no glitches)
 audioEl.addEventListener('ended', () => {
-  playLiveRadio();
+  if (globalPlaylist.length > 0) {
+    currentSongIndex = (currentSongIndex + 1) % globalPlaylist.length;
+    playSongAtIndex(currentSongIndex, 0);
+  }
 });
 
 fetchGlobalPlaylist();
@@ -339,5 +350,3 @@ function averageFrequency() { var avg = 0; for (let i = 0; i < frequencyData.len
 
 </body>
 </html>
-
-
