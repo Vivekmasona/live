@@ -2,10 +2,12 @@
   "name": "global-live-fm",
   "version": "1.0.0",
   "dependencies": {
-    "@vercel/blob": "^0.23.0"
+    "express": "^4.19.2",
+    "@vercel/kv": "^1.0.1"
   },
   "engines": {
     "node": ">=18.x"
   },
   "private": true
 }
+
