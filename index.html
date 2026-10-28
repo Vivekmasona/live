@@ -21,85 +21,96 @@ canvas { position: fixed; inset: 0; z-index: 1; }
 .badge { background: #1f1f26; padding: 5px 12px; border-radius: 15px; font-size: 11px; color: #aaa; border: 1px solid #333; }
 .live-dot { width: 10px; height: 10px; background: #ff2a74; border-radius: 50%; box-shadow: 0 0 10px #ff2a74; }
 
-/* Admin Studio Console Modal */
 #studio-modal {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 100;
-  display: none; align-items: center; justify-content: center; backdrop-filter: blur(15px);
+  position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 100;
+  display: none; align-items: center; justify-content: center; backdrop-filter: blur(10px);
 }
 .studio-container {
-  background: #141418; width: 92%; max-width: 500px; max-height: 85vh;
-  border: 1px solid #333; border-radius: 20px; padding: 24px;
-  box-shadow: 0 25px 70px rgba(0,0,0,0.95); display: flex; flex-direction: column; gap: 16px;
+  background: #141418; width: 90%; max-width: 440px; max-height: 85vh;
+  border: 1px solid #333; border-radius: 16px; padding: 20px;
+  box-shadow: 0 15px 50px rgba(0,0,0,0.9); display: flex; flex-direction: column; gap: 14px;
   overflow-y: auto;
 }
-.studio-title { font-size: 18px; color: #ff2a74; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+.studio-title { font-size: 16px; color: #ff2a74; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
 
 input[type="text"] {
-  width: calc(100% - 20px); padding: 12px; background: #1f1f26;
-  border: 1px solid #444; color: #fff; border-radius: 10px; outline: none; font-size: 14px;
+  width: calc(100% - 20px); padding: 10px; background: #1f1f26;
+  border: 1px solid #444; color: #fff; border-radius: 8px; outline: none; font-size: 13px;
 }
 
 button {
-  background: #ff2a74; color: white; border: none; padding: 12px 18px;
-  font-size: 14px; font-weight: bold; border-radius: 10px; cursor: pointer; transition: 0.2s;
+  background: #ff2a74; color: white; border: none; padding: 10px 16px;
+  font-size: 13px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s;
 }
 button:hover { background: #ff4785; }
 
+.sub-btn { background: #2a2a35; padding: 10px; border-radius: 8px; font-size: 13px; }
+.sub-btn:hover { background: #3a3a48; }
+
 #controls {
-  position: fixed; bottom: 35px; left: 50%; transform: translateX(-50%);
-  z-index: 30; display: none;
+  position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+  z-index: 30; display: flex; gap: 15px; align-items: center;
 }
+
 #live-btn {
   background: #2ed573; padding: 14px 45px; font-size: 16px; border-radius: 50px;
   box-shadow: 0 4px 25px rgba(46, 213, 115, 0.5); color: #000; font-weight: bold;
 }
+#live-btn:hover { background: #26af5f; }
 
 .item-card {
-  background: #1c1c24; padding: 12px; border-radius: 10px;
-  font-size: 14px; display: flex; justify-content: space-between; align-items: center;
-  cursor: pointer; border: 1px solid #2a2a35; margin-bottom: 8px; transition: 0.2s;
+  background: #1c1c24; padding: 10px; border-radius: 8px;
+  font-size: 13px; display: flex; justify-content: space-between; align-items: center;
+  cursor: pointer; border: 1px solid #2a2a35; margin-bottom: 8px;
 }
-.item-card:hover { border-color: #2ed573; background: #17221a; }
+.item-card:hover { border-color: #ff2a74; }
 .item-info { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 10px; flex: 1; }
-.delete-btn { background: #ff4757; padding: 6px 12px; font-size: 12px; border-radius: 6px; }
+.delete-btn { background: #ff4757; padding: 5px 10px; font-size: 11px; border-radius: 6px; }
 </style>
 </head>
 <body>
 
 <canvas id="canvas"></canvas>
 
-<!-- Top Header (Long press on "Bihar FM Studio" for Admin Password) -->
+<!-- Top Studio Header (Long press on "Bihar FM Studio" to open Admin) -->
 <div id="studio-header">
   <div class="brand-title" id="brand-title">Bihar FM Studio</div>
   <div style="display:flex; gap:10px; align-items:center;">
-    <div class="badge">Live 24/7</div>
+    <div class="badge">Quality: 64 kbps</div>
     <div class="live-dot"></div>
   </div>
 </div>
 
-<!-- Fallback Play Button -->
+<!-- Listener Bottom Control -->
 <div id="controls">
-  <button id="live-btn" onclick="startLiveAudio()">🔴 TAP TO START LIVE FM</button>
+  <button id="live-btn" onclick="playLiveRadio()">🔴 LISTEN LIVE</button>
+  <button class="sub-btn" onclick="toggleMute()" id="mute-btn" style="display:none;">🔊 Mute</button>
 </div>
 
-<!-- Admin Studio Console Modal -->
+<!-- Admin Studio Modal -->
 <div id="studio-modal">
   <div class="studio-container">
     <div class="studio-title">
       <span>🎛️ Studio Master Console</span>
-      <button onclick="closeStudio()" style="background:#333; padding:6px 12px; font-size:12px;">✕</button>
+      <button onclick="closeStudio()" style="background:#333; padding:4px 10px; font-size:11px;">✕</button>
     </div>
     
-    <div style="font-size:13px; color:#aaa;">Search songs via SVN API & Save to Queue:</div>
-    <div style="display:flex; gap:10px;">
+    <div style="font-size:12px; color:#aaa;">Search songs via SVN API & manage station queue:</div>
+    
+    <div style="display:flex; gap:8px;">
       <input type="text" id="query-input" placeholder="Search track name...">
       <button id="search-btn">Search</button>
     </div>
-    <div id="search-results" style="max-height:150px; overflow-y:auto;"></div>
+    <div id="search-results" style="max-height:130px; overflow-y:auto;"></div>
 
     <div style="border-top:1px solid #2a2a35; padding-top:10px;">
-      <div style="font-size:14px; color:#2ed573; margin-bottom:8px; font-weight:bold;">🎶 Station Playlist Queue (Click to Play Live)</div>
-      <div id="playlist-container" style="max-height:220px; overflow-y:auto; font-size:13px; color:#aaa;">Loading queue...</div>
+      <div style="font-size:13px; color:#2ed573; margin-bottom:8px; font-weight:bold;">🎶 Master Station Queue</div>
+      <div id="playlist-container" style="max-height:160px; overflow-y:auto; font-size:12px; color:#aaa;">Loading queue...</div>
+    </div>
+
+    <div style="display:flex; gap:8px; border-top:1px solid #2a2a35; padding-top:10px;">
+      <button class="sub-btn" style="flex:1;" onclick="adminSkip()">⏭️ Skip Next</button>
+      <button class="sub-btn" style="flex:1;" onclick="togglePlayPause()" id="pause-play-btn">⏸️ Pause</button>
     </div>
   </div>
 </div>
@@ -157,7 +168,7 @@ let globalPlaylist = [];
 let activeIndex = 0;
 let lastSyncedIndex = -1;
 
-// Long Press on Header for Admin Password
+// Long Press Logic on "Bihar FM Studio" brand title for Admin Password
 let pressTimer;
 const brandTitle = document.getElementById("brand-title");
 
@@ -186,7 +197,6 @@ function closeStudio() {
   document.getElementById("studio-modal").style.display = "none";
 }
 
-// Strict Server Polling Synchronization (har 2 second me check karega ki server par kaun sa song aur kaun sa time chal raha hai)
 function pollGlobalState() {
   fetch('/api/playlist')
     .then(res => res.json())
@@ -204,18 +214,13 @@ function pollGlobalState() {
           lastSyncedIndex = newIndex;
           activeIndex = newIndex;
           playSongAtIndex(activeIndex, seekTime);
-        } else {
-          // Agar kisi device me time 2 second se zyada drift ho jaye toh use server time par snap kar do
-          if (Math.abs(audioEl.currentTime - seekTime) > 2) {
-            audioEl.currentTime = seekTime;
-          }
         }
       }
     })
     .catch(err => console.error("Sync error:", err));
 }
 
-setInterval(pollGlobalState, 2000);
+setInterval(pollGlobalState, 3000);
 
 function renderPlaylistUI() {
   const container = document.getElementById("playlist-container");
@@ -229,7 +234,7 @@ function renderPlaylistUI() {
     let highlight = (index === activeIndex) ? "border-color: #2ed573; background:#112211;" : "";
     html += `
       <div class="item-card" style="${highlight}" onclick="adminSelectSong(${index})">
-        <div class="item-info">${index === activeIndex ? '▶ [ON AIR] ' : ''}${song.title}</div>
+        <div class="item-info">${index === activeIndex ? '▶ ' : ''}${song.title}</div>
         <button class="delete-btn" onclick="event.stopPropagation(); deleteGlobalSong(${index})">X</button>
       </div>
     `;
@@ -249,6 +254,29 @@ function adminSelectSong(index) {
     lastSyncedIndex = activeIndex;
     playSongAtIndex(activeIndex, 0);
   });
+}
+
+function adminSkip() {
+  if (globalPlaylist.length === 0) return;
+  let nextIdx = (activeIndex + 1) % globalPlaylist.length;
+  adminSelectSong(nextIdx);
+}
+
+function togglePlayPause() {
+  const btn = document.getElementById("pause-play-btn");
+  if (audioEl.paused) {
+    audioEl.play();
+    btn.innerText = "⏸️ Pause";
+  } else {
+    audioEl.pause();
+    btn.innerText = "▶️ Resume";
+  }
+}
+
+function toggleMute() {
+  const muteBtn = document.getElementById("mute-btn");
+  audioEl.muted = !audioEl.muted;
+  muteBtn.innerText = audioEl.muted ? "🔇 Unmute" : "🔊 Mute";
 }
 
 function deleteGlobalSong(index) {
@@ -313,30 +341,23 @@ window.addGlobalSong = function(encodedObj) {
   .catch(err => { alert("Error saving track."); });
 };
 
-window.addEventListener('load', () => {
-  autoPlayLiveRadio();
-});
-
-function autoPlayLiveRadio() {
+function playLiveRadio() {
   initAudioContext();
   fetch('/api/playlist')
     .then(res => res.json())
     .then(data => {
       globalPlaylist = Array.isArray(data.playlist) ? data.playlist : [];
-      if (globalPlaylist.length === 0) return;
-      
+      if (globalPlaylist.length === 0) {
+        alert("Station queue is empty! Admin needs to add tracks.");
+        return;
+      }
       activeIndex = data.currentIndex || 0;
       lastSyncedIndex = activeIndex;
       playSongAtIndex(activeIndex, data.seekTime || 0);
-    })
-    .catch(err => {
-      document.getElementById("controls").style.display = "block";
-    });
-}
 
-function startLiveAudio() {
-  document.getElementById("controls").style.display = "none";
-  autoPlayLiveRadio();
+      document.getElementById("live-btn").style.display = "none";
+      document.getElementById("mute-btn").style.display = "block";
+    });
 }
 
 function playSongAtIndex(index, seekTime = 0) {
@@ -352,7 +373,6 @@ function playSongAtIndex(index, seekTime = 0) {
   audioEl.currentTime = seekTime;
 
   audioEl.play().then(() => {
-    document.getElementById("controls").style.display = "none";
     if (!playing) {
       dotEmitter = setInterval(emitDot, 50);
       lineEmitter = setInterval(emitLine, 100);
@@ -362,9 +382,7 @@ function playSongAtIndex(index, seekTime = 0) {
     if (document.getElementById("studio-modal").style.display === "flex") {
       renderPlaylistUI();
     }
-  }).catch(err => {
-    document.getElementById("controls").style.display = "block";
-  });
+  }).catch(err => console.log("Playback error"));
 }
 
 // Visualizers
@@ -386,7 +404,7 @@ function drawSpectrum() {
     var x2 = w / 2 + ((dynamicZoom) + avg * config.multiplier) * Math.cos(-Math.PI/2 + 2 * Math.PI * i / points + noiseRotate); 
     var y2 = h / 2 + ((dynamicZoom) + avg * config.multiplier) * Math.sin(-Math.PI/2 + 2 * Math.PI * i / points + noiseRotate); 
     var x3 = w / 2 + ((dynamicZoom) + Math.pow((avg * config.multiplier) * 0.09, 2)) * Math.cos(-Math.PI/2 + 2 * Math.PI * i / points + noiseRotate); 
-    var y3 = h / 2 + ((dynamicZoom) + Math.pow((avg * config.multiplier) * 0.09, 2)) * Math.sin(-Math.PI/2 + 2 * Math.PI * i / points + noiseRotate); 
+    var y3 = h / 2 + ((dynamicZoom) + Math.pow((avg * config.multiplier) * 0.09, 2)) * Sin(-Math.PI/2 + 2 * Math.PI * i / points + noiseRotate); 
     var nd1 = noise.simplex2(y1/100, npt)*10; 
     ctx.beginPath(); ctx.lineCap = "round"; ctx.lineWidth = 1.5; ctx.strokeStyle = "hsla("+(config.hueStart + npt * config.colorSpeed)+", 50%, "+(20+(Math.pow(avg * 3, 2)))+"%, 100%)"; ctx.moveTo(x1+nd1, y1+nd1); ctx.lineTo(x2+nd1, y2+nd1); ctx.stroke(); ctx.closePath(); 
     ctx.beginPath(); ctx.lineCap = "round"; ctx.lineWidth = 3.5; ctx.strokeStyle = "hsla("+(config.hueStart + npt * config.colorSpeed)+", 50%, "+(30+(Math.pow(avg * 3, 2)))+"%, 100%)"; ctx.moveTo(x1+nd1, y1+nd1); ctx.lineTo(x3+nd1, y3+nd1); ctx.stroke(); ctx.closePath(); 
