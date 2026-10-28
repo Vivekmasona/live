@@ -47,7 +47,7 @@ app.post('/api/playlist', (req, res) => {
   if (!newSong.url || !newSong.title) return res.status(400).json({ error: 'Invalid data' });
 
   if (!globalPlaylist.some(s => s.url === newSong.url)) {
-    newSong.duration = 180; // Standard 3 mins default duration for clock sync
+    newSong.duration = 180; // Standard 3 mins duration for sync loop
     globalPlaylist.push(newSong);
   }
   res.json({ success: true, playlist: globalPlaylist });
