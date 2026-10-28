@@ -1,12 +1,35 @@
 import express from 'express';
+import fs from 'fs';
 
 const app = express();
 app.use(express.json());
 
-let state = {
-  playlist: [],
-  stationStartTime: Date.now() // Absolute epoch base in milliseconds
-};
+const TMP_FILE = '/tmp/fm_station_state.json';
+
+// Load state from /tmp storage to prevent automatic clearing on server idle/cold start
+function loadState() {
+  try {
+    if (fs.existsSync(TMP_FILE)) {
+      const data = fs.readFileSync(TMP_FILE, 'utf8');
+      return JSON.parse(data);
+    }
+  } catch (err) {
+    console.error("Error reading state file:", err);
+  }
+  return {
+    playlist: [],
+    stationStartTime: Date.now()
+  };
+}
+
+// Save state safely to /tmp storage
+function saveState(state) {
+  try {
+    fs.writeFileSync(TMP_FILE, JSON.stringify(state), 'utf8');
+  } catch (err) {
+    console.error("Error writing state file:", err);
+  }
+}
 
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -16,23 +39,18 @@ app.use((req, res, next) => {
   next();
 });
 
-// Calculate live playback state with Millisecond Precision and Continuous Infinity Loop
 function getLivePlaybackState() {
+  let state = loadState();
   if (!state.playlist || state.playlist.length === 0) {
     return { playlist: [], currentIndex: 0, seekTime: 0 };
   }
 
-  // Calculate total queue duration in milliseconds (default 180s per track = 180,000ms)
   const totalPlaylistDurationMs = state.playlist.reduce((acc, song) => acc + ((song.duration || 180) * 1000), 0);
-  
   if (totalPlaylistDurationMs <= 0) {
     return { playlist: state.playlist, currentIndex: 0, seekTime: 0 };
   }
 
-  // Absolute continuous elapsed time since station started
   const elapsedMs = Math.max(0, Date.now() - state.stationStartTime);
-  
-  // Continuous infinity loop time calculation
   const timeInLoopMs = elapsedMs % totalPlaylistDurationMs;
 
   let accumulatedMs = 0;
@@ -52,7 +70,7 @@ function getLivePlaybackState() {
   return {
     playlist: state.playlist,
     currentIndex: currentIndex,
-    seekTime: parseFloat(seekTimeSec.toFixed(3)) // Millisecond accuracy
+    seekTime: parseFloat(seekTimeSec.toFixed(3))
   };
 }
 
@@ -70,7 +88,7 @@ app.get('/api/search', async (req, res) => {
       primaryArtists: s.primaryArtists || s.artist || "Unknown",
       image: s.image?.[s.image.length - 1]?.link || s.image?.[s.image.length - 1]?.url || "",
       url: s.downloadUrl?.[s.downloadUrl.length - 1]?.link || s.downloadUrl?.[s.downloadUrl.length - 1]?.url || s.url || s.audio,
-      duration: 180 // Standard 3 minutes fixed slot for clock sync
+      duration: 180
     })).filter(s => s.url);
 
     res.json({ results: cleanSongs });
@@ -84,6 +102,7 @@ app.get('/api/playlist', (req, res) => {
 });
 
 app.post('/api/playlist', (req, res) => {
+  let state = loadState();
   const newSong = req.body;
   if (!newSong.url || !newSong.title) return res.status(400).json({ error: 'Invalid data' });
 
@@ -93,12 +112,13 @@ app.post('/api/playlist', (req, res) => {
       state.stationStartTime = Date.now();
     }
     state.playlist.push(newSong);
+    saveState(state);
   }
   res.json({ success: true, ...getLivePlaybackState() });
 });
 
-// Admin direct track click override
 app.post('/api/play', (req, res) => {
+  let state = loadState();
   const { index } = req.body;
   if (index !== undefined && index >= 0 && index < state.playlist.length) {
     let pastDurationSumMs = 0;
@@ -106,15 +126,18 @@ app.post('/api/play', (req, res) => {
       pastDurationSumMs += ((state.playlist[i].duration || 180) * 1000);
     }
     state.stationStartTime = Date.now() - pastDurationSumMs;
+    saveState(state);
   }
   res.json({ success: true, ...getLivePlaybackState() });
 });
 
 app.delete('/api/playlist/:index', (req, res) => {
+  let state = loadState();
   const index = parseInt(req.params.index);
   if (index >= 0 && index < state.playlist.length) {
     state.playlist.splice(index, 1);
-    state.stationStartTime = Date.now(); // Reset anchor time safely
+    state.stationStartTime = Date.now();
+    saveState(state);
   }
   res.json({ success: true, ...getLivePlaybackState() });
 });
