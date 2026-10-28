@@ -3,19 +3,20 @@ import express from 'express';
 const app = express();
 app.use(express.json());
 
-// In-memory fallback / lightweight global storage array
-let globalPlaylist = [];
+let globalState = {
+  playlist: [],
+  currentIndex: 0
+};
 
-// CORS Middleware
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(200).end();
   next();
 });
 
-// 1. Search Endpoint (SVN API)
+// Search
 app.get('/api/search', async (req, res) => {
   try {
     const query = req.query.q;
@@ -38,31 +39,41 @@ app.get('/api/search', async (req, res) => {
   }
 });
 
-// 2. Get Playlist
+// Get State (Playlist + Current Index)
 app.get('/api/playlist', (req, res) => {
-  res.json(globalPlaylist);
+  res.json(globalState);
 });
 
-// 3. Add Song (Save)
+// Add Song
 app.post('/api/playlist', (req, res) => {
   const newSong = req.body;
-  if (!newSong.url || !newSong.title) {
-    return res.status(400).json({ error: 'Invalid song data' });
-  }
+  if (!newSong.url || !newSong.title) return res.status(400).json({ error: 'Invalid data' });
 
-  if (!globalPlaylist.some(s => s.url === newSong.url)) {
-    globalPlaylist.push(newSong);
+  if (!globalState.playlist.some(s => s.url === newSong.url)) {
+    globalState.playlist.push(newSong);
   }
-  res.json({ success: true, playlist: globalPlaylist });
+  res.json({ success: true, ...globalState });
 });
 
-// 4. Delete Song
+// Admin Control (Skip / Change Index)
+app.post('/api/control', (req, res) => {
+  const { index } = req.body;
+  if (index !== undefined && index >= 0 && index < globalState.playlist.length) {
+    globalState.currentIndex = index;
+  }
+  res.json({ success: true, ...globalState });
+});
+
+// Delete Song
 app.delete('/api/playlist/:index', (req, res) => {
   const index = parseInt(req.params.index);
-  if (index >= 0 && index < globalPlaylist.length) {
-    globalPlaylist.splice(index, 1);
+  if (index >= 0 && index < globalState.playlist.length) {
+    globalState.playlist.splice(index, 1);
+    if (globalState.currentIndex >= globalState.playlist.length) {
+      globalState.currentIndex = 0;
+    }
   }
-  res.json({ success: true, playlist: globalPlaylist });
+  res.json({ success: true, ...globalState });
 });
 
 export default app;
