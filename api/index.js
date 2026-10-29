@@ -7,6 +7,7 @@ app.use(express.json());
 const TMP_FILE = '/tmp/fm_station_state.json';
 const DEVELOPER_NAME = "Vivek Masona";
 
+// In-memory fallback state to prevent crashes if /tmp fails
 let memoryState = {
   playlist: [],
   stationStartTime: Date.now()
@@ -29,7 +30,7 @@ function loadState() {
 
 function saveState(state) {
   try {
-    memoryState = state;
+    memoryState = state; // Keep memory updated
     fs.writeFileSync(TMP_FILE, JSON.stringify(state), 'utf8');
   } catch (err) {
     console.error("Write warning:", err);
@@ -45,15 +46,41 @@ app.use((req, res, next) => {
   next();
 });
 
-// Server sirf base state aur timeline return karega, baki sab client local clock se handle karega
-app.get('/api/playlist', (req, res) => {
+function getLivePlaybackState() {
   let state = loadState();
-  res.json({
+  if (!state.playlist || state.playlist.length === 0) {
+    return { developer: DEVELOPER_NAME, playlist: [], currentIndex: 0, seekTime: 0 };
+  }
+
+  const totalPlaylistDurationMs = state.playlist.reduce((acc, song) => acc + ((song.duration || 180) * 1000), 0);
+  if (totalPlaylistDurationMs <= 0) {
+    return { developer: DEVELOPER_NAME, playlist: state.playlist, currentIndex: 0, seekTime: 0 };
+  }
+
+  const elapsedMs = Math.max(0, Date.now() - state.stationStartTime);
+  const timeInLoopMs = elapsedMs % totalPlaylistDurationMs;
+
+  let accumulatedMs = 0;
+  let currentIndex = 0;
+  let seekTimeSec = 0;
+
+  for (let i = 0; i < state.playlist.length; i++) {
+    const songDurationMs = (state.playlist[i].duration || 180) * 1000;
+    if (timeInLoopMs < accumulatedMs + songDurationMs) {
+      currentIndex = i;
+      seekTimeSec = (timeInLoopMs - accumulatedMs) / 1000;
+      break;
+    }
+    accumulatedMs += songDurationMs;
+  }
+
+  return {
     developer: DEVELOPER_NAME,
     playlist: state.playlist,
-    stationStartTime: state.stationStartTime
-  });
-});
+    currentIndex: currentIndex,
+    seekTime: parseFloat(seekTimeSec.toFixed(3))
+  };
+}
 
 app.get('/api/search', async (req, res) => {
   try {
@@ -78,6 +105,10 @@ app.get('/api/search', async (req, res) => {
   }
 });
 
+app.get('/api/playlist', (req, res) => {
+  res.json(getLivePlaybackState());
+});
+
 app.post('/api/playlist', (req, res) => {
   let state = loadState();
   const newSong = req.body;
@@ -91,7 +122,7 @@ app.post('/api/playlist', (req, res) => {
     state.playlist.push(newSong);
     saveState(state);
   }
-  res.json({ success: true, playlist: state.playlist, stationStartTime: state.stationStartTime });
+  res.json({ success: true, ...getLivePlaybackState() });
 });
 
 app.post('/api/play', (req, res) => {
@@ -105,7 +136,7 @@ app.post('/api/play', (req, res) => {
     state.stationStartTime = Date.now() - pastDurationSumMs;
     saveState(state);
   }
-  res.json({ success: true, playlist: state.playlist, stationStartTime: state.stationStartTime });
+  res.json({ success: true, ...getLivePlaybackState() });
 });
 
 app.delete('/api/playlist/:index', (req, res) => {
@@ -116,7 +147,7 @@ app.delete('/api/playlist/:index', (req, res) => {
     state.stationStartTime = Date.now();
     saveState(state);
   }
-  res.json({ success: true, playlist: state.playlist, stationStartTime: state.stationStartTime });
+  res.json({ success: true, ...getLivePlaybackState() });
 });
 
 export default app;
