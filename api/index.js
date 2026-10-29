@@ -7,33 +7,26 @@ app.use(express.json());
 const TMP_FILE = '/tmp/fm_station_state.json';
 const DEVELOPER_NAME = "Vivek Masona";
 
-// In-memory fallback state to prevent crashes if /tmp fails
-let memoryState = {
-  playlist: [],
-  stationStartTime: Date.now()
-};
-
 function loadState() {
   try {
     if (fs.existsSync(TMP_FILE)) {
       const data = fs.readFileSync(TMP_FILE, 'utf8');
-      const parsed = JSON.parse(data);
-      if (parsed && Array.isArray(parsed.playlist)) {
-        return parsed;
-      }
+      return JSON.parse(data);
     }
   } catch (err) {
-    console.error("Read warning:", err);
+    console.error("Error reading state file:", err);
   }
-  return memoryState;
+  return {
+    playlist: [],
+    stationStartTime: Date.now()
+  };
 }
 
 function saveState(state) {
   try {
-    memoryState = state; // Keep memory updated
     fs.writeFileSync(TMP_FILE, JSON.stringify(state), 'utf8');
   } catch (err) {
-    console.error("Write warning:", err);
+    console.error("Error writing state file:", err);
   }
 }
 
@@ -41,7 +34,7 @@ app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,DELETE,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  res.setHeader('X-Developer', DEVELOPER_NAME);
+  res.setHeader('X-Developer', DEVELOPER_NAME); // Added Developer Header
   if (req.method === 'OPTIONS') return res.status(200).end();
   next();
 });
@@ -151,4 +144,3 @@ app.delete('/api/playlist/:index', (req, res) => {
 });
 
 export default app;
-
