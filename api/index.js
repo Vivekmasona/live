@@ -84,7 +84,6 @@ async function calculatePlaybackState() {
     return { developer: DEVELOPER_NAME, playlist: [], currentIndex: 0, seekTime: 0 };
   }
 
-  // Use exact real song duration if available, fallback to 180s
   const validPlaylist = state.playlist.map(song => ({
     ...song,
     duration: Number(song.duration) || 180
@@ -134,7 +133,6 @@ app.get('/api/search', async (req, res) => {
       primaryArtists: s.primaryArtists || s.artist || "Unknown",
       image: s.image?.[s.image.length - 1]?.link || s.image?.[s.image.length - 1]?.url || "",
       url: s.downloadUrl?.[s.downloadUrl.length - 1]?.link || s.downloadUrl?.[s.downloadUrl.length - 1]?.url || s.url || s.audio,
-      // Capture actual song duration from SVN API (fallback to 180 if missing)
       duration: Number(s.duration) || 180
     })).filter(s => s.url);
 
@@ -207,3 +205,4 @@ app.delete('/api/playlist/:index', async (req, res) => {
 });
 
 export default app;
+
