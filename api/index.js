@@ -6,8 +6,19 @@ app.use(express.json());
 
 const DEVELOPER_NAME = "Vivek Masona";
 const TMP_FILE = '/tmp/fm_station_state.json';
-const JSONBIN_MASTER_KEY = "$2a$10$LS/yGb.vYcDNEBq5sG1w.Ooolk5h0LgIermGIubO2yjaohXN39hAC";
-const JSONBIN_BIN_ID = "6ae40759ffd5d16053978352";
+
+// Direct GitHub Configuration (Hardcoded)
+const GITHUB_TOKEN = "Ghp_9jKR6U22hWdk7O4yi8jInBX0XXDBEH32Rqs0"; //[span_2](start_span)[span_2](end_span)
+const GITHUB_USERNAME = "Vivekmasona"; //[span_3](start_span)[span_3](end_span)
+const REPO_NAME = "json"; //[span_4](start_span)[span_4](end_span)
+const FILE_PATH = "song.json"; //[span_5](start_span)[span_5](end_span)
+
+const githubHeaders = {
+    Authorization: `Bearer ${GITHUB_TOKEN}`,
+    Accept: 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28',
+    'User-Agent': 'Node-Express-App'
+};
 
 function readTmpState() {
   try {
@@ -31,16 +42,21 @@ function writeTmpState(state) {
 
 async function loadStateFromCloud() {
   try {
-    const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
-      headers: { 'X-Master-Key': JSONBIN_MASTER_KEY }
-    });
-    const data = await res.json();
-    if (data && data.record && Array.isArray(data.record.playlist)) {
-      writeTmpState(data.record);
-      return data.record;
+    const url = `https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/${FILE_PATH}`;
+    const res = await fetch(url, { headers: githubHeaders });
+    
+    if (res.ok) {
+      const data = await res.json();
+      const content = Buffer.from(data.content, 'base64').toString('utf8');
+      const parsedData = JSON.parse(content);
+      
+      if (parsedData && Array.isArray(parsedData.playlist)) {
+        writeTmpState(parsedData);
+        return { ...parsedData, sha: data.sha };
+      }
     }
   } catch (err) {
-    console.error("JSONBin load error:", err);
+    console.error("GitHub load error:", err);
   }
   return { playlist: [], stationStartTime: Date.now() };
 }
@@ -56,16 +72,49 @@ async function getState() {
 async function updateState(newState) {
   writeTmpState(newState);
   try {
-    await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`, {
+    const url = `https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/${FILE_PATH}`;
+    
+    let sha = newState.sha;
+    if (!sha) {
+      try {
+        const existing = await fetch(url, { headers: githubHeaders });
+        if (existing.ok) {
+          const exData = await existing.json();
+          sha = exData.sha;
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    const cleanState = {
+      playlist: newState.playlist,
+      stationStartTime: newState.stationStartTime
+    };
+
+    const encodedContent = Buffer.from(JSON.stringify(cleanState, null, 2)).toString('base64');
+
+    const body = {
+      message: 'Update playlist state via backend',
+      content: encodedContent,
+      sha: sha ? sha : undefined
+    };
+
+    const putRes = await fetch(url, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'X-Master-Key': JSONBIN_MASTER_KEY
+        ...githubHeaders
       },
-      body: JSON.stringify(newState)
+      body: JSON.stringify(body)
     });
+
+    if (putRes.ok) {
+      const putData = await putRes.json();
+      newState.sha = putData.content.sha;
+    }
   } catch (err) {
-    console.error("JSONBin sync error:", err);
+    console.error("GitHub sync error:", err);
   }
 }
 
