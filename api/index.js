@@ -119,52 +119,20 @@ async function calculatePlaybackState() {
   };
 }
 
-// Pure Native Audio Player Endpoint (Exact like direct CDN link style)
+// Direct Audio Stream Redirect Endpoint for <audio> tags
 app.get('/api/stream', async (req, res) => {
   const playback = await calculatePlaybackState();
   if (!playback.playlist || playback.playlist.length === 0) {
-    return res.send(`<html><body style="background:#000;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;font-family:sans-serif;">No tracks in queue.</body></html>`);
+    return res.status(404).send('No active tracks in station.');
   }
 
   const currentSong = playback.playlist[playback.currentIndex];
-  const seekTime = playback.seekTime;
+  if (!currentSong || !currentSong.url) {
+    return res.status(404).send('Stream URL not found.');
+  }
 
-  res.send(`
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Bihar FM Live</title>
-    <style>
-      body {
-        margin: 0;
-        background: #000;
-        height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      audio {
-        width: 85%;
-        max-width: 400px;
-      }
-    </style>
-    </head>
-    <body>
-      <audio id="player" controls autoplay src="${currentSong.url}"></audio>
-      <script>
-        const audio = document.getElementById('player');
-        audio.currentTime = ${seekTime};
-        audio.play().catch(e => console.log("Autoplay blocked:", e));
-
-        audio.addEventListener('ended', () => {
-          window.location.reload();
-        });
-      </script>
-    </body>
-    </html>
-  `);
+  // Redirect directly to the current playing song's CDN audio URL
+  res.redirect(302, currentSong.url);
 });
 
 app.get('/api/search', async (req, res) => {
@@ -253,4 +221,3 @@ app.delete('/api/playlist/:index', async (req, res) => {
 });
 
 export default app;
-
