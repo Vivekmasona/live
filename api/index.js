@@ -29,7 +29,6 @@ function writeTmpState(state) {
   }
 }
 
-// Strict Cloud Fetch: Only executed when local disk /tmp state is completely missing
 async function loadStateFromCloud() {
   try {
     const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
@@ -85,9 +84,15 @@ async function calculatePlaybackState() {
     return { developer: DEVELOPER_NAME, playlist: [], currentIndex: 0, seekTime: 0 };
   }
 
-  const totalPlaylistDurationMs = state.playlist.reduce((acc, song) => acc + ((song.duration || 180) * 1000), 0);
+  // Use exact real song duration if available, fallback to 180s
+  const validPlaylist = state.playlist.map(song => ({
+    ...song,
+    duration: Number(song.duration) || 180
+  }));
+
+  const totalPlaylistDurationMs = validPlaylist.reduce((acc, song) => acc + (song.duration * 1000), 0);
   if (totalPlaylistDurationMs <= 0) {
-    return { developer: DEVELOPER_NAME, playlist: state.playlist, currentIndex: 0, seekTime: 0 };
+    return { developer: DEVELOPER_NAME, playlist: validPlaylist, currentIndex: 0, seekTime: 0 };
   }
 
   const elapsedMs = Math.max(0, Date.now() - state.stationStartTime);
@@ -97,8 +102,8 @@ async function calculatePlaybackState() {
   let currentIndex = 0;
   let seekTimeSec = 0;
 
-  for (let i = 0; i < state.playlist.length; i++) {
-    const songDurationMs = (state.playlist[i].duration || 180) * 1000;
+  for (let i = 0; i < validPlaylist.length; i++) {
+    const songDurationMs = validPlaylist[i].duration * 1000;
     if (timeInLoopMs < accumulatedMs + songDurationMs) {
       currentIndex = i;
       seekTimeSec = (timeInLoopMs - accumulatedMs) / 1000;
@@ -109,7 +114,7 @@ async function calculatePlaybackState() {
 
   return {
     developer: DEVELOPER_NAME,
-    playlist: state.playlist,
+    playlist: validPlaylist,
     currentIndex: currentIndex,
     seekTime: parseFloat(seekTimeSec.toFixed(3))
   };
@@ -129,7 +134,8 @@ app.get('/api/search', async (req, res) => {
       primaryArtists: s.primaryArtists || s.artist || "Unknown",
       image: s.image?.[s.image.length - 1]?.link || s.image?.[s.image.length - 1]?.url || "",
       url: s.downloadUrl?.[s.downloadUrl.length - 1]?.link || s.downloadUrl?.[s.downloadUrl.length - 1]?.url || s.url || s.audio,
-      duration: 180
+      // Capture actual song duration from SVN API (fallback to 180 if missing)
+      duration: Number(s.duration) || 180
     })).filter(s => s.url);
 
     res.json({ developer: DEVELOPER_NAME, results: cleanSongs });
@@ -162,7 +168,7 @@ app.post('/api/playlist', async (req, res) => {
   if (!newSong.url || !newSong.title) return res.status(400).json({ error: 'Invalid data' });
 
   if (!state.playlist.some(s => s.url === newSong.url)) {
-    newSong.duration = 180;
+    newSong.duration = Number(newSong.duration) || 180;
     if (state.playlist.length === 0) {
       state.stationStartTime = Date.now();
     }
@@ -179,7 +185,7 @@ app.post('/api/play', async (req, res) => {
   if (index !== undefined && index >= 0 && index < state.playlist.length) {
     let pastDurationSumMs = 0;
     for (let i = 0; i < index; i++) {
-      pastDurationSumMs += ((state.playlist[i].duration || 180) * 1000);
+      pastDurationSumMs += ((Number(state.playlist[i].duration) || 180) * 1000);
     }
     state.stationStartTime = Date.now() - pastDurationSumMs;
     await updateState(state);
@@ -201,4 +207,3 @@ app.delete('/api/playlist/:index', async (req, res) => {
 });
 
 export default app;
-
