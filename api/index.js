@@ -6,19 +6,8 @@ app.use(express.json());
 
 const DEVELOPER_NAME = "Vivek Masona";
 const TMP_FILE = '/tmp/fm_station_state.json';
-
-// GitHub Configuration (Hardcoded with your new token)
-const GITHUB_TOKEN = "Ghp_1EZRF7nhgKg2AHLYTgB50QsCaP7moI49biHT";
-const GITHUB_USERNAME = "Vivekmasona";
-const REPO_NAME = "json";
-const FILE_PATH = "song.json";
-
-const githubHeaders = {
-    Authorization: `Bearer ${GITHUB_TOKEN}`,
-    Accept: 'application/vnd.github+json',
-    'X-GitHub-Api-Version': '2022-11-28',
-    'User-Agent': 'Node-Express-App'
-};
+const JSONBIN_MASTER_KEY = "$2a$10$LS/yGb.vYcDNEBq5sG1w.Ooolk5h0LgIermGIubO2yjaohXN39hAC";
+const JSONBIN_BIN_ID = "6ae40759ffd5d16053978352";
 
 function readTmpState() {
   try {
@@ -42,21 +31,16 @@ function writeTmpState(state) {
 
 async function loadStateFromCloud() {
   try {
-    const url = `https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/${FILE_PATH}`;
-    const res = await fetch(url, { headers: githubHeaders });
-    
-    if (res.ok) {
-      const data = await res.json();
-      const content = Buffer.from(data.content, 'base64').toString('utf8');
-      const parsedData = JSON.parse(content);
-      
-      if (parsedData && Array.isArray(parsedData.playlist)) {
-        writeTmpState(parsedData);
-        return { ...parsedData, sha: data.sha };
-      }
+    const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
+      headers: { 'X-Master-Key': JSONBIN_MASTER_KEY }
+    });
+    const data = await res.json();
+    if (data && data.record && Array.isArray(data.record.playlist)) {
+      writeTmpState(data.record);
+      return data.record;
     }
   } catch (err) {
-    console.error("GitHub load error:", err);
+    console.error("JSONBin load error:", err);
   }
   return { playlist: [], stationStartTime: Date.now() };
 }
@@ -72,50 +56,16 @@ async function getState() {
 async function updateState(newState) {
   writeTmpState(newState);
   try {
-    const url = `https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/${FILE_PATH}`;
-    
-    let sha = newState.sha;
-    try {
-      const existing = await fetch(url, { headers: githubHeaders });
-      if (existing.ok) {
-        const exData = await existing.json();
-        sha = exData.sha;
-      }
-    } catch (e) {
-      // ignore
-    }
-
-    const cleanState = {
-      playlist: newState.playlist,
-      stationStartTime: newState.stationStartTime
-    };
-
-    const encodedContent = Buffer.from(JSON.stringify(cleanState, null, 2)).toString('base64');
-
-    const body = {
-      message: 'Live update playlist song.json',
-      content: encodedContent,
-      sha: sha ? sha : undefined
-    };
-
-    const putRes = await fetch(url, {
+    await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        ...githubHeaders
+        'X-Master-Key': JSONBIN_MASTER_KEY
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify(newState)
     });
-
-    if (putRes.ok) {
-      const putData = await putRes.json();
-      newState.sha = putData.content.sha;
-    } else {
-      const errTxt = await putRes.text();
-      console.error("GitHub live sync failed:", errTxt);
-    }
   } catch (err) {
-    console.error("GitHub sync error:", err);
+    console.error("JSONBin sync error:", err);
   }
 }
 
@@ -176,23 +126,19 @@ app.get('/api/search', async (req, res) => {
 
     const svnRes = await fetch(`https://svn-vivekfy.vercel.app/search/songs?query=${encodeURIComponent(query)}`);
     const svnData = await svnRes.json();
-    
-    // Fixed parsing structure to safely handle search responses
-    const rawResults = svnData?.data?.results || svnData?.results || svnData?.data || [];
-    const songs = Array.isArray(rawResults) ? rawResults : [];
+    const songs = svnData?.data?.results || svnData?.results || [];
 
     const cleanSongs = songs.map(s => ({
       title: s.name || s.title || "Unknown",
-      primaryArtists: s.primaryArtists || s.artist || s.singers || "Unknown",
-      image: s.image?.[s.image.length - 1]?.link || s.image?.[s.image.length - 1]?.url || s.image || "",
-      url: s.downloadUrl?.[s.downloadUrl.length - 1]?.link || s.downloadUrl?.[s.downloadUrl.length - 1]?.url || s.url || s.audio || "",
+      primaryArtists: s.primaryArtists || s.artist || "Unknown",
+      image: s.image?.[s.image.length - 1]?.link || s.image?.[s.image.length - 1]?.url || "",
+      url: s.downloadUrl?.[s.downloadUrl.length - 1]?.link || s.downloadUrl?.[s.downloadUrl.length - 1]?.url || s.url || s.audio,
       duration: Number(s.duration) || 180
     })).filter(s => s.url);
 
     res.json({ developer: DEVELOPER_NAME, results: cleanSongs });
   } catch (err) {
-    console.error("Search API error:", err);
-    res.status(500).json({ error: err.message, results: [] });
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -259,4 +205,5 @@ app.delete('/api/playlist/:index', async (req, res) => {
 });
 
 export default app;
+
 
