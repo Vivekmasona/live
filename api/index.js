@@ -7,7 +7,12 @@ app.use(express.json());
 const DEVELOPER_NAME = "Vivek Masona";
 const TMP_FILE = '/tmp/fm_station_state.json';
 const JSONBIN_MASTER_KEY = "$2a$10$LS/yGb.vYcDNEBq5sG1w.Ooolk5h0LgIermGIubO2yjaohXN39hAC";
-const JSONBIN_BIN_ID = "6ae40759ffd5d16053978352"; // Aapka official Bin ID
+const JSONBIN_BIN_ID = "6ae40759ffd5d16053978352";
+
+// In-memory cache to prevent hitting JSONBin rate limits (Unlimited optimization)
+let cachedState = null;
+let lastCacheTime = 0;
+const CACHE_TTL = 30000; // 30 seconds cache window
 
 function loadLocalState() {
   try {
@@ -29,7 +34,13 @@ function saveLocalState(state) {
   }
 }
 
-async function loadState() {
+// Optimized loadState with caching to save JSONBin free quota
+async function loadState(forceRefresh = false) {
+  const now = Date.now();
+  if (!forceRefresh && cachedState && (now - lastCacheTime < CACHE_TTL)) {
+    return cachedState;
+  }
+
   let localState = loadLocalState();
   if (JSONBIN_BIN_ID) {
     try {
@@ -38,17 +49,25 @@ async function loadState() {
       });
       const data = await res.json();
       if (data && data.record && Array.isArray(data.record.playlist)) {
-        return data.record;
+        cachedState = data.record;
+        lastCacheTime = now;
+        saveLocalState(cachedState);
+        return cachedState;
       }
     } catch (err) {
-      console.error("Cloud load error, using local:", err);
+      console.error("Cloud load error, using local cache:", err);
     }
   }
-  return localState;
+  cachedState = localState;
+  return cachedState;
 }
 
+// Save state to Cloud and Local, and update cache instantly
 async function saveState(state) {
+  cachedState = state;
+  lastCacheTime = Date.now();
   saveLocalState(state);
+  
   if (JSONBIN_BIN_ID) {
     try {
       await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`, {
@@ -139,7 +158,7 @@ app.get('/api/playlist', async (req, res) => {
 });
 
 app.post('/api/sync', async (req, res) => {
-  let state = await loadState();
+  let state = await loadState(true);
   const { playlist } = req.body;
   if (state.playlist.length === 0 && Array.isArray(playlist) && playlist.length > 0) {
     state.playlist = playlist;
@@ -151,7 +170,7 @@ app.post('/api/sync', async (req, res) => {
 });
 
 app.post('/api/playlist', async (req, res) => {
-  let state = await loadState();
+  let state = await loadState(true);
   const newSong = req.body;
   if (!newSong.url || !newSong.title) return res.status(400).json({ error: 'Invalid data' });
 
@@ -168,7 +187,7 @@ app.post('/api/playlist', async (req, res) => {
 });
 
 app.post('/api/play', async (req, res) => {
-  let state = await loadState();
+  let state = await loadState(true);
   const { index } = req.body;
   if (index !== undefined && index >= 0 && index < state.playlist.length) {
     let pastDurationSumMs = 0;
@@ -183,7 +202,7 @@ app.post('/api/play', async (req, res) => {
 });
 
 app.delete('/api/playlist/:index', async (req, res) => {
-  let state = await loadState();
+  let state = await loadState(true);
   const index = parseInt(req.params.index);
   if (index >= 0 && index < state.playlist.length) {
     state.playlist.splice(index, 1);
@@ -195,4 +214,3 @@ app.delete('/api/playlist/:index', async (req, res) => {
 });
 
 export default app;
-
