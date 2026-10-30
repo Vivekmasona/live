@@ -7,11 +7,11 @@ app.use(express.json());
 const DEVELOPER_NAME = "Vivek Masona";
 const TMP_FILE = '/tmp/fm_station_state.json';
 
-// Naya GitHub Configuration (Aapka naya token)
+// GitHub Configuration (Hardcoded with your new token)
 const GITHUB_TOKEN = "Ghp_1EZRF7nhgKg2AHLYTgB50QsCaP7moI49biHT";
-const GITHUB_USERNAME = "Vivekmasona";[span_0](start_span)[span_0](end_span)
-const REPO_NAME = "json";[span_1](start_span)[span_1](end_span)
-const FILE_PATH = "song.json";[span_2](start_span)[span_2](end_span)
+const GITHUB_USERNAME = "Vivekmasona";
+const REPO_NAME = "json";
+const FILE_PATH = "song.json";
 
 const githubHeaders = {
     Authorization: `Bearer ${GITHUB_TOKEN}`,
@@ -42,7 +42,7 @@ function writeTmpState(state) {
 
 async function loadStateFromCloud() {
   try {
-    const url = `https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/${FILE_PATH}`;[span_3](start_span)[span_3](end_span)
+    const url = `https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/${FILE_PATH}`;
     const res = await fetch(url, { headers: githubHeaders });
     
     if (res.ok) {
@@ -72,7 +72,7 @@ async function getState() {
 async function updateState(newState) {
   writeTmpState(newState);
   try {
-    const url = `https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/${FILE_PATH}`;[span_4](start_span)[span_4](end_span)
+    const url = `https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/${FILE_PATH}`;
     
     let sha = newState.sha;
     try {
@@ -176,19 +176,23 @@ app.get('/api/search', async (req, res) => {
 
     const svnRes = await fetch(`https://svn-vivekfy.vercel.app/search/songs?query=${encodeURIComponent(query)}`);
     const svnData = await svnRes.json();
-    const songs = svnData?.data?.results || svnData?.results || [];
+    
+    // Fixed parsing structure to safely handle search responses
+    const rawResults = svnData?.data?.results || svnData?.results || svnData?.data || [];
+    const songs = Array.isArray(rawResults) ? rawResults : [];
 
     const cleanSongs = songs.map(s => ({
       title: s.name || s.title || "Unknown",
-      primaryArtists: s.primaryArtists || s.artist || "Unknown",
-      image: s.image?.[s.image.length - 1]?.link || s.image?.[s.image.length - 1]?.url || "",
-      url: s.downloadUrl?.[s.downloadUrl.length - 1]?.link || s.downloadUrl?.[s.downloadUrl.length - 1]?.url || s.url || s.audio,
+      primaryArtists: s.primaryArtists || s.artist || s.singers || "Unknown",
+      image: s.image?.[s.image.length - 1]?.link || s.image?.[s.image.length - 1]?.url || s.image || "",
+      url: s.downloadUrl?.[s.downloadUrl.length - 1]?.link || s.downloadUrl?.[s.downloadUrl.length - 1]?.url || s.url || s.audio || "",
       duration: Number(s.duration) || 180
     })).filter(s => s.url);
 
     res.json({ developer: DEVELOPER_NAME, results: cleanSongs });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Search API error:", err);
+    res.status(500).json({ error: err.message, results: [] });
   }
 });
 
