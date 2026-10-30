@@ -7,11 +7,11 @@ app.use(express.json());
 const DEVELOPER_NAME = "Vivek Masona";
 const TMP_FILE = '/tmp/fm_station_state.json';
 
-// Direct GitHub Configuration (Hardcoded)
-const GITHUB_TOKEN = "Ghp_9jKR6U22hWdk7O4yi8jInBX0XXDBEH32Rqs0"; //[span_2](start_span)[span_2](end_span)
-const GITHUB_USERNAME = "Vivekmasona"; //[span_3](start_span)[span_3](end_span)
-const REPO_NAME = "json"; //[span_4](start_span)[span_4](end_span)
-const FILE_PATH = "song.json"; //[span_5](start_span)[span_5](end_span)
+// GitHub Direct Configuration
+const GITHUB_TOKEN = "Ghp_9jKR6U22hWdk7O4yi8jInBX0XXDBEH32Rqs0";[span_0](start_span)[span_0](end_span)
+const GITHUB_USERNAME = "Vivekmasona";[span_1](start_span)[span_1](end_span)
+const REPO_NAME = "json";[span_2](start_span)[span_2](end_span)
+const FILE_PATH = "song.json";[span_3](start_span)[span_3](end_span)
 
 const githubHeaders = {
     Authorization: `Bearer ${GITHUB_TOKEN}`,
@@ -40,9 +40,10 @@ function writeTmpState(state) {
   }
 }
 
+// GitHub se state load karne ke liye
 async function loadStateFromCloud() {
   try {
-    const url = `https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/${FILE_PATH}`;
+    const url = `https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/${FILE_PATH}`;[span_4](start_span)[span_4](end_span)
     const res = await fetch(url, { headers: githubHeaders });
     
     if (res.ok) {
@@ -69,22 +70,22 @@ async function getState() {
   return state;
 }
 
+// State update hone par turant GitHub repo ki song.json file ko live edit/update karega
 async function updateState(newState) {
   writeTmpState(newState);
   try {
-    const url = `https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/${FILE_PATH}`;
+    const url = `https://api.github.com/repos/${GITHUB_USERNAME}/${REPO_NAME}/contents/${FILE_PATH}`;[span_5](start_span)[span_5](end_span)
     
+    // Har update par latest SHA fetch karna zaroori hai taaki conflict na ho
     let sha = newState.sha;
-    if (!sha) {
-      try {
-        const existing = await fetch(url, { headers: githubHeaders });
-        if (existing.ok) {
-          const exData = await existing.json();
-          sha = exData.sha;
-        }
-      } catch (e) {
-        // ignore
+    try {
+      const existing = await fetch(url, { headers: githubHeaders });
+      if (existing.ok) {
+        const exData = await existing.json();
+        sha = exData.sha;
       }
+    } catch (e) {
+      // ignore
     }
 
     const cleanState = {
@@ -95,7 +96,7 @@ async function updateState(newState) {
     const encodedContent = Buffer.from(JSON.stringify(cleanState, null, 2)).toString('base64');
 
     const body = {
-      message: 'Update playlist state via backend',
+      message: 'Live update playlist song.json',
       content: encodedContent,
       sha: sha ? sha : undefined
     };
@@ -112,6 +113,9 @@ async function updateState(newState) {
     if (putRes.ok) {
       const putData = await putRes.json();
       newState.sha = putData.content.sha;
+    } else {
+      const errTxt = await putRes.text();
+      console.error("GitHub live sync failed:", errTxt);
     }
   } catch (err) {
     console.error("GitHub sync error:", err);
@@ -220,7 +224,7 @@ app.post('/api/playlist', async (req, res) => {
       state.stationStartTime = Date.now();
     }
     state.playlist.push(newSong);
-    await updateState(state);
+    await updateState(state); // Yeh turant GitHub par song.json update kar dega
   }
   const playback = await calculatePlaybackState();
   res.json({ success: true, ...playback });
@@ -247,7 +251,7 @@ app.delete('/api/playlist/:index', async (req, res) => {
   if (index >= 0 && index < state.playlist.length) {
     state.playlist.splice(index, 1);
     state.stationStartTime = Date.now();
-    await updateState(state);
+    await updateState(state); // Song delete hote hi GitHub par bhi update ho jayega
   }
   const playback = await calculatePlaybackState();
   res.json({ success: true, ...playback });
