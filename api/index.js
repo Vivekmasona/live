@@ -131,7 +131,7 @@ app.get('/api/stream', async (req, res) => {
     return res.status(404).send('Stream URL not found.');
   }
 
-  // Redirect directly to the current playing song's CDN audio URL
+  // 302 Redirect to the exact currently active song on Saavn CDN
   res.redirect(302, currentSong.url);
 });
 
