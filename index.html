@@ -180,36 +180,11 @@ function closeStudio() {
   document.getElementById("studio-modal").style.display = "none";
 }
 
-// Fetch and sync state with local storage fallback and server revival
 function pollGlobalState() {
   fetch('/api/playlist')
     .then(res => res.json())
     .then(data => {
       globalPlaylist = Array.isArray(data.playlist) ? data.playlist : [];
-      
-      // If server was sleeping and came back empty, restore using localStorage
-      if (globalPlaylist.length === 0) {
-        let cached = localStorage.getItem('fm_cached_playlist');
-        if (cached) {
-          let parsed = JSON.parse(cached);
-          if (parsed.length > 0) {
-            fetch('/api/sync', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ playlist: parsed })
-            }).then(r => r.json()).then(syncData => {
-              if (syncData.playlist && syncData.playlist.length > 0) {
-                globalPlaylist = syncData.playlist;
-                playSongAtIndex(syncData.currentIndex || 0, syncData.seekTime || 0);
-              }
-            });
-          }
-        }
-      } else {
-        // Save current working playlist to localStorage
-        localStorage.setItem('fm_cached_playlist', JSON.stringify(globalPlaylist));
-      }
-
       let newIndex = data.currentIndex || 0;
       let seekTime = data.seekTime || 0;
       
@@ -258,7 +233,6 @@ function adminSelectSong(index) {
   .then(res => res.json())
   .then(data => {
     globalPlaylist = data.playlist;
-    localStorage.setItem('fm_cached_playlist', JSON.stringify(globalPlaylist));
     activeIndex = data.currentIndex;
     playSongAtIndex(activeIndex, data.seekTime);
     renderPlaylistUI();
@@ -271,7 +245,6 @@ function deleteGlobalSong(index) {
     .then(res => res.json())
     .then(data => {
       globalPlaylist = data.playlist;
-      localStorage.setItem('fm_cached_playlist', JSON.stringify(globalPlaylist));
       activeIndex = data.currentIndex;
       playSongAtIndex(activeIndex, data.seekTime);
       renderPlaylistUI();
@@ -322,7 +295,6 @@ window.addGlobalSong = function(encodedObj) {
   .then(data => {
     if (data.success) {
       globalPlaylist = data.playlist;
-      localStorage.setItem('fm_cached_playlist', JSON.stringify(globalPlaylist));
       renderPlaylistUI();
     }
   })
@@ -335,37 +307,14 @@ window.addEventListener('load', () => {
 
 function autoPlayLiveRadio() {
   initAudioContext();
-  
-  // Instant check from localStorage for fast load
-  let cached = localStorage.getItem('fm_cached_playlist');
-  if (cached) {
-    try {
-      let parsed = JSON.parse(cached);
-      if (parsed.length > 0) {
-        globalPlaylist = parsed;
-      }
-    } catch(e) {}
-  }
-
   fetch('/api/playlist')
     .then(res => res.json())
     .then(data => {
-      if (data.playlist && data.playlist.length > 0) {
-        globalPlaylist = data.playlist;
-        localStorage.setItem('fm_cached_playlist', JSON.stringify(globalPlaylist));
-        activeIndex = data.currentIndex || 0;
-        playSongAtIndex(activeIndex, data.seekTime || 0);
-      } else if (globalPlaylist.length > 0) {
-        // Revive server using local cache
-        fetch('/api/sync', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ playlist: globalPlaylist })
-        }).then(r => r.json()).then(syncData => {
-          activeIndex = syncData.currentIndex || 0;
-          playSongAtIndex(activeIndex, syncData.seekTime || 0);
-        });
-      }
+      globalPlaylist = Array.isArray(data.playlist) ? data.playlist : [];
+      if (globalPlaylist.length === 0) return;
+      
+      activeIndex = data.currentIndex || 0;
+      playSongAtIndex(activeIndex, data.seekTime || 0);
     })
     .catch(err => {
       document.getElementById("controls").style.display = "block";
@@ -420,7 +369,7 @@ function drawSpectrum() {
   analyser.getByteFrequencyData(frequencyData); var noiseRotate = noise.perlin2(10, nrt); var points = Math.round(frequencyDataLen-frequencyDataLen/3); 
   var bassPower = getBassPulse(); var dynamicZoom = config.minRadius + (bassPower * 0.16); if (dynamicZoom > config.maxRadius) { dynamicZoom = config.maxRadius; }
   if (bgImage.complete) { ctx.save(); ctx.beginPath(); ctx.arc(w / 2, h / 2, dynamicZoom, 0, Math.PI * 2); ctx.clip(); ctx.drawImage(bgImage, (w / 2) - dynamicZoom, (h / 2) - dynamicZoom, dynamicZoom * 2, dynamicZoom * 2); ctx.restore(); }
-  for (let i = 0.5; i < points; i++) { 
+  for (let i = 0; i < points; i++) { 
     avg += frequencyData[i]; avg = avg / points; 
     var x1 = w / 2 + (dynamicZoom) * Math.cos(-Math.PI/2 + 2 * Math.PI * i / points + noiseRotate); 
     var y1 = h / 2 + (dynamicZoom) * Math.sin(-Math.PI/2 + 2 * Math.PI * i / points + noiseRotate); 
