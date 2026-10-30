@@ -34,7 +34,7 @@ app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,DELETE,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  res.setHeader('X-Developer', DEVELOPER_NAME); // Added Developer Header
+  res.setHeader('X-Developer', DEVELOPER_NAME);
   if (req.method === 'OPTIONS') return res.status(200).end();
   next();
 });
@@ -102,6 +102,18 @@ app.get('/api/playlist', (req, res) => {
   res.json(getLivePlaybackState());
 });
 
+// Sync endpoint to restore state from any active user's localStorage if server was sleeping
+app.post('/api/sync', (req, res) => {
+  let state = loadState();
+  const { playlist } = req.body;
+  if (state.playlist.length === 0 && Array.isArray(playlist) && playlist.length > 0) {
+    state.playlist = playlist;
+    state.stationStartTime = Date.now();
+    saveState(state);
+  }
+  res.json({ success: true, ...getLivePlaybackState() });
+});
+
 app.post('/api/playlist', (req, res) => {
   let state = loadState();
   const newSong = req.body;
@@ -141,6 +153,11 @@ app.delete('/api/playlist/:index', (req, res) => {
     saveState(state);
   }
   res.json({ success: true, ...getLivePlaybackState() });
+});
+
+app.head('/api/playlist', (req, res) => {
+  res.setHeader('X-Developer', DEVELOPER_NAME);
+  res.status(200).end();
 });
 
 export default app;
