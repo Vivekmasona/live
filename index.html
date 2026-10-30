@@ -151,6 +151,7 @@ function initAudioContext() {
 
 let globalPlaylist = [];
 let activeIndex = -1;
+let syncTimeout = null;
 
 let pressTimer;
 const brandTitle = document.getElementById("brand-title");
@@ -180,6 +181,7 @@ function closeStudio() {
   document.getElementById("studio-modal").style.display = "none";
 }
 
+// Smart Song-End Timer Polling to save JSONBin quota
 function pollGlobalState() {
   fetch('/api/playlist')
     .then(res => res.json())
@@ -192,17 +194,35 @@ function pollGlobalState() {
         renderPlaylistUI();
       }
 
-      if (playing && globalPlaylist.length > 0) {
-        if (newIndex !== activeIndex || Math.abs(audioEl.currentTime - seekTime) > 0.4) {
+      if (globalPlaylist.length > 0) {
+        if (!playing || newIndex !== activeIndex || Math.abs(audioEl.currentTime - seekTime) > 1.5) {
           activeIndex = newIndex;
           playSongAtIndex(activeIndex, seekTime);
         }
       }
+      scheduleNextSync();
     })
-    .catch(err => console.error("Sync error:", err));
+    .catch(err => {
+      console.error("Sync error:", err);
+      syncTimeout = setTimeout(pollGlobalState, 10000);
+    });
 }
 
-setInterval(pollGlobalState, 2000);
+function scheduleNextSync() {
+  if (syncTimeout) clearTimeout(syncTimeout);
+  if (audioEl.duration && !isNaN(audioEl.duration)) {
+    let remainingTimeMs = Math.max(2000, (audioEl.duration - audioEl.currentTime) * 1000);
+    syncTimeout = setTimeout(pollGlobalState, remainingTimeMs);
+  } else {
+    syncTimeout = setTimeout(pollGlobalState, 30000);
+  }
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    pollGlobalState();
+  }
+});
 
 function renderPlaylistUI() {
   const container = document.getElementById("playlist-container");
@@ -236,6 +256,7 @@ function adminSelectSong(index) {
     activeIndex = data.currentIndex;
     playSongAtIndex(activeIndex, data.seekTime);
     renderPlaylistUI();
+    scheduleNextSync();
   });
 }
 
@@ -248,6 +269,7 @@ function deleteGlobalSong(index) {
       activeIndex = data.currentIndex;
       playSongAtIndex(activeIndex, data.seekTime);
       renderPlaylistUI();
+      scheduleNextSync();
     });
 }
 
@@ -296,6 +318,7 @@ window.addGlobalSong = function(encodedObj) {
     if (data.success) {
       globalPlaylist = data.playlist;
       renderPlaylistUI();
+      scheduleNextSync();
     }
   })
   .catch(err => { alert("Error saving track."); });
@@ -315,6 +338,7 @@ function autoPlayLiveRadio() {
       
       activeIndex = data.currentIndex || 0;
       playSongAtIndex(activeIndex, data.seekTime || 0);
+      scheduleNextSync();
     })
     .catch(err => {
       document.getElementById("controls").style.display = "block";
@@ -369,7 +393,7 @@ function drawSpectrum() {
   analyser.getByteFrequencyData(frequencyData); var noiseRotate = noise.perlin2(10, nrt); var points = Math.round(frequencyDataLen-frequencyDataLen/3); 
   var bassPower = getBassPulse(); var dynamicZoom = config.minRadius + (bassPower * 0.16); if (dynamicZoom > config.maxRadius) { dynamicZoom = config.maxRadius; }
   if (bgImage.complete) { ctx.save(); ctx.beginPath(); ctx.arc(w / 2, h / 2, dynamicZoom, 0, Math.PI * 2); ctx.clip(); ctx.drawImage(bgImage, (w / 2) - dynamicZoom, (h / 2) - dynamicZoom, dynamicZoom * 2, dynamicZoom * 2); ctx.restore(); }
-  for (let i = 0; i < points; i++) { 
+  for (let i = 0.5; i < points; i++) { 
     avg += frequencyData[i]; avg = avg / points; 
     var x1 = w / 2 + (dynamicZoom) * Math.cos(-Math.PI/2 + 2 * Math.PI * i / points + noiseRotate); 
     var y1 = h / 2 + (dynamicZoom) * Math.sin(-Math.PI/2 + 2 * Math.PI * i / points + noiseRotate); 
