@@ -1,44 +1,19 @@
 import express from 'express';
-import fs from 'fs';
 
 const app = express();
 app.use(express.json());
 
-const DEVELOPER_NAME = "Vivek❣️Masona";
-const TMP_FILE = '/tmp/fm_station_state.json';
+const DEVELOPER_NAME = "Vivek-Masona";
 const JSONBIN_MASTER_KEY = "$2a$10$LS/yGb.vYcDNEBq5sG1w.Ooolk5h0LgIermGIubO2yjaohXN39hAC";
 const JSONBIN_BIN_ID = "6ae40759ffd5d16053978352";
 
-// In-Memory cache for lightning-fast serverless reads when warm
-let memoryState = null;
+// In-Memory State Storage (Serverless RAM Cache)
+let stationState = {
+  playlist: [],
+  stationStartTime: Date.now()
+};
 
-function readTmpState() {
-  if (memoryState && Array.isArray(memoryState.playlist)) {
-    return memoryState;
-  }
-  try {
-    if (fs.existsSync(TMP_FILE)) {
-      const raw = fs.readFileSync(TMP_FILE, 'utf8');
-      memoryState = JSON.parse(raw);
-      if (memoryState && Array.isArray(memoryState.playlist)) {
-        return memoryState;
-      }
-    }
-  } catch (err) {
-    console.error("Local TMP read error:", err);
-  }
-  return null;
-}
-
-function writeTmpState(state) {
-  memoryState = state; // Update RAM cache immediately
-  try {
-    fs.writeFileSync(TMP_FILE, JSON.stringify(state), 'utf8');
-  } catch (err) {
-    console.error("Local TMP write error:", err);
-  }
-}
-
+// Cloud se data load karne ka function
 async function loadStateFromCloud() {
   try {
     const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
@@ -46,27 +21,28 @@ async function loadStateFromCloud() {
     });
     const data = await res.json();
     if (data && data.record && Array.isArray(data.record.playlist)) {
-      writeTmpState(data.record);
-      return data.record;
+      stationState = data.record;
     }
   } catch (err) {
     console.error("JSONBin load error:", err);
   }
-  return { playlist: [], stationStartTime: Date.now() };
+  return stationState;
 }
+
+// Initial state fetch on startup if empty
+loadStateFromCloud();
 
 async function getState() {
-  let state = readTmpState();
-  if (!state || !Array.isArray(state.playlist) || state.playlist.length === 0) {
-    state = await loadStateFromCloud();
+  if (!stationState || !Array.isArray(stationState.playlist) || stationState.playlist.length === 0) {
+    await loadStateFromCloud();
   }
-  return state;
+  return stationState;
 }
 
-// Track last sync time to prevent spamming JSONBin writes
+// Throttling for cloud sync
 let lastCloudSyncTime = 0;
 async function updateState(newState, forceCloudSync = false) {
-  writeTmpState(newState);
+  stationState = newState; // RAM update immediately
   
   const now = Date.now();
   if (forceCloudSync || (now - lastCloudSyncTime > 5000)) {
@@ -160,65 +136,85 @@ app.get('/api/search', async (req, res) => {
 });
 
 app.get('/api/playlist', async (req, res) => {
-  const playback = await calculatePlaybackState();
-  res.json(playback);
+  try {
+    const playback = await calculatePlaybackState();
+    res.json(playback);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.post('/api/sync', async (req, res) => {
-  let state = readTmpState();
-  if (!state || state.playlist.length === 0) {
-    const { playlist } = req.body;
-    if (Array.isArray(playlist) && playlist.length > 0) {
-      state = { playlist, stationStartTime: Date.now() };
-      await updateState(state, true);
+  try {
+    let state = await getState();
+    if (!state.playlist || state.playlist.length === 0) {
+      const { playlist } = req.body;
+      if (Array.isArray(playlist) && playlist.length > 0) {
+        state = { playlist, stationStartTime: Date.now() };
+        await updateState(state, true);
+      }
     }
+    const playback = await calculatePlaybackState();
+    res.json({ success: true, ...playback });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
-  const playback = await calculatePlaybackState();
-  res.json({ success: true, ...playback });
 });
 
-app.post('/api/playlist', async (postReq, res) => {
-  let state = await getState();
-  const newSong = postReq.body;
-  if (!newSong.url || !newSong.title) return res.status(400).json({ error: 'Invalid data' });
+app.post('/api/playlist', async (req, res) => {
+  try {
+    let state = await getState();
+    const newSong = req.body;
+    if (!newSong.url || !newSong.title) return res.status(400).json({ error: 'Invalid data' });
 
-  if (!state.playlist.some(s => s.url === newSong.url)) {
-    newSong.duration = Number(newSong.duration) || 180;
-    if (state.playlist.length === 0) {
-      state.stationStartTime = Date.now();
+    if (!state.playlist.some(s => s.url === newSong.url)) {
+      newSong.duration = Number(newSong.duration) || 180;
+      if (state.playlist.length === 0) {
+        state.stationStartTime = Date.now();
+      }
+      state.playlist.push(newSong);
+      await updateState(state, true);
     }
-    state.playlist.push(newSong);
-    await updateState(state, true);
+    const playback = await calculatePlaybackState();
+    res.json({ success: true, ...playback });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
-  const playback = await calculatePlaybackState();
-  res.json({ success: true, ...playback });
 });
 
 app.post('/api/play', async (req, res) => {
-  let state = await getState();
-  const { index } = req.body;
-  if (index !== undefined && index >= 0 && index < state.playlist.length) {
-    let pastDurationSumMs = 0;
-    for (let i = 0; i < index; i++) {
-      pastDurationSumMs += ((Number(state.playlist[i].duration) || 180) * 1000);
+  try {
+    let state = await getState();
+    const { index } = req.body;
+    if (index !== undefined && index >= 0 && index < state.playlist.length) {
+      let pastDurationSumMs = 0;
+      for (let i = 0; i < index; i++) {
+        pastDurationSumMs += ((Number(state.playlist[i].duration) || 180) * 1000);
+      }
+      state.stationStartTime = Date.now() - pastDurationSumMs;
+      await updateState(state, true);
     }
-    state.stationStartTime = Date.now() - pastDurationSumMs;
-    await updateState(state, true);
+    const playback = await calculatePlaybackState();
+    res.json({ success: true, ...playback });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
-  const playback = await calculatePlaybackState();
-  res.json({ success: true, ...playback });
 });
 
 app.delete('/api/playlist/:index', async (req, res) => {
-  let state = await getState();
-  const index = parseInt(req.params.index);
-  if (index >= 0 && index < state.playlist.length) {
-    state.playlist.splice(index, 1);
-    state.stationStartTime = Date.now();
-    await updateState(state, true);
+  try {
+    let state = await getState();
+    const index = parseInt(req.params.index);
+    if (index >= 0 && index < state.playlist.length) {
+      state.playlist.splice(index, 1);
+      state.stationStartTime = Date.now();
+      await updateState(state, true);
+    }
+    const playback = await calculatePlaybackState();
+    res.json({ success: true, ...playback });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
-  const playback = await calculatePlaybackState();
-  res.json({ success: true, ...playback });
 });
 
 export default app;
