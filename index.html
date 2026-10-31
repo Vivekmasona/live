@@ -33,26 +33,21 @@ html, body {
 .live-dot { width: 9px; height: 9px; background: #ff4757; border-radius: 50%; box-shadow: 0 0 10px #ff4757; transition: 0.3s; }
 .live-dot.active { background: #2ed573; box-shadow: 0 0 14px #2ed573; }
 
-/* Main Player Card */
+/* Minimal Live Play Container */
 .main-player-card {
   background: rgba(16, 16, 24, 0.85); backdrop-filter: blur(20px);
-  width: 85%; max-width: 360px; padding: 30px 20px; border-radius: 28px;
+  width: 80%; max-width: 320px; padding: 40px 20px; border-radius: 28px;
   border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 20px 50px rgba(0,0,0,0.8);
-  display: flex; flex-direction: column; align-items: center; gap: 20px; text-align: center;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px;
   margin: auto;
 }
-.album-art {
-  width: 130px; height: 130px; border-radius: 50%; object-fit: cover;
-  border: 3px solid rgba(0, 242, 254, 0.4); box-shadow: 0 0 20px rgba(0, 242, 254, 0.2);
-}
-.track-title { font-size: 15px; font-weight: 600; color: #fff; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.track-artist { font-size: 12px; color: #aaa; margin-top: -12px; }
+.live-text { font-size: 14px; font-weight: 600; color: #aaa; letter-spacing: 1px; text-transform: uppercase; }
 
-/* Big Round Player Button */
+/* Big Round Play Button (No Pause) */
 .big-round-btn {
-  width: 70px; height: 70px; border-radius: 50%; background: linear-gradient(135deg, #00c6ff, #0072ff);
-  color: white; border: none; display: flex; align-items: center; justify-content: center; font-size: 24px;
-  cursor: pointer; box-shadow: 0 6px 20px rgba(0, 198, 255, 0.4); transition: 0.2s;
+  width: 75px; height: 75px; border-radius: 50%; background: linear-gradient(135deg, #11998e, #38ef7d);
+  color: #000; border: none; display: flex; align-items: center; justify-content: center; font-size: 26px;
+  cursor: pointer; box-shadow: 0 6px 25px rgba(56, 239, 125, 0.4); transition: 0.2s;
 }
 .big-round-btn:hover { transform: scale(1.08); }
 
@@ -132,12 +127,10 @@ button:hover { opacity: 0.95; }
   </div>
 </div>
 
-<!-- Classic FM Player Interface with Round Play Button -->
+<!-- Minimal Live FM Player (No Image, No Title, Only Play) -->
 <div class="main-player-card">
-  <img id="player-art" src="https://i.imgur.com/8Q5N8bB.png" class="album-art" alt="Art">
-  <div class="track-title" id="player-title">VFY FM Live Radio</div>
-  <div class="track-artist" id="player-artist">Broadcasting 24/7</div>
-  <button class="big-round-btn" id="main-play-btn" onclick="toggleMainPlay()"><i class="fa-solid fa-play" id="main-play-icon"></i></button>
+  <div class="live-text"><i class="fa-solid fa-radio"></i> VFY Live FM</div>
+  <button class="big-round-btn" onclick="startLiveAudio()"><i class="fa-solid fa-play"></i></button>
 </div>
 
 <!-- Password Modal -->
@@ -192,10 +185,6 @@ let syncTimeout = null;
 const audioEl = document.getElementById("audio-element");
 const previewAudio = document.getElementById("preview-audio");
 const liveDot = document.getElementById("live-dot");
-const mainPlayIcon = document.getElementById("main-play-icon");
-const playerArt = document.getElementById("player-art");
-const playerTitle = document.getElementById("player-title");
-const playerArtist = document.getElementById("player-artist");
 
 let activePreviewUrl = null;
 let activePreviewBtn = null;
@@ -266,7 +255,6 @@ function pollGlobalState() {
         }
       } else {
         liveDot.classList.remove("active");
-        mainPlayIcon.className = "fa-solid fa-play";
       }
       scheduleNextSync();
     })
@@ -287,29 +275,9 @@ function scheduleNextSync() {
   }
 }
 
-function toggleMainPlay() {
-  if (audioEl.paused) {
-    if (audioEl.src) {
-      audioEl.play().catch(e => autoPlayLiveRadio());
-    } else {
-      autoPlayLiveRadio();
-    }
-  } else {
-    audioEl.pause();
-    mainPlayIcon.className = "fa-solid fa-play";
-    liveDot.classList.remove("active");
-  }
+function startLiveAudio() {
+  autoPlayLiveRadio();
 }
-
-audioEl.onplay = () => {
-  mainPlayIcon.className = "fa-solid fa-pause";
-  liveDot.classList.add("active");
-};
-
-audioEl.onpause = () => {
-  mainPlayIcon.className = "fa-solid fa-play";
-  liveDot.classList.remove("active");
-};
 
 function renderPlaylistUI() {
   const container = document.getElementById("playlist-container");
@@ -360,7 +328,6 @@ function deleteGlobalSong(index) {
         audioEl.pause();
         audioEl.src = "";
         liveDot.classList.remove("active");
-        mainPlayIcon.className = "fa-solid fa-play";
       }
       renderPlaylistUI();
       scheduleNextSync();
@@ -485,12 +452,6 @@ function playSongAtIndex(index, seekTime = 0) {
 
   if (!song || !song.url) return;
 
-  if (song.image) {
-    playerArt.src = song.image;
-  }
-  playerTitle.innerText = song.title || "VFY FM Live";
-  playerArtist.innerText = song.primaryArtists || "VFY FM Studio";
-
   if (audioEl.src !== song.url) {
     audioEl.src = song.url;
     audioEl.currentTime = seekTime;
@@ -511,20 +472,17 @@ function playSongAtIndex(index, seekTime = 0) {
     });
     
     navigator.mediaSession.setActionHandler('play', () => { audioEl.play(); });
-    navigator.mediaSession.setActionHandler('pause', () => { audioEl.pause(); });
+    navigator.mediaSession.setActionHandler('pause', () => {});
     navigator.mediaSession.setActionHandler('nexttrack', () => { pollGlobalState(); });
   }
 
   audioEl.play().then(() => {
     liveDot.classList.add("active");
-    mainPlayIcon.className = "fa-solid fa-pause";
   }).catch(err => {
     liveDot.classList.remove("active");
-    mainPlayIcon.className = "fa-solid fa-play";
   });
 }
 </script>
 
 </body>
 </html>
-
