@@ -172,7 +172,6 @@ button:hover { opacity: 0.95; }
 
 <div id="toast">Track saved successfully!</div>
 
-<!-- Dual Audio Elements to prevent memory leaks and freezing -->
 <audio id="audio-1" crossorigin="anonymous" preload="auto"></audio>
 <audio id="audio-2" crossorigin="anonymous" preload="auto"></audio>
 <audio id="preview-audio"></audio>
@@ -181,7 +180,7 @@ button:hover { opacity: 0.95; }
 let globalPlaylist = [];
 let activeIndex = -1;
 let syncTimeout = null;
-let activeAudioTag = 1; // Tracks which audio element is currently active
+let activeAudioTag = 1;
 
 const audio1 = document.getElementById("audio-1");
 const audio2 = document.getElementById("audio-2");
@@ -442,7 +441,16 @@ function autoPlayLiveRadio() {
     .catch(err => console.error(err));
 }
 
-// Dual-Audio Swapping Engine to completely eliminate memory accumulation & freezes
+// Auto-advance handler for continuous background playback when screen is off
+function handleTrackEnded() {
+  if (globalPlaylist.length === 0) return;
+  let nextIndex = (activeIndex + 1) % globalPlaylist.length;
+  adminSelectSong(nextIndex);
+}
+
+audio1.onended = handleTrackEnded;
+audio2.onended = handleTrackEnded;
+
 function playSongAtIndex(index, seekTime = 0) {
   if (globalPlaylist.length === 0) return;
   activeIndex = index % globalPlaylist.length;
@@ -450,17 +458,14 @@ function playSongAtIndex(index, seekTime = 0) {
 
   if (!song || !song.url) return;
 
-  // Swap active audio tag
   activeAudioTag = activeAudioTag === 1 ? 2 : 1;
   const activeAudio = activeAudioTag === 1 ? audio1 : audio2;
   const inactiveAudio = activeAudioTag === 1 ? audio2 : audio1;
 
-  // Completely wipe inactive audio to free memory
   inactiveAudio.pause();
   inactiveAudio.src = "";
   inactiveAudio.load();
 
-  // Setup active audio
   activeAudio.src = song.url;
   activeAudio.currentTime = seekTime;
 
@@ -476,7 +481,7 @@ function playSongAtIndex(index, seekTime = 0) {
     
     navigator.mediaSession.setActionHandler('play', () => { activeAudio.play(); });
     navigator.mediaSession.setActionHandler('pause', () => {});
-    navigator.mediaSession.setActionHandler('nexttrack', () => { pollGlobalState(); });
+    navigator.mediaSession.setActionHandler('nexttrack', () => { handleTrackEnded(); });
   }
 
   activeAudio.play().then(() => {
@@ -489,4 +494,3 @@ function playSongAtIndex(index, seekTime = 0) {
 
 </body>
 </html>
-
