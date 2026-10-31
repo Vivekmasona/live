@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VFY FM Studio</title>
+<!-- FontAwesome Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+html, body {
+  margin: 0; padding: 0; overflow: hidden; background: #07070a;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #fff;
+}
+canvas { position: fixed; inset: 0; z-index: 1; }
+
+#studio-header {
+  position: fixed; top: 15px; left: 15px; right: 15px;
+  background: rgba(15, 15, 22, 0.65); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  padding: 12px 22px; border-radius: 20px; z-index: 40; display: flex; justify-content: space-between; align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 10px 40px rgba(0,0,0,0.6); user-select: none;
+}
+.brand-title { 
+  font-size: 16px; font-weight: 700; color: #fff; cursor: pointer; 
+  display: flex; align-items: center; gap: 10px; letter-spacing: 0.5px;
+}
+.brand-title i { color: #00f2fe; filter: drop-shadow(0 0 8px rgba(0,242,254,0.5)); }
+.brand-title span { color: #00f2fe; }
+
+.badge-box { display: flex; align-items: center; gap: 10px; }
+.badge { background: rgba(255, 255, 255, 0.05); padding: 6px 14px; border-radius: 12px; font-size: 11px; color: #aaa; border: 1px solid rgba(255,255,255,0.08); }
+
+/* Live Dot */
+.live-dot { width: 9px; height: 9px; background: #ff4757; border-radius: 50%; box-shadow: 0 0 10px #ff4757; transition: 0.3s; }
+.live-dot.active { background: #2ed573; box-shadow: 0 0 14px #2ed573; }
+
+/* Glassmorphic Modals */
+#studio-modal, #auth-modal {
+  position: fixed; inset: 0; background: rgba(5, 5, 8, 0.8); z-index: 100;
+  display: none; align-items: center; justify-content: center; backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+}
+.studio-container {
+  background: rgba(16, 16, 24, 0.75); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  width: 92%; max-width: 560px; height: 85vh;
+  border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 22px;
+  box-shadow: 0 30px 90px rgba(0,0,0,0.9); display: flex; flex-direction: column; gap: 12px;
+}
+.auth-container {
+  background: rgba(16, 16, 24, 0.75); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  width: 90%; max-width: 380px;
+  border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 20px; padding: 24px;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.9); display: flex; flex-direction: column; gap: 16px;
+}
+.studio-title, .auth-title { font-size: 18px; color: #00f2fe; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+
+.search-box-wrapper { display: flex; gap: 10px; align-items: center; width: 100%; }
+input[type="text"], input[type="password"] {
+  flex: 1; width: auto; padding: 10px 14px; background: rgba(10, 10, 15, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; border-radius: 12px; outline: none; font-size: 14px;
+  transition: 0.2s;
+}
+input[type="text"]:focus, input[type="password"]:focus { border-color: #00f2fe; box-shadow: 0 0 12px rgba(0,242,254,0.25); }
+
+button {
+  background: linear-gradient(135deg, #00c6ff, #0072ff); color: white; border: none; padding: 10px 18px;
+  font-size: 13px; font-weight: 600; border-radius: 12px; cursor: pointer; transition: 0.2s;
+  box-shadow: 0 4px 20px rgba(0, 114, 255, 0.3); display: flex; align-items: center; gap: 6px;
+  flex-shrink: 0; white-space: nowrap;
+}
+button:hover { opacity: 0.95; transform: translateY(-1px); }
+
+#controls {
+  position: fixed; bottom: 35px; left: 50%; transform: translateX(-50%);
+  z-index: 30; display: none;
+}
+#live-btn {
+  background: linear-gradient(135deg, #11998e, #38ef7d); padding: 14px 42px; font-size: 15px; border-radius: 50px;
+  box-shadow: 0 6px 30px rgba(56, 239, 125, 0.4); color: #000; font-weight: 700;
+}
+
+.item-card {
+  background: rgba(25, 25, 35, 0.45); backdrop-filter: blur(10px); padding: 8px 12px; border-radius: 12px;
+  font-size: 13px; display: flex; justify-content: space-between; align-items: center;
+  cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.06); margin-bottom: 6px; transition: 0.2s;
+}
+.item-card:hover { border-color: #00f2fe; background: rgba(15, 35, 45, 0.5); }
+.item-info { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 10px; flex: 1; }
+.btn-group { display: flex; gap: 8px; align-items: center; }
+
+/* Round Preview Button */
+.round-preview-btn {
+  width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, #3742fa, #5352ed); color: white;
+  border: none; display: flex; align-items: center; justify-content: center; font-size: 11px;
+  cursor: pointer; box-shadow: 0 3px 10px rgba(55,66,250,0.4); flex-shrink: 0; padding: 0; transition: 0.2s;
+}
+.round-preview-btn:hover { transform: scale(1.08); }
+
+.save-btn { background: linear-gradient(135deg, #11998e, #38ef7d); color: #000; padding: 5px 12px; font-size: 11px; font-weight: 700; border-radius: 8px; box-shadow: none; }
+.delete-btn { background: rgba(255, 71, 87, 0.85); padding: 5px 10px; font-size: 11px; border-radius: 8px; box-shadow: none; }
+
+/* Toast Notification */
+#toast {
+  position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px);
+  background: rgba(56, 239, 125, 0.95); color: #000; padding: 10px 24px; border-radius: 30px;
+  font-size: 13px; font-weight: 700; z-index: 1000; box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+  transition: transform 0.3s ease, opacity 0.3s ease; opacity: 0; pointer-events: none;
+}
+#toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+/* Developer signature fixed height 20px */
+.dev-sig { height: 20px; line-height: 20px; font-size: 9px; color: rgba(255,255,255,0.3); text-align: center; letter-spacing: 1px; text-transform: uppercase; margin-top: auto; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<canvas id="canvas"></canvas>
+
+<div id="studio-header">
+  <div class="brand-title" id="brand-title">
+    <i class="fa-solid fa-headset"></i> <span>VFY FM</span> <small style="font-size:10px; color:rgba(255,255,255,0.4); font-weight:normal;">(Tap 3x)</small>
+  </div>
+  <div class="badge-box">
+    <div class="badge"><i class="fa-solid fa-broadcast-tower"></i> Live 24/7</div>
+    <div class="live-dot" id="live-dot"></div>
+  </div>
+</div>
+
+<div id="controls">
+  <button id="live-btn" onclick="startLiveAudio()"><i class="fa-solid fa-play"></i> TAP TO START LIVE FM</button>
+</div>
+
+<!-- Password Modal -->
+<div id="auth-modal">
+  <div class="auth-container">
+    <div class="auth-title">
+      <span><i class="fa-solid fa-shield-halved"></i> Admin Access</span>
+      <button onclick="closeAuthModal()" style="background:rgba(255,255,255,0.08); padding:6px 10px; font-size:12px; box-shadow:none;"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <input type="password" id="admin-pass-input" placeholder="Enter password here..." onkeydown="if(event.key==='Enter') verifyAdminPassword()">
+    <div style="display:flex; gap:10px; justify-content:flex-end;">
+      <button onclick="closeAuthModal()" style="background:rgba(255,255,255,0.08); box-shadow:none;">Cancel</button>
+      <button onclick="verifyAdminPassword()" style="background:linear-gradient(135deg, #11998e, #38ef7d); color:#000; box-shadow:none;"><i class="fa-solid fa-arrow-right-to-bracket"></i> Login</button>
+    </div>
+  </div>
+</div>
+
+<!-- Master Console Modal -->
+<div id="studio-modal">
+  <div class="studio-container">
+    <div class="studio-title">
+      <span><i class="fa-solid fa-sliders"></i> Master Console</span>
+      <button onclick="closeStudio()" style="background:rgba(255,255,255,0.08); padding:6px 12px; font-size:12px; box-shadow:none;"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    
+    <div class="search-box-wrapper">
+      <input type="text" id="query-input" placeholder="Search track name..." onkeydown="if(event.key==='Enter') document.getElementById('search-btn').click()">
+      <button id="search-btn"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
+    </div>
+
+    <div id="search-results" style="max-height:160px; overflow-y:auto;"></div>
+
+    <div style="border-top:1px solid rgba(255,255,255,0.08); padding-top:10px; display:flex; flex-direction:column; flex:1; overflow:hidden;">
+      <div style="font-size:13px; color:#38ef7d; margin-bottom:6px; font-weight:700; flex-shrink:0;"><i class="fa-solid fa-list-ul"></i> Station Queue</div>
+      <div id="playlist-container" style="overflow-y:auto; font-size:13px; color:#aaa; flex:1;">Loading queue...</div>
+    </div>
+    
+    <div class="dev-sig">developer vivekmasona</div>
+  </div>
+</div>
+
+<div id="toast">Track saved successfully!</div>
+
+<audio id="audio-element" crossorigin="anonymous" controlslist="nodownload noplaybackrate" disablepictureinpicture></audio>
+<audio id="preview-audio"></audio>
+
+<script src="https://codepen.io/Tibixx/pen/BbBxRG.js"></script>
+
+<script>
+var canvas = document.getElementById("canvas");
+var ctx = canvas.getContext("2d");
+w = ctx.canvas.width = window.innerWidth;
+h = ctx.canvas.height = window.innerHeight;
+
+window.onresize = function() {
+  w = ctx.canvas.width = window.innerWidth;
+  h = ctx.canvas.height = window.innerHeight;
+};
+
+var nrt=0, npt=0, dots=[], lines=[];
+var config = { minRadius: 55, maxRadius: 95, multiplier: 45, colorSpeed: 20, hueStart: 220, centerImage: "https://i.imgur.com/8Q5N8bB.png" };
+
+var bgImage = new Image();
+bgImage.src = config.centerImage;
+
+var AudioContext = window.AudioContext || window.webkitAudioContext;
+var actx, analyser, sourceNode, frequencyData, frequencyDataLen;
+var playing = false;
+var dotEmitter, lineEmitter;
+var audioEl = document.getElementById("audio-element");
+var previewAudio = document.getElementById("preview-audio");
+const liveDot = document.getElementById("live-dot");
+
+let activePreviewUrl = null;
+let activePreviewBtn = null;
+
+function initAudioContext() {
+  if (!actx && AudioContext) {
+    actx = new AudioContext();
+    analyser = actx.createAnalyser();
+    analyser.fftSize = 128; // Reduced fftSize for lightweight calculations
+    analyser.smoothingTimeConstant = 0.5;
+    sourceNode = actx.createMediaElementSource(audioEl);
+    sourceNode.connect(analyser);
+    analyser.connect(actx.destination);
+    frequencyDataLen = analyser.frequencyBinCount;
+    frequencyData = new Uint8Array(frequencyDataLen);
+  }
+  if (actx && actx.state === 'suspended') { actx.resume(); }
+}
+
+let globalPlaylist = [];
+let activeIndex = -1;
+let syncTimeout = null;
+
+let tapCount = 0;
+let tapTimer = null;
+const brandTitle = document.getElementById("brand-title");
+
+brandTitle.addEventListener('click', () => {
+  tapCount++;
+  if (tapCount === 3) {
+    document.getElementById("auth-modal").style.display = "flex";
+    document.getElementById("admin-pass-input").value = "";
+    document.getElementById("admin-pass-input").focus();
+    tapCount = 0;
+  }
+  if (tapTimer) clearTimeout(tapTimer);
+  tapTimer = setTimeout(() => { tapCount = 0; }, 800);
+});
+
+function closeAuthModal() {
+  document.getElementById("auth-modal").style.display = "none";
+}
+
+function verifyAdminPassword() {
+  const pass = document.getElementById("admin-pass-input").value;
+  if (pass === "vivekbabu") {
+    closeAuthModal();
+    document.getElementById("studio-modal").style.display = "flex";
+    renderPlaylistUI();
+  } else {
+    alert("Wrong Password!");
+    document.getElementById("admin-pass-input").value = "";
+  }
+}
+
+function closeStudio() {
+  stopPreview();
+  document.getElementById("query-input").value = "";
+  document.getElementById("search-results").innerHTML = "";
+  document.getElementById("studio-modal").style.display = "none";
+}
+
+function showToast(message) {
+  const toast = document.getElementById("toast");
+  toast.innerText = message;
+  toast.classList.add("show");
+  setTimeout(() => { toast.classList.remove("show"); }, 2500);
+}
+
+function pollGlobalState() {
+  fetch('/api/playlist')
+    .then(res => res.json())
+    .then(data => {
+      globalPlaylist = Array.isArray(data.playlist) ? data.playlist : [];
+      let newIndex = data.currentIndex || 0;
+      let seekTime = data.seekTime || 0;
+      
+      if (document.getElementById("studio-modal").style.display === "flex") {
+        renderPlaylistUI();
+      }
+
+      if (globalPlaylist.length > 0) {
+        document.getElementById("controls").style.display = "none";
+        if (!playing || newIndex !== activeIndex || Math.abs(audioEl.currentTime - seekTime) > 2.0) {
+          activeIndex = newIndex;
+          playSongAtIndex(activeIndex, seekTime);
+        }
+      } else {
+        document.getElementById("controls").style.display = "flex";
+        liveDot.classList.remove("active");
+      }
+      scheduleNextSync();
+    })
+    .catch(err => {
+      console.error("Sync error:", err);
+      document.getElementById("controls").style.display = "flex";
+      liveDot.classList.remove("active");
+      syncTimeout = setTimeout(pollGlobalState, 10000);
+    });
+}
+
+function scheduleNextSync() {
+  if (syncTimeout) clearTimeout(syncTimeout);
+  if (audioEl.duration && !isNaN(audioEl.duration)) {
+    let remainingTimeMs = Math.max(2000, (audioEl.duration - audioEl.currentTime) * 1000);
+    syncTimeout = setTimeout(pollGlobalState, remainingTimeMs);
+  } else {
+    syncTimeout = setTimeout(pollGlobalState, 30000);
+  }
+}
+
+// Ultra-optimized Visibility Handler to completely stop canvas loops and prevent freezes
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    playing = false; 
+    if (dotEmitter) clearInterval(dotEmitter);
+    if (lineEmitter) clearInterval(lineEmitter);
+  } else {
+    pollGlobalState();
+    if (!playing && globalPlaylist.length > 0) {
+      playing = true;
+      dotEmitter = setInterval(emitDot, 100); // Slower interval for lightweight CPU usage
+      lineEmitter = setInterval(emitLine, 200);
+      render();
+    }
+  }
+});
+
+function renderPlaylistUI() {
+  const container = document.getElementById("playlist-container");
+  if (globalPlaylist.length === 0) {
+    container.innerHTML = "No tracks in queue.";
+    return;
+  }
+
+  let html = "";
+  globalPlaylist.forEach((song, index) => {
+    let highlight = (index === activeIndex) ? "border-color: #38ef7d; background: rgba(56,239,125,0.08);" : "";
+    html += `
+      <div class="item-card" style="${highlight}" onclick="adminSelectSong(${index})" title="Click to play On Air">
+        <div class="item-info">${index === activeIndex ? '<i class="fa-solid fa-play" style="color:#38ef7d;"></i> [ON AIR] ' : ''}${song.title}</div>
+        <button class="delete-btn" onclick="event.stopPropagation(); deleteGlobalSong(${index})"><i class="fa-solid fa-trash"></i></button>
+      </div>
+    `;
+  });
+  container.innerHTML = html;
+}
+
+function adminSelectSong(index) {
+  fetch('/api/play', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ index: index })
+  })
+  .then(res => res.json())
+  .then(data => {
+    globalPlaylist = data.playlist;
+    activeIndex = data.currentIndex;
+    playSongAtIndex(activeIndex, data.seekTime);
+    renderPlaylistUI();
+    scheduleNextSync();
+  });
+}
+
+function deleteGlobalSong(index) {
+  if (!confirm("Delete track?")) return;
+  fetch(`/api/playlist/${index}`, { method: 'DELETE' })
+    .then(res => res.json())
+    .then(data => {
+      globalPlaylist = data.playlist;
+      activeIndex = data.currentIndex;
+      if (globalPlaylist.length > 0) {
+        playSongAtIndex(activeIndex, data.seekTime);
+      } else {
+        audioEl.pause();
+        audioEl.src = "";
+        playing = false;
+        liveDot.classList.remove("active");
+        document.getElementById("controls").style.display = "flex";
+      }
+      renderPlaylistUI();
+      scheduleNextSync();
+    });
+}
+
+document.getElementById("search-btn").addEventListener("click", () => {
+  const query = document.getElementById("query-input").value.trim();
+  if (!query) return;
+
+  const resultsContainer = document.getElementById("search-results");
+  resultsContainer.innerHTML = "Searching...";
+
+  fetch(`/api/search?q=${encodeURIComponent(query)}`)
+    .then(res => res.json())
+    .then(data => {
+      const songs = data.results || [];
+      if (songs.length === 0) {
+        resultsContainer.innerHTML = "No tracks found.";
+        return;
+      }
+
+      let html = "";
+      songs.forEach((s, idx) => {
+        const songObj = encodeURIComponent(JSON.stringify(s));
+        html += `
+          <div class="item-card">
+            <img src="${s.image || config.centerImage}" style="width:34px; height:34px; border-radius:6px; object-fit:cover; margin-right:8px;">
+            <div class="item-info" title="${s.title}">${s.title}</div>
+            <div class="btn-group">
+              <button class="round-preview-btn" id="prev-btn-${idx}" onclick="toggleSearchPreview('${s.url}', 'prev-btn-${idx}')"><i class="fa-solid fa-play" id="icon-${idx}"></i></button>
+              <button class="save-btn" onclick="addGlobalSong('${songObj}')"><i class="fa-solid fa-plus"></i> Save</button>
+            </div>
+          </div>
+        `;
+      });
+      resultsContainer.innerHTML = html;
+    })
+    .catch(err => { resultsContainer.innerHTML = "Search Error."; });
+});
+
+function toggleSearchPreview(url, btnId) {
+  const btn = document.getElementById(btnId);
+  const icon = btn.querySelector("i");
+  if (activePreviewUrl === url && !previewAudio.paused) {
+    previewAudio.pause();
+    icon.className = "fa-solid fa-play";
+  } else {
+    if (activePreviewBtn && activePreviewBtn !== btn) {
+      activePreviewBtn.querySelector("i").className = "fa-solid fa-play";
+    }
+    previewAudio.src = url;
+    previewAudio.play().then(() => {
+      activePreviewUrl = url;
+      activePreviewBtn = btn;
+      icon.className = "fa-solid fa-pause";
+    }).catch(err => alert("Preview playback failed"));
+  }
+}
+
+previewAudio.onended = () => {
+  if (activePreviewBtn) {
+    activePreviewBtn.querySelector("i").className = "fa-solid fa-play";
+    activePreviewBtn = null;
+    activePreviewUrl = null;
+  }
+};
+
+function stopPreview() {
+  previewAudio.pause();
+  previewAudio.currentTime = 0;
+  if (activePreviewBtn) {
+    activePreviewBtn.querySelector("i").className = "fa-solid fa-play";
+    activePreviewBtn = null;
+    activePreviewUrl = null;
+  }
+}
+
+window.addGlobalSong = function(encodedObj) {
+  const songData = JSON.parse(decodeURIComponent(encodedObj));
+  songData.duration = Number(songData.duration) || 180;
+
+  fetch('/api/playlist', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(songData)
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      globalPlaylist = data.playlist;
+      renderPlaylistUI();
+      scheduleNextSync();
+      showToast("✓ Track saved successfully!");
+    }
+  })
+  .catch(err => { showToast("❌ Error saving track."); });
+};
+
+window.addEventListener('load', () => {
+  autoPlayLiveRadio();
+});
+
+function autoPlayLiveRadio() {
+  initAudioContext();
+  fetch('/api/playlist')
+    .then(res => res.json())
+    .then(data => {
+      globalPlaylist = Array.isArray(data.playlist) ? data.playlist : [];
+      if (globalPlaylist.length === 0) return;
+      
+      activeIndex = data.currentIndex || 0;
+      playSongAtIndex(activeIndex, data.seekTime || 0);
+      scheduleNextSync();
+    })
+    .catch(err => {
+      document.getElementById("controls").style.display = "block";
+    });
+}
+
+function startLiveAudio() {
+  document.getElementById("controls").style.display = "none";
+  autoPlayLiveRadio();
+}
+
+function playSongAtIndex(index, seekTime = 0) {
+  if (globalPlaylist.length === 0) return;
+  activeIndex = index % globalPlaylist.length;
+  const song = globalPlaylist[activeIndex];
+
+  if (!song || !song.url) return;
+
+  if (song.image) { bgImage.src = song.image; }
+
+  if (audioEl.src !== song.url) {
+    audioEl.src = song.url;
+    audioEl.currentTime = seekTime;
+  } else {
+    if (Math.abs(audioEl.currentTime - seekTime) > 1.5) {
+      audioEl.currentTime = seekTime;
+    }
+  }
+
+  if ('mediaSession' in navigator) {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: song.title || "VFY FM Live",
+      artist: song.primaryArtists || "VFY FM Studio",
+      album: "Live 24/7 Radio",
+      artwork: [
+        { src: song.image || config.centerImage, sizes: '512x512', type: 'image/jpeg' }
+      ]
+    });
+    
+    navigator.mediaSession.setActionHandler('play', () => { audioEl.play(); });
+    navigator.mediaSession.setActionHandler('pause', () => {});
+    navigator.mediaSession.setActionHandler('nexttrack', () => { pollGlobalState(); });
+  }
+
+  audioEl.play().then(() => {
+    document.getElementById("controls").style.display = "none";
+    liveDot.classList.add("active");
+    if (!playing) {
+      dotEmitter = setInterval(emitDot, 100);
+      lineEmitter = setInterval(emitLine, 200);
+      playing = true;
+      render();
+    }
+  }).catch(err => {
+    document.getElementById("controls").style.display = "block";
+    liveDot.classList.remove("active");
+  });
+}
+
+// Lightweight Visualizers with strict limits
+function emitDot(){ if (dots.length > 30) return; dots.push({ xp: w/2, yp: h/2, xv: Math.random()*0.3-0.15, yv: Math.random()*0.3-0.15, rad: Math.random()*(8-2)+2, hue: Math.random()*40-20 }); }
+function emitLine(){ if (lines.length > 15) return; lines.push({ xp: w/2, yp: h/2, xv: Math.random()*0.3-0.15, yv: Math.random()*0.3-0.15, hue: Math.random()*40-20 }); }
+function clear(){ ctx.beginPath(); var grd = ctx.createLinearGradient(w/2, 0, w/2, h); grd.addColorStop(0, "hsl("+(config.hueStart + npt * config.colorSpeed)+", 35%, 8%"); grd.addColorStop(1, "hsl("+(config.hueStart + npt * config.colorSpeed)+", 75%, 3%)"); ctx.fillStyle = grd; ctx.fillRect(0, 0, w, h); ctx.closePath(); }
+function drawDots(){ var avg = averageFrequency(); for(let i = 0; i < dots.length; i++){ ctx.beginPath(); var grd = ctx.createRadialGradient(dots[i].xp + dots[i].rad, dots[i].yp + dots[i].rad, 0, dots[i].xp + dots[i].rad, dots[i].yp + dots[i].rad, dots[i].rad); grd.addColorStop(0, "hsla("+(config.hueStart + npt * config.colorSpeed + dots[i].hue)+", 50%, 50%, "+(avg / 400)+"%)"); grd.addColorStop(1, "hsla("+(config.hueStart + npt * config.colorSpeed + dots[i].hue)+", 50%, 50%, 0%)"); ctx.fillStyle = grd; ctx.fillRect(dots[i].xp, dots[i].yp, dots[i].rad*2, dots[i].rad*2); ctx.closePath(); if(dots[i].xp > w || dots[i].xp < 0 || dots[i].yp > w || dots[i].yp < 0){ dots[i] = dots[dots.length-1]; dots.pop(); } else { dots[i].xp += dots[i].xv * Math.pow(avg/1000, 1.5); dots[i].yp += dots[i].yv * Math.pow(avg/1000, 1.5); } } }
+function drawLines() { var avg = averageFrequency(); var maxDist = 80; for (let i = 0; i < lines.length; i++) { for (let j = 0; j < lines.length; j++) { var proDist = 100 / maxDist; var opacity = 100 - dist(lines[j].xp, lines[j].yp, lines[i].xp, lines[i].yp) * proDist; if (dist(lines[j].xp, lines[j].yp, lines[i].xp, lines[i].yp) < maxDist) { ctx.beginPath(); ctx.lineWidth = 1; ctx.strokeStyle = "hsla(" + (config.hueStart + npt * config.colorSpeed) + ", 50%, 50%, " + (opacity - 50) + "%)"; ctx.moveTo(lines[i].xp, lines[i].yp); ctx.lineTo(lines[j].xp, lines[j].yp); ctx.stroke(); ctx.closePath(); } } if (lines[i].xp > w || lines[i].xp < 0 || lines[i].yp > w || lines[i].yp < 0) { lines[i] = lines[lines.length - 1]; lines.pop(); } else { lines[i].xp += lines[i].xv * avg/500; lines[i].yp += lines[i].yv * avg/500; } } }
+function getBassPulse() { if (!frequencyData) return 0; var bassSum = 0; for (let i = 0; i < 6; i++) { bassSum += frequencyData[i]; } return bassSum / 6; }
+function drawSpectrum() { 
+  noiseSpeed = averageFrequency(); nrt += noiseSpeed/4000000; npt += noiseSpeed/1500000; var avg = 0; 
+  analyser.getByteFrequencyData(frequencyData); var noiseRotate = noise.perlin2(10, nrt); var points = Math.round(frequencyDataLen-frequencyDataLen/4); 
+  var bassPower = getBassPulse(); var dynamicZoom = config.minRadius + (bassPower * 0.15); if (dynamicZoom > config.maxRadius) { dynamicZoom = config.maxRadius; }
+  if (bgImage.complete) { ctx.save(); ctx.beginPath(); ctx.arc(w / 2, h / 2, dynamicZoom, 0, Math.PI * 2); ctx.clip(); ctx.drawImage(bgImage, (w / 2) - dynamicZoom, (h / 2) - dynamicZoom, dynamicZoom * 2, dynamicZoom * 2); ctx.restore(); }
+  for (let i = 1; i < points; i += 2) { // Stepped loop for high performance
+    avg += frequencyData[i]; avg = avg / points; 
+    var x1 = w / 2 + (dynamicZoom) * Math.cos(-Math.PI/2 + 2 * Math.PI * i / points + noiseRotate); 
+    var y1 = h / 2 + (dynamicZoom) * Math.sin(-Math.PI/2 + 2 * Math.PI * i / points + noiseRotate); 
+    var x2 = w / 2 + ((dynamicZoom) + avg * config.multiplier) * Math.cos(-Math.PI/2 + 2 * Math.PI * i / points + noiseRotate); 
+    var y2 = h / 2 + ((dynamicZoom) + avg * config.multiplier) * Math.sin(-Math.PI/2 + 2 * Math.PI * i / points + noiseRotate); 
+    var nd1 = noise.simplex2(y1/100, npt)*8; 
+    ctx.beginPath(); ctx.lineCap = "round"; ctx.lineWidth = 1.5; ctx.strokeStyle = "hsla("+(config.hueStart + npt * config.colorSpeed)+", 50%, "+(25+(Math.pow(avg * 3, 2)))+"%, 100%)"; ctx.moveTo(x1+nd1, y1+nd1); ctx.lineTo(x2+nd1, y2+nd1); ctx.stroke(); ctx.closePath(); 
+  } 
+}
+function render() { if (!playing) return; clear(); drawDots(); drawSpectrum(); drawLines(); requestAnimationFrame(render); }
+function dist(x1, y1, x2, y2) { var a = x1 - x2; var b = y1 - y2; return Math.sqrt(a * a + b * b); }
+function averageFrequency() { var avg = 0; for (let i = 0; i < frequencyData.length; i++) { avg += frequencyData[i]; } return avg / frequencyData.length; }
+</script>
+
+</body>
+</html>
