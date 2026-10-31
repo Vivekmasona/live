@@ -43,7 +43,7 @@ html, body {
 }
 .live-text { font-size: 14px; font-weight: 600; color: #aaa; letter-spacing: 1px; text-transform: uppercase; }
 
-/* Big Round Play Button (No Pause) */
+/* Big Round Play Button */
 .big-round-btn {
   width: 75px; height: 75px; border-radius: 50%; background: linear-gradient(135deg, #11998e, #38ef7d);
   color: #000; border: none; display: flex; align-items: center; justify-content: center; font-size: 26px;
@@ -111,7 +111,6 @@ button:hover { opacity: 0.95; }
 }
 #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
-/* Developer signature exact 20px height */
 .dev-sig { height: 20px; line-height: 20px; font-size: 9px; color: rgba(255,255,255,0.3); text-align: center; letter-spacing: 1px; text-transform: uppercase; margin-top: auto; flex-shrink: 0; width: 100%; }
 </style>
 </head>
@@ -127,7 +126,6 @@ button:hover { opacity: 0.95; }
   </div>
 </div>
 
-<!-- Minimal Live FM Player (No Image, No Title, Only Play) -->
 <div class="main-player-card">
   <div class="live-text"><i class="fa-solid fa-radio"></i> VFY Live FM</div>
   <button class="big-round-btn" onclick="startLiveAudio()"><i class="fa-solid fa-play"></i></button>
@@ -174,22 +172,25 @@ button:hover { opacity: 0.95; }
 
 <div id="toast">Track saved successfully!</div>
 
-<audio id="audio-element" crossorigin="anonymous" controlslist="nodownload noplaybackrate" disablepictureinpicture></audio>
+<!-- Dual Audio Elements to prevent memory leaks and freezing -->
+<audio id="audio-1" crossorigin="anonymous" preload="auto"></audio>
+<audio id="audio-2" crossorigin="anonymous" preload="auto"></audio>
 <audio id="preview-audio"></audio>
 
 <script>
 let globalPlaylist = [];
 let activeIndex = -1;
 let syncTimeout = null;
+let activeAudioTag = 1; // Tracks which audio element is currently active
 
-const audioEl = document.getElementById("audio-element");
+const audio1 = document.getElementById("audio-1");
+const audio2 = document.getElementById("audio-2");
 const previewAudio = document.getElementById("preview-audio");
 const liveDot = document.getElementById("live-dot");
 
 let activePreviewUrl = null;
 let activePreviewBtn = null;
 
-// Triple Click for Admin Modal
 let tapCount = 0;
 let tapTimer = null;
 const brandTitle = document.getElementById("brand-title");
@@ -249,7 +250,8 @@ function pollGlobalState() {
       }
 
       if (globalPlaylist.length > 0) {
-        if (newIndex !== activeIndex || Math.abs(audioEl.currentTime - seekTime) > 2.0) {
+        let currentAudio = activeAudioTag === 1 ? audio1 : audio2;
+        if (newIndex !== activeIndex || currentAudio.paused) {
           activeIndex = newIndex;
           playSongAtIndex(activeIndex, seekTime);
         }
@@ -261,18 +263,13 @@ function pollGlobalState() {
     .catch(err => {
       console.error("Sync error:", err);
       liveDot.classList.remove("active");
-      syncTimeout = setTimeout(pollGlobalState, 10000);
+      syncTimeout = setTimeout(pollGlobalState, 15000);
     });
 }
 
 function scheduleNextSync() {
   if (syncTimeout) clearTimeout(syncTimeout);
-  if (audioEl.duration && !isNaN(audioEl.duration)) {
-    let remainingTimeMs = Math.max(2000, (audioEl.duration - audioEl.currentTime) * 1000);
-    syncTimeout = setTimeout(pollGlobalState, remainingTimeMs);
-  } else {
-    syncTimeout = setTimeout(pollGlobalState, 30000);
-  }
+  syncTimeout = setTimeout(pollGlobalState, 15000);
 }
 
 function startLiveAudio() {
@@ -325,8 +322,8 @@ function deleteGlobalSong(index) {
       if (globalPlaylist.length > 0) {
         playSongAtIndex(activeIndex, data.seekTime);
       } else {
-        audioEl.pause();
-        audioEl.src = "";
+        audio1.pause(); audio1.src = "";
+        audio2.pause(); audio2.src = "";
         liveDot.classList.remove("active");
       }
       renderPlaylistUI();
@@ -445,6 +442,7 @@ function autoPlayLiveRadio() {
     .catch(err => console.error(err));
 }
 
+// Dual-Audio Swapping Engine to completely eliminate memory accumulation & freezes
 function playSongAtIndex(index, seekTime = 0) {
   if (globalPlaylist.length === 0) return;
   activeIndex = index % globalPlaylist.length;
@@ -452,14 +450,19 @@ function playSongAtIndex(index, seekTime = 0) {
 
   if (!song || !song.url) return;
 
-  if (audioEl.src !== song.url) {
-    audioEl.src = song.url;
-    audioEl.currentTime = seekTime;
-  } else {
-    if (Math.abs(audioEl.currentTime - seekTime) > 1.5) {
-      audioEl.currentTime = seekTime;
-    }
-  }
+  // Swap active audio tag
+  activeAudioTag = activeAudioTag === 1 ? 2 : 1;
+  const activeAudio = activeAudioTag === 1 ? audio1 : audio2;
+  const inactiveAudio = activeAudioTag === 1 ? audio2 : audio1;
+
+  // Completely wipe inactive audio to free memory
+  inactiveAudio.pause();
+  inactiveAudio.src = "";
+  inactiveAudio.load();
+
+  // Setup active audio
+  activeAudio.src = song.url;
+  activeAudio.currentTime = seekTime;
 
   if ('mediaSession' in navigator) {
     navigator.mediaSession.metadata = new MediaMetadata({
@@ -471,12 +474,12 @@ function playSongAtIndex(index, seekTime = 0) {
       ]
     });
     
-    navigator.mediaSession.setActionHandler('play', () => { audioEl.play(); });
+    navigator.mediaSession.setActionHandler('play', () => { activeAudio.play(); });
     navigator.mediaSession.setActionHandler('pause', () => {});
     navigator.mediaSession.setActionHandler('nexttrack', () => { pollGlobalState(); });
   }
 
-  audioEl.play().then(() => {
+  activeAudio.play().then(() => {
     liveDot.classList.add("active");
   }).catch(err => {
     liveDot.classList.remove("active");
@@ -486,3 +489,4 @@ function playSongAtIndex(index, seekTime = 0) {
 
 </body>
 </html>
+
