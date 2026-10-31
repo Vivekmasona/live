@@ -3,18 +3,27 @@ import express from 'express';
 const app = express();
 app.use(express.json());
 
-const DEVELOPER_NAME = "Vivek-Masona";
+const DEVELOPER_NAME = "Vivek__Masona";
 const JSONBIN_MASTER_KEY = "$2a$10$LS/yGb.vYcDNEBq5sG1w.Ooolk5h0LgIermGIubO2yjaohXN39hAC";
 const JSONBIN_BIN_ID = "6ae40759ffd5d16053978352";
 
-// In-Memory State Storage (Serverless RAM Cache)
+// In-Memory State Storage & Cache Timestamp
 let stationState = {
   playlist: [],
   stationStartTime: Date.now()
 };
 
-// Cloud se data load karne ka function
-async function loadStateFromCloud() {
+let lastCloudFetchTime = 0;
+const CLOUD_CACHE_DURATION = 5 * 60 * 1000; // 5 Minutes cache duration
+
+// Cloud se data load karne ka smart function (With 5-min TTL Cache)
+async function loadStateFromCloud(force = false) {
+  const now = Date.now();
+  // Agar data pehle se hai aur 5 minute nahi hue hain, toh JSONBin hit mat karo!
+  if (!force && stationState.playlist.length > 0 && (now - lastCloudFetchTime < CLOUD_CACHE_DURATION)) {
+    return stationState;
+  }
+
   try {
     const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
       headers: { 'X-Master-Key': JSONBIN_MASTER_KEY }
@@ -22,6 +31,7 @@ async function loadStateFromCloud() {
     const data = await res.json();
     if (data && data.record && Array.isArray(data.record.playlist)) {
       stationState = data.record;
+      lastCloudFetchTime = Date.now();
     }
   } catch (err) {
     console.error("JSONBin load error:", err);
@@ -29,20 +39,18 @@ async function loadStateFromCloud() {
   return stationState;
 }
 
-// Initial state fetch on startup if empty
-loadStateFromCloud();
+// Initial state fetch on startup
+loadStateFromCloud(true);
 
 async function getState() {
-  if (!stationState || !Array.isArray(stationState.playlist) || stationState.playlist.length === 0) {
-    await loadStateFromCloud();
-  }
-  return stationState;
+  return await loadStateFromCloud(false);
 }
 
-// Throttling for cloud sync
+// Throttling for cloud sync (PUT requests)
 let lastCloudSyncTime = 0;
 async function updateState(newState, forceCloudSync = false) {
   stationState = newState; // RAM update immediately
+  lastCloudFetchTime = Date.now(); // Reset cache timer on local updates
   
   const now = Date.now();
   if (forceCloudSync || (now - lastCloudSyncTime > 5000)) {
