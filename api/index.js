@@ -4,7 +4,6 @@ const app = express();
 app.use(express.json());
 
 const DEVELOPER_NAME = "Vivek__Masona";
-// Aapka Firebase Realtime Database URL
 const FIREBASE_DB_URL = "https://webcontrol-45bb7-default-rtdb.firebaseio.com/state.json";
 
 // In-Memory State Storage & Cache Timestamp
@@ -19,7 +18,6 @@ const CLOUD_CACHE_DURATION = 5 * 60 * 1000; // 5 Minutes cache duration
 // Firebase se data load karne ka smart function (With 5-min TTL Cache)
 async function loadStateFromCloud(force = false) {
   const now = Date.now();
-  // Agar data pehle se hai aur 5 minute nahi hue hain, toh Firebase hit mat karo!
   if (!force && stationState.playlist.length > 0 && (now - lastCloudFetchTime < CLOUD_CACHE_DURATION)) {
     return stationState;
   }
@@ -27,7 +25,6 @@ async function loadStateFromCloud(force = false) {
   try {
     const res = await fetch(FIREBASE_DB_URL);
     const data = await res.json();
-    // Firebase direct object deta hai agar data saved ho
     if (data && Array.isArray(data.playlist)) {
       stationState = data;
       lastCloudFetchTime = Date.now();
@@ -48,8 +45,8 @@ async function getState() {
 // Throttling for cloud sync (PUT requests)
 let lastCloudSyncTime = 0;
 async function updateState(newState, forceCloudSync = false) {
-  stationState = newState; // RAM update immediately
-  lastCloudFetchTime = Date.now(); // Reset cache timer on local updates
+  stationState = newState; 
+  lastCloudFetchTime = Date.now(); 
   
   const now = Date.now();
   if (forceCloudSync || (now - lastCloudSyncTime > 5000)) {
@@ -193,7 +190,6 @@ app.post('/api/play', async (req, res) => {
     let state = await getState();
     const { index } = req.body;
     if (index !== undefined && index >= 0 && index < state.playlist.length) {
-      let pastDurationSumMs =_0 = 0;
       let pastDurationSumMs = 0;
       for (let i = 0; i < index; i++) {
         pastDurationSumMs += ((Number(state.playlist[i].duration) || 180) * 1000);
@@ -225,3 +221,4 @@ app.delete('/api/playlist/:index', async (req, res) => {
 });
 
 export default app;
+
