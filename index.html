@@ -79,10 +79,11 @@ button:hover { opacity: 0.95; transform: translateY(-1px); }
 
 .item-card {
   background: rgba(25, 25, 35, 0.45); backdrop-filter: blur(10px); padding: 8px 12px; border-radius: 12px;
-  font-size: 13px; display: flex; justify-content: space-between; align-items: center;
+  font-size: 13px; display: flex; flex-direction: column; gap: 6px;
   cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.06); margin-bottom: 6px; transition: 0.2s;
 }
 .item-card:hover { border-color: #00f2fe; background: rgba(15, 35, 45, 0.5); }
+.item-row { display: flex; justify-content: space-between; align-items: center; width: 100%; }
 .item-info { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 10px; flex: 1; }
 .btn-group { display: flex; gap: 8px; align-items: center; }
 
@@ -97,6 +98,12 @@ button:hover { opacity: 0.95; transform: translateY(-1px); }
 .save-btn { background: linear-gradient(135deg, #11998e, #38ef7d); color: #000; padding: 5px 12px; font-size: 11px; font-weight: 700; border-radius: 8px; box-shadow: none; }
 .delete-btn { background: rgba(255, 71, 87, 0.85); padding: 5px 10px; font-size: 11px; border-radius: 8px; box-shadow: none; }
 
+/* Seek bar for preview */
+.preview-seek-container { display: none; width: 100%; align-items: center; gap: 8px; padding-top: 4px; }
+.preview-seek-bar { flex: 1; -webkit-appearance: none; background: rgba(255,255,255,0.2); height: 4px; border-radius: 2px; outline: none; }
+.preview-seek-bar::-webkit-slider-thumb { -webkit-appearance: none; width: 10px; height: 10px; border-radius: 50%; background: #00f2fe; cursor: pointer; }
+.preview-time { font-size: 10px; color: #aaa; min-width: 30px; text-align: right; }
+
 /* Toast Notification */
 #toast {
   position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px);
@@ -106,7 +113,6 @@ button:hover { opacity: 0.95; transform: translateY(-1px); }
 }
 #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
-/* Developer signature fixed height 20px */
 .dev-sig { height: 20px; line-height: 20px; font-size: 9px; color: rgba(255,255,255,0.3); text-align: center; letter-spacing: 1px; text-transform: uppercase; margin-top: auto; flex-shrink: 0; }
 </style>
 </head>
@@ -156,7 +162,7 @@ button:hover { opacity: 0.95; transform: translateY(-1px); }
       <button id="search-btn"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
     </div>
 
-    <div id="search-results" style="max-height:160px; overflow-y:auto;"></div>
+    <div id="search-results" style="max-height:180px; overflow-y:auto;"></div>
 
     <div style="border-top:1px solid rgba(255,255,255,0.08); padding-top:10px; display:flex; flex-direction:column; flex:1; overflow:hidden;">
       <div style="font-size:13px; color:#38ef7d; margin-bottom:6px; font-weight:700; flex-shrink:0;"><i class="fa-solid fa-list-ul"></i> Station Queue</div>
@@ -200,7 +206,7 @@ var previewAudio = document.getElementById("preview-audio");
 const liveDot = document.getElementById("live-dot");
 
 let activePreviewUrl = null;
-let activePreviewBtn = null;
+let activePreviewBtnId = null;
 
 function initAudioContext() {
   if (!actx && AudioContext) {
@@ -325,8 +331,10 @@ function renderPlaylistUI() {
     let highlight = (index === activeIndex) ? "border-color: #38ef7d; background: rgba(56,239,125,0.08);" : "";
     html += `
       <div class="item-card" style="${highlight}" onclick="adminSelectSong(${index})" title="Click to play On Air">
-        <div class="item-info">${index === activeIndex ? '<i class="fa-solid fa-play" style="color:#38ef7d;"></i> [ON AIR] ' : ''}${song.title}</div>
-        <button class="delete-btn" onclick="event.stopPropagation(); deleteGlobalSong(${index})"><i class="fa-solid fa-trash"></i></button>
+        <div class="item-row">
+          <div class="item-info">${index === activeIndex ? '<i class="fa-solid fa-play" style="color:#38ef7d;"></i> [ON AIR] ' : ''}${song.title}</div>
+          <button class="delete-btn" onclick="event.stopPropagation(); deleteGlobalSong(${index})"><i class="fa-solid fa-trash"></i></button>
+        </div>
       </div>
     `;
   });
@@ -390,12 +398,19 @@ document.getElementById("search-btn").addEventListener("click", () => {
       songs.forEach((s, idx) => {
         const songObj = encodeURIComponent(JSON.stringify(s));
         html += `
-          <div class="item-card">
-            <img src="${s.image || config.centerImage}" style="width:34px; height:34px; border-radius:6px; object-fit:cover; margin-right:8px;">
-            <div class="item-info" title="${s.title}">${s.title}</div>
-            <div class="btn-group">
-              <button class="round-preview-btn" id="prev-btn-${idx}" onclick="toggleSearchPreview('${s.url}', 'prev-btn-${idx}')"><i class="fa-solid fa-play" id="icon-${idx}"></i></button>
-              <button class="save-btn" onclick="addGlobalSong('${songObj}')"><i class="fa-solid fa-plus"></i> Save</button>
+          <div class="item-card" id="card-${idx}">
+            <div class="item-row" onclick="event.stopPropagation()">
+              <img src="${s.image || config.centerImage}" style="width:34px; height:34px; border-radius:6px; object-fit:cover; margin-right:8px;">
+              <div class="item-info" title="${s.title}">${s.title}</div>
+              <div class="btn-group">
+                <button class="round-preview-btn" id="prev-btn-${idx}" onclick="toggleSearchPreview('${s.url}', 'prev-btn-${idx}', ${idx})"><i class="fa-solid fa-play" id="icon-${idx}"></i></button>
+                <button class="save-btn" onclick="addGlobalSong('${songObj}')"><i class="fa-solid fa-plus"></i> Save</button>
+              </div>
+            </div>
+            <div class="preview-seek-container" id="seek-container-${idx}">
+              <span class="preview-time" id="current-time-${idx}">0:00</span>
+              <input type="range" class="preview-seek-bar" id="seek-bar-${idx}" value="0" max="100" step="0.1" oninput="seekPreviewAudio(${idx})">
+              <span class="preview-time" id="duration-time-${idx}">0:00</span>
             </div>
           </div>
         `;
@@ -405,41 +420,90 @@ document.getElementById("search-btn").addEventListener("click", () => {
     .catch(err => { resultsContainer.innerHTML = "Search Error."; });
 });
 
-function toggleSearchPreview(url, btnId) {
+function toggleSearchPreview(url, btnId, idx) {
   const btn = document.getElementById(btnId);
   const icon = btn.querySelector("i");
+  const seekContainer = document.getElementById(`seek-container-${idx}`);
+
   if (activePreviewUrl === url && !previewAudio.paused) {
     previewAudio.pause();
     icon.className = "fa-solid fa-play";
   } else {
-    if (activePreviewBtn && activePreviewBtn !== btn) {
-      activePreviewBtn.querySelector("i").className = "fa-solid fa-play";
+    // Hide previous seek container and reset button if active
+    if (activePreviewBtnId) {
+      const prevBtn = document.getElementById(activePreviewBtnId);
+      if (prevBtn) prevBtn.querySelector("i").className = "fa-solid fa-play";
+      // Extract prev idx and hide
+      const prevIdx = activePreviewBtnId.split('-').pop();
+      const prevSeek = document.getElementById(`seek-container-${prevIdx}`);
+      if (prevSeek) prevSeek.style.display = "none";
     }
+
+    // Mute main live audio so it doesn't oversound
+    audioEl.muted = true;
+
     previewAudio.src = url;
     previewAudio.play().then(() => {
       activePreviewUrl = url;
-      activePreviewBtn = btn;
+      activePreviewBtnId = btnId;
       icon.className = "fa-solid fa-pause";
-    }).catch(err => alert("Preview playback failed"));
+      seekContainer.style.display = "flex";
+    }).catch(err => {
+      audioEl.muted = false;
+      alert("Preview playback failed");
+    });
+  }
+}
+
+previewAudio.ontimeupdate = () => {
+  if (previewAudio.duration && activePreviewBtnId) {
+    const idx = activePreviewBtnId.split('-').pop();
+    const seekBar = document.getElementById(`seek-bar-${idx}`);
+    const currentTimeEl = document.getElementById(`current-time-${idx}`);
+    const durationTimeEl = document.getElementById(`duration-time-${idx}`);
+
+    if (seekBar) {
+      seekBar.value = (previewAudio.currentTime / previewAudio.duration) * 100;
+      currentTimeEl.innerText = formatTime(previewAudio.currentTime);
+      durationTimeEl.innerText = formatTime(previewAudio.duration);
+    }
+  }
+};
+
+function seekPreviewAudio(idx) {
+  const seekBar = document.getElementById(`seek-bar-${idx}`);
+  if (previewAudio.duration) {
+    const seekTo = (seekBar.value / 100) * previewAudio.duration;
+    previewAudio.currentTime = seekTo;
   }
 }
 
 previewAudio.onended = () => {
-  if (activePreviewBtn) {
-    activePreviewBtn.querySelector("i").className = "fa-solid fa-play";
-    activePreviewBtn = null;
-    activePreviewUrl = null;
-  }
+  stopPreview();
 };
 
 function stopPreview() {
   previewAudio.pause();
   previewAudio.currentTime = 0;
-  if (activePreviewBtn) {
-    activePreviewBtn.querySelector("i").className = "fa-solid fa-play";
-    activePreviewBtn = null;
+  // Unmute main live audio back
+  audioEl.muted = false;
+
+  if (activePreviewBtnId) {
+    const btn = document.getElementById(activePreviewBtnId);
+    if (btn) btn.querySelector("i").className = "fa-solid fa-play";
+    const idx = activePreviewBtnId.split('-').pop();
+    const seekContainer = document.getElementById(`seek-container-${idx}`);
+    if (seekContainer) seekContainer.style.display = "none";
+
+    activePreviewBtnId = null;
     activePreviewUrl = null;
   }
+}
+
+function formatTime(seconds) {
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
 }
 
 window.addGlobalSong = function(encodedObj) {
