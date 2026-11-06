@@ -115,24 +115,50 @@ async function calculatePlaybackState() {
   };
 }
 
+// Updated search endpoint with multi-modifier parallel fetching & deduplication
 app.get('/api/search', async (req, res) => {
   try {
     const query = req.query.q;
     if (!query) return res.status(400).json({ error: 'Query required' });
 
-    const svnRes = await fetch(`https://svn-vivekfy.vercel.app/search/songs?query=${encodeURIComponent(query)}`);
-    const svnData = await svnRes.json();
-    const songs = svnData?.data?.results || svnData?.results || [];
+    const modifiers = ['', 'remix', 'lofi', 'live', 'acoustic', 'mashup', 'slowed', 'version'];
+    
+    const fetchPromises = modifiers.map(async (mod) => {
+      const searchTerm = mod ? `${query} ${mod}` : query;
+      try {
+        const svnRes = await fetch(`https://svn-vivekfy.vercel.app/search/songs?query=${encodeURIComponent(searchTerm)}`);
+        const svnData = await svnRes.json();
+        return svnData?.data?.results || svnData?.results || [];
+      } catch (e) {
+        return [];
+      }
+    });
 
-    const cleanSongs = songs.map(s => ({
-      title: s.name || s.title || "Unknown",
-      primaryArtists: s.primaryArtists || s.artist || "Unknown",
-      image: s.image?.[s.image.length - 1]?.link || s.image?.[s.image.length - 1]?.url || "",
-      url: s.downloadUrl?.[s.downloadUrl.length - 1]?.link || s.downloadUrl?.[s.downloadUrl.length - 1]?.url || s.url || s.audio,
-      duration: Number(s.duration) || 180
-    })).filter(s => s.url);
+    const resultsArray = await Promise.all(fetchPromises);
+    const uniqueMap = new Map();
+    
+    resultsArray.flat().forEach(s => {
+      const url = s.downloadUrl?.[s.downloadUrl.length - 1]?.link || s.downloadUrl?.[s.downloadUrl.length - 1]?.url || s.url || s.audio;
+      const title = s.name || s.title || "Unknown";
+      
+      if (url && !uniqueMap.has(url)) {
+        uniqueMap.set(url, {
+          title: title,
+          primaryArtists: s.primaryArtists || s.artist || "Unknown",
+          image: s.image?.[s.image.length - 1]?.link || s.image?.[s.image.length - 1]?.url || "",
+          url: url,
+          duration: Number(s.duration) || 180
+        });
+      }
+    });
 
-    res.json({ developer: DEVELOPER_NAME, results: cleanSongs });
+    const cleanSongs = Array.from(uniqueMap.values());
+
+    res.json({ 
+      developer: DEVELOPER_NAME, 
+      total: cleanSongs.length,
+      results: cleanSongs 
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
