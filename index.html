@@ -12,66 +12,28 @@ html, body {
   margin: 0; padding: 0; height: 100%; overflow: hidden; background: #07050f;
   font-family: 'Plus Jakarta Sans', sans-serif; color: #fff;
 }
-canvas { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
+canvas { position: fixed; inset: 0; z-index: 1; }
 
 #main-app {
   position: relative; width: 100%; height: 100%; z-index: 10;
   display: flex; flex-direction: column; justify-content: space-between;
-  padding: 14px; box-sizing: border-box; max-width: 480px; margin: 0 auto;
+  padding: 12px; box-sizing: border-box; max-width: 460px; margin: 0 auto;
 }
 
-/* Stylish Header */
+/* Header */
 .stylish-header {
   display: flex; justify-content: space-between; align-items: center;
-  background: rgba(18, 14, 32, 0.75); backdrop-filter: blur(20px);
-  padding: 10px 16px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.08);
-  position: relative; z-index: 60;
+  background: rgba(18, 14, 32, 0.75); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  padding: 8px 16px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.08);
 }
-.brand-title { font-size: 16px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 8px; cursor: pointer; }
+.brand-title { font-size: 15px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 8px; cursor: pointer; }
 .brand-title span { color: #8c7ae6; }
 
-.search-toggle-btn {
-  width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.08);
-  display: flex; align-items: center; justify-content: center; cursor: pointer; color: #8c7ae6;
-  border: 1px solid rgba(255,255,255,0.1);
-}
-
-/* In-Header Dropdown Search Box */
-.search-dropdown {
-  position: absolute; top: 65px; left: 0; right: 0;
-  background: rgba(16, 12, 30, 0.98); backdrop-filter: blur(25px);
-  border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 20px; padding: 14px;
-  z-index: 55; display: none; flex-direction: column; gap: 10px;
-  box-shadow: 0 15px 40px rgba(0,0,0,0.8); max-height: 70vh; overflow-y: auto;
-}
-.search-dropdown.open { display: flex; }
-
-.search-box-wrapper { display: flex; gap: 6px; width: 100%; }
-input[type="text"], input[type="password"] {
-  flex: 1; padding: 10px 14px; background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12); color: #fff; border-radius: 14px; outline: none; font-size: 12px;
-}
-button.btn-main {
-  background: linear-gradient(135deg, #4834d4, #686de0); color: white; border: none; padding: 8px 14px;
-  font-size: 11px; font-weight: 700; border-radius: 14px; cursor: pointer;
-}
-
-/* 4 Items per Line Square Grid for Search Results */
-.search-grid {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 6px;
-}
-.grid-card {
-  background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px; padding: 6px; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center;
-}
-.grid-card img {
-  width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 8px;
-}
-.grid-title { font-size: 9px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
-.grid-actions { display: flex; gap: 4px; width: 100%; justify-content: center; }
+.live-dot { width: 9px; height: 9px; background: #ff4757; border-radius: 50%; box-shadow: 0 0 10px #ff4757; transition: 0.3s; }
+.live-dot.active { background: #2ed573; box-shadow: 0 0 14px #2ed573; }
 
 /* Category Chips */
-.category-chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.category-chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 4px 0; }
 .category-chips::-webkit-scrollbar { display: none; }
 .chip { 
   background: rgba(255, 255, 255, 0.06); padding: 7px 16px; border-radius: 30px; font-size: 11px; font-weight: 700; 
@@ -79,17 +41,39 @@ button.btn-main {
 }
 .chip.active, .chip:hover { background: linear-gradient(135deg, #4834d4, #686de0); color: #fff; }
 
+/* In-App Search Box */
+.inapp-search-box { display: flex; gap: 6px; width: 100%; margin: 2px 0; }
+input[type="text"], input[type="password"] {
+  flex: 1; padding: 10px 14px; background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12); color: #fff; border-radius: 14px; outline: none; font-size: 12px;
+}
+button.btn-main {
+  background: linear-gradient(135deg, #4834d4, #686de0); color: white; border: none; padding: 8px 14px;
+  font-size: 11px; font-weight: 700; border-radius: 14px; cursor: pointer; display: flex; align-items: center; gap: 4px;
+}
+
+/* 4 Items per Line Square Grid */
+.search-grid-container {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; max-height: 140px; overflow-y: auto;
+}
+.grid-card {
+  background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px; padding: 5px; display: flex; flex-direction: column; align-items: center; gap: 3px; text-align: center;
+}
+.grid-card img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 6px; }
+.grid-title { font-size: 9px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+
 /* Slide Show */
 .slideshow-wrapper { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
 .slideshow-wrapper::-webkit-scrollbar { display: none; }
 .slide-card {
-  min-width: 82%; height: 160px; border-radius: 20px; overflow: hidden; position: relative;
+  min-width: 80%; height: 140px; border-radius: 18px; overflow: hidden; position: relative;
   background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); flex-shrink: 0; scroll-snap-align: start;
 }
 .slide-card img { width: 100%; height: 100%; object-fit: cover; }
 .slide-overlay {
   position: absolute; inset: 0; background: linear-gradient(180deg, transparent 30%, rgba(0,0,0,0.9) 100%);
-  display: flex; flex-direction: column; justify-content: space-between; padding: 12px; box-sizing: border-box;
+  display: flex; flex-direction: column; justify-content: space-between; padding: 10px; box-sizing: border-box;
 }
 
 .live-ripple-badge {
@@ -104,16 +88,16 @@ button.btn-main {
 .section-heading { font-size: 11px; color: #8c7ae6; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; margin: 2px 0; }
 
 .item-card {
-  background: rgba(255, 255, 255, 0.03); padding: 8px 12px; border-radius: 16px;
-  display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  background: rgba(255, 255, 255, 0.03); padding: 8px 12px; border-radius: 14px;
+  display: flex; justify-content: space-between; align-items: center; gap: 8px;
   border: 1px solid rgba(255, 255, 255, 0.06); margin-bottom: 6px;
 }
-.album-art { width: 40px; height: 40px; border-radius: 10px; object-fit: cover; flex-shrink: 0; }
+.album-art { width: 36px; height: 36px; border-radius: 8px; object-fit: cover; flex-shrink: 0; }
 .item-info { flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 2px; }
-.item-title { font-size: 12px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.item-artist { font-size: 10px; color: #9999b0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item-title { font-size: 11px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item-artist { font-size: 9px; color: #9999b0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* Bottom Capsule Bar */
+/* Bottom Navigation Capsule Bar */
 .bottom-nav-bar {
   display: flex; justify-content: space-around; align-items: center;
   background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(20px);
@@ -131,6 +115,16 @@ button.btn-main {
 .center-disk-btn img { width: 100%; height: 100%; object-fit: cover; }
 @keyframes spin { 100% { transform: rotate(360deg); } }
 
+/* Modals */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 200;
+  display: none; align-items: center; justify-content: center; backdrop-filter: blur(20px);
+}
+.modal-box {
+  background: rgba(20,15,36,0.95); padding: 20px; border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.1); width: 85%; max-width: 300px; display: flex; flex-direction: column; gap: 12px;
+}
+
 #toast {
   position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(80px);
   background: #6c5ce7; color: #fff; padding: 10px 24px; border-radius: 30px;
@@ -141,41 +135,42 @@ button.btn-main {
 </head>
 <body>
 
+<!-- Audio Visualizer Canvas -->
 <canvas id="canvas"></canvas>
 
-<!-- Admin Password Modal -->
-<div id="auth-modal" style="position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:200; display:none; align-items:center; justify-content:center;">
-  <div style="background:rgba(20,15,36,0.95); padding:20px; border-radius:20px; border:1px solid rgba(255,255,255,0.1); width:85%; max-width:300px; display:flex; flex-direction:column; gap:12px;">
-    <div style="font-size:15px; font-weight:800; color:#8c7ae6;"><i class="fa-solid fa-shield-halved"></i> Admin Password</div>
+<!-- Admin Login Modal (3x Tap) -->
+<div class="modal-overlay" id="auth-modal">
+  <div class="modal-box">
+    <div style="font-size:15px; font-weight:800; color:#8c7ae6;"><i class="fa-solid fa-shield-halved"></i> Admin Access</div>
     <input type="password" id="admin-pass-input" placeholder="Enter password..." onkeydown="if(event.key==='Enter') verifyAdminPassword()">
     <button class="btn-main" onclick="verifyAdminPassword()" style="justify-content:center;">Login</button>
   </div>
 </div>
 
-<!-- Main UI -->
+<!-- Category Selection Modal on Song Add Click -->
+<div class="modal-overlay" id="category-modal">
+  <div class="modal-box">
+    <div style="font-size:14px; font-weight:800; color:#fff; text-align:center;">Select Destination</div>
+    <div style="display:flex; flex-direction:column; gap:8px;">
+      <button class="btn-main" onclick="confirmAddSong('Live')" style="background:linear-gradient(135deg, #2ed573, #1e90ff); justify-content:center;">+ Live Station Queue</button>
+      <button class="btn-main" onclick="confirmAddSong('Bhojpuri')" style="justify-content:center;">+ Bhojpuri Tab</button>
+      <button class="btn-main" onclick="confirmAddSong('Hindi')" style="justify-content:center;">+ Hindi Tab</button>
+      <button class="btn-main" onclick="confirmAddSong('Bhakti')" style="justify-content:center;">+ Bhakti Tab</button>
+      <button class="btn-main" onclick="confirmAddSong('Punjabi')" style="justify-content:center;">+ Punjabi Tab</button>
+    </div>
+    <button onclick="closeCategoryModal()" style="background:rgba(255,255,255,0.06); color:#aaa; border:none; padding:8px; border-radius:12px; cursor:pointer; font-size:11px;">Cancel</button>
+  </div>
+</div>
+
+<!-- Main App Interface -->
 <div id="main-app">
   <div class="stylish-header">
     <div class="brand-title" id="brand-title">
       <i class="fa-solid fa-compact-disc fa-spin" style="--fa-animation-duration: 6s;"></i>
       <span>VFY STUDIO</span>
+      <small style="font-size:9px; color:rgba(255,255,255,0.3); font-weight:normal;">(Tap 3x)</small>
     </div>
-    <div class="search-toggle-btn" onclick="toggleSearchDropdown()">
-      <i class="fa-solid fa-magnifying-glass"></i>
-    </div>
-
-    <!-- In-Header Search Dropdown -->
-    <div class="search-dropdown" id="search-dropdown">
-      <div style="display:flex; justify-content:space-between; align-items:center; font-size:13px; font-weight:700; color:#8c7ae6;">
-        <span><i class="fa-solid fa-magnifying-glass"></i> Search Track</span>
-        <i class="fa-solid fa-xmark" style="cursor:pointer;" onclick="toggleSearchDropdown()"></i>
-      </div>
-      <div class="search-box-wrapper">
-        <input type="text" id="query-input" placeholder="Search track name..." onkeydown="if(event.key==='Enter') document.getElementById('search-btn').click()">
-        <button id="search-btn" class="btn-main"><i class="fa-solid fa-magnifying-glass"></i></button>
-      </div>
-      <!-- Search Results in 4 items per line grid format -->
-      <div class="search-grid" id="search-results"></div>
-    </div>
+    <div class="live-dot" id="live-dot"></div>
   </div>
 
   <div class="category-chips">
@@ -186,26 +181,35 @@ button.btn-main {
     <div class="chip" onclick="filterTab('Punjabi', this)">Punjabi</div>
   </div>
 
+  <!-- In-App Search -->
+  <div class="inapp-search-box">
+    <input type="text" id="query-input" placeholder="Search track name..." onkeydown="if(event.key==='Enter') document.getElementById('search-btn').click()">
+    <button id="search-btn" class="btn-main"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
+  </div>
+
+  <!-- Search Grid (4 items per line inside App) -->
+  <div class="search-grid-container" id="search-results"></div>
+
   <!-- Home View -->
-  <div id="home-view" style="display:flex; flex-direction:column; gap:10px; flex:1; overflow:hidden;">
+  <div id="home-view" style="display:flex; flex-direction:column; gap:8px; flex:1; overflow:hidden;">
     <div class="slideshow-wrapper" id="slideshow-container"></div>
-    <div style="border-top:1px solid rgba(255,255,255,0.08); padding-top:6px; display:flex; flex-direction:column; flex:1; overflow:hidden;">
+    <div style="border-top:1px solid rgba(255,255,255,0.08); padding-top:4px; display:flex; flex-direction:column; flex:1; overflow:hidden;">
       <div class="section-heading" id="queue-heading">Station Queue</div>
-      <div id="playlist-container" style="overflow-y:auto; flex:1; padding-right:2px;">Loading queue...</div>
+      <div id="playlist-container" style="overflow-y:auto; flex:1; padding-right:2px;">Loading...</div>
     </div>
   </div>
 
   <!-- Profile View -->
-  <div id="profile-view" style="display:none; flex-direction:column; align-items:center; text-align:center; gap:10px; flex:1; overflow-y:auto;">
-    <img src="https://i.imgur.com/8Q5N8bB.png" style="width:80px; height:80px; border-radius:50%; border:2px solid #8c7ae6; object-fit:cover;">
-    <div style="font-size:16px; font-weight:800;">Vivek Masona</div>
+  <div id="profile-view" style="display:none; flex-direction:column; align-items:center; text-align:center; gap:8px; flex:1; overflow-y:auto;">
+    <img src="https://i.imgur.com/8Q5N8bB.png" style="width:75px; height:75px; border-radius:50%; border:2px solid #8c7ae6; object-fit:cover;">
+    <div style="font-size:15px; font-weight:800;">Vivek Masona</div>
     <div style="font-size:11px; color:#8c7ae6; font-weight:700;">Lead Developer & Engineer</div>
-    <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); padding:12px; border-radius:16px; width:100%; text-align:left; box-sizing:border-box;">
-      <div style="font-size:12px; font-weight:700; margin-bottom:4px;"><i class="fa-solid fa-circle-info"></i> App Details</div>
+    <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); padding:10px; border-radius:14px; width:100%; text-align:left; box-sizing:border-box;">
+      <div style="font-size:11px; font-weight:700; margin-bottom:4px;"><i class="fa-solid fa-circle-info"></i> Details</div>
       <div style="font-size:10px; color:#aaa; line-height:1.5;">
-        • Platform: VFY FM Live Studio Console<br>
-        • Sync: Global Server Clock (Zero Delay)<br>
-        • Media Session API Enabled for Notifications
+        • VFY FM Live Studio Console<br>
+        • Zero-Delay Global Clock Sync<br>
+        • Active Media Session Integration
       </div>
     </div>
   </div>
@@ -223,21 +227,61 @@ button.btn-main {
 <div id="toast">Track saved!</div>
 <audio id="audio-element" crossorigin="anonymous"></audio>
 
+<script src="https://codepen.io/Tibixx/pen/BbBxRG.js"></script>
+
 <script>
+// Canvas Visualizer Engine
+var canvas = document.getElementById("canvas");
+var ctx = canvas.getContext("2d");
+w = ctx.canvas.width = window.innerWidth;
+h = ctx.canvas.height = window.innerHeight;
+
+window.onresize = function() {
+  w = ctx.canvas.width = window.innerWidth;
+  h = ctx.canvas.height = window.innerHeight;
+};
+
+var nrt=0, npt=0, dots=[], lines=[];
+var config = { minRadius: 50, maxRadius: 90, multiplier: 45, colorSpeed: 20, hueStart: 220, centerImage: "https://i.imgur.com/8Q5N8bB.png" };
+
+var bgImage = new Image();
+bgImage.src = config.centerImage;
+
+var AudioContext = window.AudioContext || window.webkitAudioContext;
+var actx, analyser, sourceNode, frequencyData, frequencyDataLen;
+var playing = false;
 var audioEl = document.getElementById("audio-element");
 var diskBtn = document.getElementById("disk-btn");
 var diskImg = document.getElementById("disk-img");
+const liveDot = document.getElementById("live-dot");
+
+function initAudioContext() {
+  if (!actx && AudioContext) {
+    actx = new AudioContext();
+    analyser = actx.createAnalyser();
+    analyser.fftSize = 256;
+    analyser.smoothingTimeConstant = 0.55;
+    sourceNode = actx.createMediaElementSource(audioEl);
+    sourceNode.connect(analyser);
+    analyser.connect(actx.destination);
+    frequencyDataLen = analyser.frequencyBinCount;
+    frequencyData = new Uint8Array(frequencyDataLen);
+  }
+  if (actx && actx.state === 'suspended') { actx.resume(); }
+}
 
 let globalPlaylist = [];
 let categoryStore = { Bhojpuri: [], Hindi: [], Bhakti: [], Punjabi: [] };
 let activeIndex = -1;
 let currentTabCategory = 'All';
+let selectedSongToAdd = null;
 
 if (localStorage.getItem('vfy_cat_store')) {
   try { categoryStore = JSON.parse(localStorage.getItem('vfy_cat_store')); } catch(e){}
 }
 function saveLocalCategories() { localStorage.setItem('vfy_cat_store', JSON.stringify(categoryStore)); }
 
+// Admin 3x Tap Trigger
 let tapCount = 0;
 document.getElementById("brand-title").addEventListener('click', () => {
   tapCount++;
@@ -254,11 +298,6 @@ function verifyAdminPassword() {
     document.getElementById("auth-modal").style.display = "none";
     showToast("✓ Admin Logged In");
   } else { alert("Wrong Password!"); }
-}
-
-function toggleSearchDropdown() {
-  const dropdown = document.getElementById("search-dropdown");
-  dropdown.classList.toggle("open");
 }
 
 function switchMainTab(tab) {
@@ -314,7 +353,7 @@ function pollGlobalState() {
 function renderSlideshow() {
   const container = document.getElementById("slideshow-container");
   if (globalPlaylist.length === 0) {
-    container.innerHTML = "<div style='font-size:11px; color:#666;'>No active radio stream.</div>";
+    container.innerHTML = "<div style='font-size:11px; color:#666;'>No active stream.</div>";
     return;
   }
   let html = "";
@@ -331,8 +370,8 @@ function renderSlideshow() {
             </div>
           ` : '<div></div>'}
           <div>
-            <div style="font-size:13px; font-weight:800; color:#fff; text-shadow:0 2px 8px rgba(0,0,0,0.8);">${song.title}</div>
-            <div style="font-size:10px; color:#2ed573; font-weight:700;">${song.primaryArtists || 'VFY Radio'}</div>
+            <div style="font-size:12px; font-weight:800; color:#fff; text-shadow:0 2px 8px rgba(0,0,0,0.8);">${song.title}</div>
+            <div style="font-size:9px; color:#2ed573; font-weight:700;">${song.primaryArtists || 'VFY Radio'}</div>
           </div>
         </div>
       </div>
@@ -355,15 +394,15 @@ function renderPlaylistUI() {
             <div class="item-title">${isLive ? '<i class="fa-solid fa-play" style="color:#2ed573;"></i> ' : ''}${song.title}</div>
             <div class="item-artist">${song.primaryArtists || 'VFY FM'}</div>
           </div>
-          <button class="btn-main" onclick="adminSelectSong(${index})" style="padding:4px 8px; font-size:10px;">Play</button>
-          <button onclick="deleteGlobalSong(${index})" style="background:rgba(255,71,87,0.2); color:#ff4757; border:none; border-radius:50%; width:26px; height:26px; cursor:pointer;"><i class="fa-solid fa-trash" style="font-size:10px;"></i></button>
+          <button class="btn-main" onclick="adminSelectSong(${index})" style="padding:4px 8px; font-size:9px;">Play</button>
+          <button onclick="deleteGlobalSong(${index})" style="background:rgba(255,71,87,0.2); color:#ff4757; border:none; border-radius:50%; width:24px; height:24px; cursor:pointer;"><i class="fa-solid fa-trash" style="font-size:9px;"></i></button>
         </div>
       `;
     });
     container.innerHTML = html;
   } else {
     let list = categoryStore[currentTabCategory] || [];
-    if (list.length === 0) { container.innerHTML = `<div style="padding:10px; color:#666;">No songs saved in ${currentTabCategory}.</div>`; return; }
+    if (list.length === 0) { container.innerHTML = `<div style="padding:8px; color:#666;">No songs in ${currentTabCategory}.</div>`; return; }
     let html = "";
     list.forEach((song, index) => {
       html += `
@@ -373,8 +412,8 @@ function renderPlaylistUI() {
             <div class="item-title">${song.title}</div>
             <div class="item-artist">${song.primaryArtists}</div>
           </div>
-          <button class="btn-main" onclick="addGlobalSongObj('${encodeURIComponent(JSON.stringify(song))}')" style="padding:4px 8px; font-size:10px;">+ Live</button>
-          <button onclick="deleteCategorySong('${currentTabCategory}', ${index})" style="background:rgba(255,71,87,0.2); color:#ff4757; border:none; border-radius:50%; width:26px; height:26px; cursor:pointer;"><i class="fa-solid fa-trash" style="font-size:10px;"></i></button>
+          <button class="btn-main" onclick="addGlobalSongObj('${encodeURIComponent(JSON.stringify(song))}')" style="padding:4px 8px; font-size:9px;">+ Live</button>
+          <button onclick="deleteCategorySong('${currentTabCategory}', ${index})" style="background:rgba(255,71,87,0.2); color:#ff4757; border:none; border-radius:50%; width:24px; height:24px; cursor:pointer;"><i class="fa-solid fa-trash" style="font-size:9px;"></i></button>
         </div>
       `;
     });
@@ -382,7 +421,7 @@ function renderPlaylistUI() {
   }
 }
 
-// Search Results in 4 items per line square grid format
+// Search Function (Grid View 4 per line)
 document.getElementById("search-btn").addEventListener("click", () => {
   const q = document.getElementById("query-input").value.trim();
   if (!q) return;
@@ -400,16 +439,44 @@ document.getElementById("search-btn").addEventListener("click", () => {
           <div class="grid-card">
             <img src="${s.image}">
             <div class="grid-title" title="${s.title}">${s.title}</div>
-            <div class="grid-actions">
-              <button class="btn-main" onclick="addGlobalSongObj('${objStr}')" style="padding:2px 4px; font-size:8px;" title="Live">+L</button>
-              <button class="btn-main" onclick="addCategorySong('${objStr}')" style="background:#2ed573; color:#000; padding:2px 4px; font-size:8px;" title="Tab">+T</button>
-            </div>
+            <button class="btn-main" onclick="openCategoryModal('${objStr}')" style="padding:2px 4px; font-size:8px; width:100%; justify-content:center;">+ Add</button>
           </div>
         `;
       });
       results.innerHTML = html;
     });
 });
+
+function openCategoryModal(encodedObj) {
+  selectedSongToAdd = JSON.parse(decodeURIComponent(encodedObj));
+  document.getElementById("category-modal").style.display = "flex";
+}
+function closeCategoryModal() {
+  document.getElementById("category-modal").style.display = "none";
+  selectedSongToAdd = null;
+}
+
+function confirmAddSong(target) {
+  if (!selectedSongToAdd) return;
+  if (target === 'Live') {
+    fetch('/api/playlist', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(selectedSongToAdd)
+    }).then(res => res.json()).then(data => {
+      globalPlaylist = data.playlist;
+      renderPlaylistUI();
+      renderSlideshow();
+      showToast("✓ Added to Live Station Queue!");
+    });
+  } else {
+    if (!categoryStore[target]) categoryStore[target] = [];
+    categoryStore[target].push(selectedSongToAdd);
+    saveLocalCategories();
+    renderPlaylistUI();
+    showToast(`✓ Added to ${target} Tab!`);
+  }
+  closeCategoryModal();
+}
 
 function addGlobalSongObj(encodedObj) {
   const song = JSON.parse(decodeURIComponent(encodedObj));
@@ -420,18 +487,8 @@ function addGlobalSongObj(encodedObj) {
     globalPlaylist = data.playlist;
     renderPlaylistUI();
     renderSlideshow();
-    showToast("✓ Added to Live Station Queue!");
+    showToast("✓ Added to Live Queue!");
   });
-}
-
-function addCategorySong(encodedObj) {
-  const song = JSON.parse(decodeURIComponent(encodedObj));
-  let cat = currentTabCategory === 'All' ? 'Bhojpuri' : currentTabCategory;
-  if (!categoryStore[cat]) categoryStore[cat] = [];
-  categoryStore[cat].push(song);
-  saveLocalCategories();
-  renderPlaylistUI();
-  showToast(`✓ Added to ${cat} Playlist!`);
 }
 
 function deleteCategorySong(cat, idx) {
@@ -467,7 +524,9 @@ function playSongAtIndex(index, baseSeek, serverTs) {
   const song = globalPlaylist[index % globalPlaylist.length];
   if (!song || !song.url) return;
 
+  initAudioContext();
   diskImg.src = song.image || 'https://i.imgur.com/8Q5N8bB.png';
+  bgImage.src = song.image || config.centerImage;
 
   const delay = (Date.now() - serverTs) / 1000;
   const targetSeek = baseSeek + Math.max(0, delay);
@@ -493,12 +552,41 @@ function playSongAtIndex(index, baseSeek, serverTs) {
 
   audioEl.play().then(() => {
     diskBtn.classList.add("playing");
+    liveDot.classList.add("active");
+    if (!playing) {
+      playing = true;
+      renderVisualizer();
+    }
   }).catch(() => {
     diskBtn.classList.remove("playing");
+    liveDot.classList.remove("active");
   });
 }
 
 function startLiveAudio() { pollGlobalState(); }
+
+// Visualizer Rendering Functions
+function clear(){ ctx.beginPath(); var grd = ctx.createLinearGradient(w/2, 0, w/2, h); grd.addColorStop(0, "hsl("+(config.hueStart + npt * config.colorSpeed)+", 35%, 8%"); grd.addColorStop(1, "hsl("+(config.hueStart + npt * config.colorSpeed)+", 75%, 3%)"); ctx.fillStyle = grd; ctx.fillRect(0, 0, w, h); ctx.closePath(); }
+function getBassPulse() { if (!frequencyData) return 0; var bassSum = 0; for (let i = 0; i < 8; i++) { bassSum += frequencyData[i]; } return bassSum / 8; }
+function averageFrequency() { if (!frequencyData) return 0; var avg = 0; for (let i = 0; i < frequencyData.length; i++) { avg += frequencyData[i]; } return avg; }
+function drawSpectrum() { 
+  if (!analyser || !frequencyData) return;
+  noiseSpeed = averageFrequency(); nrt += noiseSpeed/3000000; npt += noiseSpeed/1000000; var avg = 0; 
+  analyser.getByteFrequencyData(frequencyData); var noiseRotate = noise.perlin2(10, nrt); var points = Math.round(frequencyDataLen-frequencyDataLen/3); 
+  var bassPower = getBassPulse(); var dynamicZoom = config.minRadius + (bassPower * 0.16); if (dynamicZoom > config.maxRadius) { dynamicZoom = config.maxRadius; }
+  if (bgImage.complete) { ctx.save(); ctx.beginPath(); ctx.arc(w / 2, h / 2, dynamicZoom, 0, Math.PI * 2); ctx.clip(); ctx.drawImage(bgImage, (w / 2) - dynamicZoom, (h / 2) - dynamicZoom, dynamicZoom * 2, dynamicZoom * 2); ctx.restore(); }
+  for (let i = 0.5; i < points; i++) { 
+    avg += frequencyData[i]; avg = avg / points; 
+    var x1 = w / 2 + (dynamicZoom) * Math.cos(-Math.PI/2 + 2 * Math.PI * i / points + noiseRotate); 
+    var y1 = h / 2 + (dynamicZoom) * Math.sin(-Math.PI/2 + 2 * Math.PI * i / points + noiseRotate); 
+    var x2 = w / 2 + ((dynamicZoom) + avg * config.multiplier) * Math.cos(-Math.PI/2 + 2 * Math.PI * i / points + noiseRotate); 
+    var y2 = h / 2 + ((dynamicZoom) + avg * config.multiplier) * Math.sin(-Math.PI/2 + 2 * Math.PI * i / points + noiseRotate); 
+    var nd1 = noise.simplex2(y1/100, npt)*10; 
+    ctx.beginPath(); ctx.lineCap = "round"; ctx.lineWidth = 1.5; ctx.strokeStyle = "hsla("+(config.hueStart + npt * config.colorSpeed)+", 50%, "+(20+(Math.pow(avg * 3, 2)))+"%, 100%)"; ctx.moveTo(x1+nd1, y1+nd1); ctx.lineTo(x2+nd1, y2+nd1); ctx.stroke(); ctx.closePath(); 
+  } 
+}
+function renderVisualizer() { if (!playing) return; clear(); drawSpectrum(); requestAnimationFrame(renderVisualizer); }
+
 window.addEventListener('load', () => { pollGlobalState(); });
 </script>
 
