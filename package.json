@@ -1,6 +1,11 @@
 {
   "name": "global-live-fm",
   "version": "1.0.0",
+  "main": "api/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node api/index.js"
+  },
   "dependencies": {
     "express": "^4.19.2",
     "@vercel/kv": "^1.0.1"
@@ -10,4 +15,3 @@
   },
   "private": true
 }
-
