@@ -54,7 +54,7 @@ canvas { position: fixed; inset: 0; z-index: 1; }
 }
 .studio-title, .auth-title { font-size: 18px; color: #fff; font-weight: 800; display: flex; justify-content: space-between; align-items: center; }
 
-/* Category Tabs (Hindi, Bhojpuri, Bhakti, Punjabi, etc.) */
+/* Category Chips */
 .category-chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
 .category-chips::-webkit-scrollbar { display: none; }
 .chip { 
@@ -88,43 +88,86 @@ button.search-btn-custom {
   box-shadow: 0 10px 40px rgba(108, 92, 231, 0.5); color: #000; font-weight: 800; cursor: pointer; border: none;
 }
 
-/* Big Banner Cards ("For You" section) */
-.for-you-section { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; }
-.for-you-section::-webkit-scrollbar { display: none; }
-.banner-card {
-  min-width: 130px; height: 150px; border-radius: 20px; overflow: hidden; position: relative;
-  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); flex-shrink: 0; cursor: pointer;
-  display: flex; flex-direction: column; justify-content: flex-end; padding: 10px; transition: 0.2s;
-}
-.banner-card:hover { transform: scale(1.03); border-color: #686de0; }
-.banner-card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
-.banner-card .overlay { position: absolute; inset: 0; background: linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.85) 100%); z-index: 2; }
-.banner-card .banner-info { position: relative; z-index: 3; }
-.banner-card .banner-title { font-size: 12px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-/* Trending Now / All Songs Section List */
+/* Slideshow / Carousel Section ("For You" banners) */
 .section-heading { font-size: 13px; color: #a29bfe; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; margin-top: 4px; display: flex; justify-content: space-between; align-items: center; }
+
+.slideshow-container {
+  position: relative; width: 100%; height: 160px; overflow: hidden; border-radius: 22px;
+  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+}
+.slideshow-track { display: flex; height: 100%; transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); cursor: grab; }
+.slideshow-track:active { cursor: grabbing; }
+
+.slide-banner-card {
+  min-width: 100%; height: 100%; box-sizing: border-box; position: relative; overflow: hidden; flex-shrink: 0;
+  display: flex; flex-direction: column; justify-content: flex-end; padding: 16px; cursor: pointer;
+}
+.slide-banner-card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
+.slide-banner-card .overlay { position: absolute; inset: 0; background: linear-gradient(180deg, transparent 30%, rgba(0,0,0,0.85) 100%); z-index: 2; }
+.slide-banner-card .banner-info { position: relative; z-index: 3; }
+.slide-banner-card .banner-title { font-size: 14px; font-weight: 800; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Slideshow Dots Indicator */
+.slideshow-dots { display: flex; justify-content: center; gap: 6px; margin-top: 6px; }
+.slide-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.2); cursor: pointer; transition: 0.3s; }
+.slide-dot.active { width: 18px; border-radius: 4px; background: #686de0; }
+
+/* Custom Playlist Select Modal */
+#playlist-picker-modal {
+  position: fixed; inset: 0; background: rgba(5, 3, 12, 0.85); z-index: 200;
+  display: none; align-items: center; justify-content: center; backdrop-filter: blur(20px);
+}
+.playlist-picker-box {
+  background: #151025; border: 1px solid rgba(255,255,255,0.15); width: 85%; max-width: 320px;
+  border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 12px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+}
+
+/* 80% / 20% Width Layout for Queue Items & Live Ripple Effect */
+.queue-grid-layout { display: flex; flex-direction: column; gap: 8px; }
 
 .item-card {
   background: rgba(255, 255, 255, 0.03); padding: 10px 14px; border-radius: 20px;
-  display: flex; flex-direction: column; gap: 6px; border: 1px solid rgba(255, 255, 255, 0.06); margin-bottom: 8px; transition: 0.2s;
+  display: flex; flex-direction: column; gap: 6px; border: 1px solid rgba(255, 255, 255, 0.06); transition: 0.2s;
 }
 .item-card:hover { border-color: rgba(104, 109, 224, 0.4); background: rgba(255, 255, 255, 0.06); }
 .item-row { display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 10px; }
 
-.album-art { width: 44px; height: 44px; border-radius: 12px; object-fit: cover; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.1); }
+/* 80% Width for Active ON AIR Song with Live Ripple Animation */
+.item-card.on-air {
+  width: 80%;
+  background: rgba(46, 213, 115, 0.1);
+  border-color: #2ed573;
+  animation: liveRipplePulse 2s infinite;
+  box-shadow: 0 0 20px rgba(46, 213, 115, 0.25);
+  margin-bottom: 4px;
+}
+
+/* 20% Width / Compact representation for Upcoming Songs */
+.item-card.upcoming {
+  width: 95%;
+  opacity: 0.85;
+}
+
+@keyframes liveRipplePulse {
+  0% { box-shadow: 0 0 0 0 rgba(46, 213, 115, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(46, 213, 115, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(46, 213, 115, 0); }
+}
+
+.album-art { width: 40px; height: 40px; border-radius: 12px; object-fit: cover; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.1); }
 .item-info { flex: 1; overflow: hidden; display: flex; flex-direction: column; justify-content: center; gap: 2px; }
-.item-title { font-size: 13px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.item-artist { font-size: 11px; color: #9999b0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item-title { font-size: 12px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item-artist { font-size: 10px; color: #9999b0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .round-preview-btn {
-  width: 34px; height: 34px; border-radius: 50%; background: rgba(255,255,255,0.08); color: #fff;
-  border: none; display: flex; align-items: center; justify-content: center; font-size: 11px; cursor: pointer; transition: 0.2s;
+  width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.08); color: #fff;
+  border: none; display: flex; align-items: center; justify-content: center; font-size: 10px; cursor: pointer; transition: 0.2s;
 }
 .round-preview-btn:hover { background: #686de0; box-shadow: 0 0 12px rgba(104,109,224,0.6); }
 
-.save-btn { background: #2ed573; color: #000; border: none; padding: 7px 14px; font-size: 11px; font-weight: 800; border-radius: 16px; cursor: pointer; }
-.delete-btn { background: rgba(255,71,87,0.2); color: #ff4757; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.save-btn { background: #2ed573; color: #000; border: none; padding: 6px 12px; font-size: 10px; font-weight: 800; border-radius: 16px; cursor: pointer; }
+.delete-btn { background: rgba(255,71,87,0.2); color: #ff4757; border: none; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
 /* Bottom 3 Icons Navigation Bar */
 .bottom-nav-bar {
@@ -145,7 +188,7 @@ button.search-btn-custom {
 }
 #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
-.dev-sig { height: 16px; line-height: 16px; font-size: 9px; color: rgba(255,255,255,0.25); text-align: center; letter-spacing: 1.5px; text-transform: uppercase; margin-top: auto; font-weight: 700; }
+.dev-sig { height: 14px; line-height: 14px; font-size: 9px; color: rgba(255,255,255,0.25); text-align: center; letter-spacing: 1.5px; text-transform: uppercase; margin-top: auto; font-weight: 700; }
 </style>
 </head>
 <body>
@@ -181,6 +224,22 @@ button.search-btn-custom {
   </div>
 </div>
 
+<!-- Playlist Picker Modal (Choose Category / Local Storage) -->
+<div id="playlist-picker-modal">
+  <div class="playlist-picker-box">
+    <div style="font-size:14px; font-weight:800; display:flex; justify-content:space-between; align-items:center;">
+      <span><i class="fa-solid fa-folder-plus"></i> Select Playlist</span>
+      <button onclick="closePlaylistPicker()" style="background:none; border:none; color:#aaa; font-size:14px; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div style="font-size:11px; color:#aaa;">Choose which playlist category to save this track into:</div>
+    <div id="playlist-options-container" style="display:flex; flex-direction:column; gap:6px; max-height:140px; overflow-y:auto;"></div>
+    <div style="display:flex; gap:6px; margin-top:4px;">
+      <input type="text" id="new-category-input" placeholder="Or new category name..." style="font-size:11px; padding:8px 12px;">
+      <button onclick="createNewCategoryAndSave()" style="background:#686de0; color:#fff; border:none; border-radius:14px; padding:8px 12px; font-size:11px; font-weight:700; cursor:pointer;">Add</button>
+    </div>
+  </div>
+</div>
+
 <!-- Master Studio Console Modal -->
 <div id="studio-modal">
   <div class="studio-container">
@@ -190,7 +249,7 @@ button.search-btn-custom {
     </div>
 
     <!-- Category Tabs -->
-    <div class="category-chips">
+    <div class="category-chips" id="category-chips-container">
       <div class="chip active" onclick="filterTab('All', this)">All</div>
       <div class="chip" onclick="filterTab('Hindi', this)">Hindi</div>
       <div class="chip" onclick="filterTab('Bhojpuri', this)">Bhojpuri</div>
@@ -204,19 +263,22 @@ button.search-btn-custom {
       <button id="search-btn" class="search-btn-custom"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
     </div>
 
-    <!-- Search Results / For You Section -->
-    <div id="search-results" style="max-height:160px; overflow-y:auto; padding-right:4px;"></div>
+    <!-- Search Results Container -->
+    <div id="search-results" style="max-height:140px; overflow-y:auto; padding-right:4px;"></div>
 
     <div class="section-heading">
-      <span><i class="fa-solid fa-fire"></i> For You (Banners)</span>
+      <span><i class="fa-solid fa-fire"></i> For You (Slideshow)</span>
     </div>
-    <div class="for-you-section" id="for-you-container">
-      <!-- Dynamic Big Banners -->
+    
+    <!-- Slideshow Banners Container -->
+    <div class="slideshow-container" id="slideshow-container">
+      <div class="slideshow-track" id="slideshow-track"></div>
     </div>
+    <div class="slideshow-dots" id="slideshow-dots"></div>
 
     <div style="border-top:1px solid rgba(255,255,255,0.08); padding-top:10px; display:flex; flex-direction:column; flex:1; overflow:hidden;">
       <div class="section-heading">
-        <span><i class="fa-solid fa-list-ul"></i> Trending Now (All Station Queue)</span>
+        <span><i class="fa-solid fa-list-ul"></i> Trending Queue (80% Live / 20% Upcoming)</span>
       </div>
       <div id="playlist-container" style="overflow-y:auto; font-size:13px; color:#aaa; flex:1; padding-right:4px;">Loading queue...</div>
     </div>
@@ -265,8 +327,27 @@ var previewAudio = document.getElementById("preview-audio");
 const liveDot = document.getElementById("live-dot");
 
 let activePreviewUrl = null;
-let activePreviewBtnId = null;
 let currentTabCategory = 'All';
+let pendingSongToSave = null;
+let customCategories = ['Hindi', 'Bhojpuri', 'Bhakti', 'Punjabi'];
+
+// Load categories & stored playlist from LocalStorage if available
+function loadLocalPlaylists() {
+  const savedCats = localStorage.getItem('vfy_categories');
+  if (savedCats) {
+    try { customCategories = JSON.parse(savedCats); } catch(e){}
+  }
+  renderCategoryChips();
+}
+
+function renderCategoryChips() {
+  const container = document.getElementById("category-chips-container");
+  let html = `<div class="chip ${currentTabCategory === 'All' ? 'active' : ''}" onclick="filterTab('All', this)">All</div>`;
+  customCategories.forEach(cat => {
+    html += `<div class="chip ${currentTabCategory === cat ? 'active' : ''}" onclick="filterTab('${cat}', this)">${cat}</div>`;
+  });
+  container.innerHTML = html;
+}
 
 function initAudioContext() {
   if (!actx && AudioContext) {
@@ -309,9 +390,10 @@ function verifyAdminPassword() {
   const pass = document.getElementById("admin-pass-input").value;
   if (pass === "vivekbabu") {
     closeAuthModal();
+    loadLocalPlaylists();
     document.getElementById("studio-modal").style.display = "flex";
     renderPlaylistUI();
-    renderForYouBanners();
+    renderSlideshowBanners();
   } else {
     alert("Wrong Password!");
     document.getElementById("admin-pass-input").value = "";
@@ -346,7 +428,7 @@ function pollGlobalState() {
       
       if (document.getElementById("studio-modal").style.display === "flex") {
         renderPlaylistUI();
-        renderForYouBanners();
+        renderSlideshowBanners();
       }
 
       if (globalPlaylist.length > 0) {
@@ -381,6 +463,7 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') { pollGlobalState(); }
 });
 
+// Render Playlist Queue with 80% active (ripple effect) & 20% upcoming width formatting
 function renderPlaylistUI() {
   const container = document.getElementById("playlist-container");
   if (globalPlaylist.length === 0) {
@@ -388,7 +471,6 @@ function renderPlaylistUI() {
     return;
   }
 
-  // Filter songs based on current active tab category
   let filteredList = globalPlaylist.filter(song => {
     if (currentTabCategory === 'All') return true;
     return song.category === currentTabCategory;
@@ -399,46 +481,110 @@ function renderPlaylistUI() {
     return;
   }
 
-  let html = "";
-  (filteredList.length > 0 ? filteredList : globalPlaylist).forEach((song, index) => {
+  let html = `<div class="queue-grid-layout">`;
+  (filteredList.length > 0 ? filteredList : globalPlaylist).forEach((song) => {
     let globalIndex = globalPlaylist.indexOf(song);
     let isOnAir = (globalIndex === activeIndex);
+    
+    let cardClass = isOnAir ? "item-card on-air" : "item-card upcoming";
+
     html += `
-      <div class="item-card" style="${isOnAir ? 'border-color:#2ed573; background:rgba(46,213,115,0.08);' : ''}" onclick="adminSelectSong(${globalIndex})">
+      <div class="${cardClass}" onclick="adminSelectSong(${globalIndex})">
         <div class="item-row">
           <img src="${song.image || config.centerImage}" class="album-art">
           <div class="item-info">
-            <div class="item-title">${isOnAir ? '<i class="fa-solid fa-play" style="color:#2ed573;"></i> [ON AIR] ' : ''}${song.title}</div>
-            <div class="item-artist">${song.primaryArtists || 'VFY Artist'} (${song.category || 'All'})</div>
+            <div class="item-title">${isOnAir ? '<i class="fa-solid fa-tower-broadcast" style="color:#2ed573;"></i> [ON AIR] ' : ''}${song.title}</div>
+            <div class="item-artist">${song.primaryArtists || 'VFY Artist'} • <span style="color:#8c7ae6;">${song.category || 'All'}</span></div>
           </div>
           <button class="delete-btn" onclick="event.stopPropagation(); deleteGlobalSong(${globalIndex})"><i class="fa-solid fa-trash"></i></button>
         </div>
       </div>
     `;
   });
+  html += `</div>`;
   container.innerHTML = html;
 }
 
-function renderForYouBanners() {
-  const container = document.getElementById("for-you-container");
+// Slideshow Banners Implementation
+let currentSlideIndex = 0;
+let slideInterval = null;
+
+function renderSlideshowBanners() {
+  const trackContainer = document.getElementById("slideshow-track");
+  const dotsContainer = document.getElementById("slideshow-dots");
+  
   if (globalPlaylist.length === 0) {
-    container.innerHTML = "<div style='font-size:11px; color:#666;'>No banners available. Add songs.</div>";
+    trackContainer.innerHTML = "<div style='font-size:11px; color:#666; padding:20px; text-align:center;'>No banner tracks available.</div>";
+    dotsContainer.innerHTML = "";
     return;
   }
-  let html = "";
-  globalPlaylist.slice(0, 5).forEach((song, idx) => {
-    html += `
-      <div class="banner-card" onclick="adminSelectSong(${idx})" title="${song.title}">
+
+  let slidesHtml = "";
+  let dotsHtml = "";
+  
+  globalPlaylist.slice(0, 6).forEach((song, idx) => {
+    let globalIndex = globalPlaylist.indexOf(song);
+    slidesHtml += `
+      <div class="slide-banner-card" onclick="adminSelectSong(${globalIndex})">
         <img src="${song.image || config.centerImage}">
         <div class="overlay"></div>
         <div class="banner-info">
           <div class="banner-title">${song.title}</div>
-          <div style="font-size:10px; color:#aaa;">${song.category || 'Trending'}</div>
+          <div style="font-size:11px; color:#a29bfe; font-weight:600;">${song.primaryArtists || 'Featured Track'} (${song.category || 'General'})</div>
         </div>
       </div>
     `;
+    dotsHtml += `<div class="slide-dot ${idx === currentSlideIndex ? 'active' : ''}" onclick="currentSlide(${idx})"></div>`;
   });
-  container.innerHTML = html;
+
+  trackContainer.innerHTML = slidesHtml;
+  dotsContainer.innerHTML = dotsHtml;
+  trackContainer.style.transform = `translateX(-${currentSlideIndex * 100}%)`;
+
+  startSlideshowTimer();
+}
+
+function startSlideshowTimer() {
+  if (slideInterval) clearInterval(slideInterval);
+  slideInterval = setInterval(() => {
+    let maxSlides = Math.min(globalPlaylist.length, 6);
+    currentSlideIndex = (currentSlideIndex + 1) % maxSlides;
+    updateSlideshowPosition();
+  }, 4000);
+}
+
+function currentSlide(idx) {
+  currentSlideIndex = idx;
+  updateSlideshowPosition();
+  startSlideshowTimer();
+}
+
+function updateSlideshowPosition() {
+  const trackContainer = document.getElementById("slideshow-track");
+  if (trackContainer) {
+    trackContainer.style.transform = `translateX(-${currentSlideIndex * 100}%)`;
+  }
+  const dots = document.querySelectorAll(".slide-dot");
+  dots.forEach((dot, i) => {
+    if (i === currentSlideIndex) dot.classList.add("active");
+    else dot.classList.remove("active");
+  });
+}
+
+// Swipe support for slideshow
+let touchStartX = 0;
+const slideshowEl = document.getElementById("slideshow-container");
+if (slideshowEl) {
+  slideshowEl.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, {passive: true});
+  slideshowEl.addEventListener('touchend', e => {
+    let diff = e.changedTouches[0].screenX - touchStartX;
+    let maxSlides = Math.min(globalPlaylist.length, 6);
+    if (Math.abs(diff) > 40) {
+      if (diff > 0) { currentSlideIndex = (currentSlideIndex - 1 + maxSlides) % maxSlides; }
+      else { currentSlideIndex = (currentSlideIndex + 1) % maxSlides; }
+      currentSlide(currentSlideIndex);
+    }
+  }, {passive: true});
 }
 
 function adminSelectSong(index) {
@@ -474,7 +620,7 @@ function deleteGlobalSong(index) {
         document.getElementById("controls").style.display = "flex";
       }
       renderPlaylistUI();
-      renderForYouBanners();
+      renderSlideshowBanners();
       scheduleNextSync();
     });
 }
@@ -497,7 +643,6 @@ document.getElementById("search-btn").addEventListener("click", () => {
 
       let html = "";
       songs.forEach((s, idx) => {
-        s.category = currentTabCategory !== 'All' ? currentTabCategory : 'Hindi';
         const songObj = encodeURIComponent(JSON.stringify(s));
         html += `
           <div class="item-card">
@@ -509,7 +654,7 @@ document.getElementById("search-btn").addEventListener("click", () => {
               </div>
               <div style="display:flex; gap:6px; align-items:center;">
                 <button class="round-preview-btn" id="prev-btn-${idx}" onclick="toggleSearchPreview('${s.url}', 'prev-btn-${idx}')"><i class="fa-solid fa-play"></i></button>
-                <button class="save-btn" onclick="addGlobalSong('${songObj}')">+ Save</button>
+                <button class="save-btn" onclick="openPlaylistPicker('${songObj}')">+ Save to...</button>
               </div>
             </div>
           </div>
@@ -545,10 +690,41 @@ function stopPreview() {
   activePreviewUrl = null;
 }
 
-window.addGlobalSong = function(encodedObj) {
-  const songData = JSON.parse(decodeURIComponent(encodedObj));
+// Custom Playlist Picker UI Functions
+function openPlaylistPicker(encodedObj) {
+  pendingSongToSave = encodedObj;
+  const container = document.getElementById("playlist-options-container");
+  let html = "";
+  customCategories.forEach(cat => {
+    html += `<button onclick="confirmSaveToCategory('${cat}')" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px 14px; border-radius:14px; text-align:left; font-weight:700; font-size:12px; cursor:pointer;"><i class="fa-solid fa-folder"></i> ${cat}</button>`;
+  });
+  container.innerHTML = html;
+  document.getElementById("playlist-picker-modal").style.display = "flex";
+}
+
+function closePlaylistPicker() {
+  document.getElementById("playlist-picker-modal").style.display = "none";
+  pendingSongToSave = null;
+}
+
+function createNewCategoryAndSave() {
+  const input = document.getElementById("new-category-input");
+  const newCat = input.value.trim();
+  if (!newCat) return;
+  if (!customCategories.includes(newCat)) {
+    customCategories.push(newCat);
+    localStorage.setItem('vfy_categories', JSON.stringify(customCategories));
+    renderCategoryChips();
+  }
+  input.value = "";
+  confirmSaveToCategory(newCat);
+}
+
+function confirmSaveToCategory(categoryName) {
+  if (!pendingSongToSave) return;
+  const songData = JSON.parse(decodeURIComponent(pendingSongToSave));
   songData.duration = Number(songData.duration) || 180;
-  songData.category = currentTabCategory !== 'All' ? currentTabCategory : 'Hindi';
+  songData.category = categoryName;
 
   fetch('/api/playlist', {
     method: 'POST',
@@ -559,16 +735,20 @@ window.addGlobalSong = function(encodedObj) {
   .then(data => {
     if (data.success) {
       globalPlaylist = data.playlist;
+      closePlaylistPicker();
       renderPlaylistUI();
-      renderForYouBanners();
+      renderSlideshowBanners();
       scheduleNextSync();
-      showToast("✓ Track added & synced to server!");
+      showToast(`✓ Added to ${categoryName} playlist!`);
     }
   })
   .catch(err => { showToast("❌ Error saving track."); });
-};
+}
 
-window.addEventListener('load', () => { autoPlayLiveRadio(); });
+window.addEventListener('load', () => { 
+  loadLocalPlaylists();
+  autoPlayLiveRadio(); 
+});
 
 function autoPlayLiveRadio() {
   initAudioContext();
