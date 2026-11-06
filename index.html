@@ -17,7 +17,7 @@ canvas { position: fixed; inset: 0; z-index: 1; }
 
 #studio-header {
   position: fixed; top: 15px; left: 15px; right: 15px;
-  background: rgba(18, 14, 32, 0.7); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+  background: rgba(18, 14, 32, 0.75); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
   padding: 12px 20px; border-radius: 24px; z-index: 40; display: flex; justify-content: space-between; align-items: center;
   border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 20px 50px rgba(0,0,0,0.7); user-select: none;
 }
@@ -54,7 +54,7 @@ canvas { position: fixed; inset: 0; z-index: 1; }
 }
 .studio-title, .auth-title { font-size: 18px; color: #fff; font-weight: 800; display: flex; justify-content: space-between; align-items: center; }
 
-/* Category Tabs */
+/* Category Chips */
 .category-chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
 .category-chips::-webkit-scrollbar { display: none; }
 .chip { 
@@ -63,7 +63,7 @@ canvas { position: fixed; inset: 0; z-index: 1; }
 }
 .chip.active, .chip:hover { background: linear-gradient(135deg, #4834d4, #686de0); color: #fff; border-color: transparent; box-shadow: 0 4px 15px rgba(104, 109, 224, 0.4); }
 
-/* Search Bar & Grid Layout (4 items per line square shape) */
+/* Search Bar */
 .search-box-wrapper { display: flex; gap: 8px; align-items: center; width: 100%; }
 input[type="text"], input[type="password"] {
   flex: 1; padding: 12px 16px; background: rgba(255, 255, 255, 0.06);
@@ -73,44 +73,51 @@ input[type="text"], input[type="password"] {
 input[type="text"]:focus, input[type="password"]:focus { border-color: #686de0; box-shadow: 0 0 20px rgba(104,109,224,0.3); }
 
 button.search-btn-custom {
-  background: linear-gradient(135deg, #4834d4, #686de0); color: white; border: none; padding: 12px 18px;
-  font-size: 13px; font-weight: 700; border-radius: 20px; cursor: pointer; transition: 0.25s ease;
+  background: linear-gradient(135deg, #4834d4, #686de0); color: white; border: none; padding: 10px 16px;
+  font-size: 12px; font-weight: 700; border-radius: 16px; cursor: pointer; transition: 0.25s ease;
   box-shadow: 0 6px 20px rgba(72, 52, 212, 0.4); display: flex; align-items: center; gap: 6px; flex-shrink: 0;
 }
 
+/* Square Search Results Grid (4 items per line) */
 .search-grid-container {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; max-height: 150px; overflow-y: auto; padding-right: 2px;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; max-height: 180px; overflow-y: auto; padding-right: 2px;
 }
 .grid-card {
   background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px; padding: 6px; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center;
+  border-radius: 14px; padding: 6px; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center;
 }
-.grid-card img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 8px; }
+.grid-card img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 10px; }
 .grid-title { font-size: 9px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
 
-#controls {
-  position: fixed; bottom: 35px; left: 50%; transform: translateX(-50%);
-  z-index: 30; display: none;
+.grid-seek-bar { width: 100%; height: 3px; -webkit-appearance: none; background: rgba(255,255,255,0.2); border-radius: 4px; outline: none; }
+.grid-seek-bar::-webkit-slider-thumb { -webkit-appearance: none; width: 8px; height: 8px; border-radius: 50%; background: #00f2fe; cursor: pointer; }
+
+/* Manual Slideshow (80% Live / 20% Upcoming Peek) */
+.slideshow-wrapper { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; padding-bottom: 4px; }
+.slideshow-wrapper::-webkit-scrollbar { display: none; }
+.slide-card {
+  min-width: 80%; height: 160px; border-radius: 22px; overflow: hidden; position: relative;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); flex-shrink: 0; scroll-snap-align: start;
 }
-#live-btn {
-  background: linear-gradient(135deg, #6c5ce7, #a29bfe); padding: 16px 44px; font-size: 14px; border-radius: 50px;
-  box-shadow: 0 10px 40px rgba(108, 92, 231, 0.5); color: #000; font-weight: 800; cursor: pointer; border: none;
+.slide-card img { width: 100%; height: 100%; object-fit: cover; }
+.slide-overlay {
+  position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.1) 20%, rgba(0,0,0,0.92) 100%);
+  display: flex; flex-direction: column; justify-content: space-between; padding: 12px; box-sizing: border-box;
 }
 
-/* Big Banner Cards */
-.for-you-section { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; }
-.for-you-section::-webkit-scrollbar { display: none; }
-.banner-card {
-  min-width: 120px; height: 130px; border-radius: 20px; overflow: hidden; position: relative;
-  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); flex-shrink: 0; cursor: pointer;
-  display: flex; flex-direction: column; justify-content: flex-end; padding: 10px; transition: 0.2s;
+/* Live Vibe Ripple Badge */
+.live-vibe-badge {
+  display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.65); backdrop-filter: blur(10px);
+  padding: 4px 12px; border-radius: 20px; width: fit-content; border: 1px solid rgba(255,71,87,0.5);
+  box-shadow: 0 0 15px rgba(255,71,87,0.4); animation: pulseVibe 2s infinite;
 }
-.banner-card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
-.banner-card .overlay { position: absolute; inset: 0; background: linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.85) 100%); z-index: 2; }
-.banner-card .banner-info { position: relative; z-index: 3; }
-.banner-card .banner-title { font-size: 11px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@keyframes pulseVibe { 0% { box-shadow: 0 0 5px rgba(255,71,87,0.4); } 50% { box-shadow: 0 0 18px rgba(255,71,87,0.8); } 100% { box-shadow: 0 0 5px rgba(255,71,87,0.4); } }
 
-/* Section Headings & List Items */
+.ripple-tower { position: relative; width: 10px; height: 10px; display: flex; align-items: center; justify-content: center; }
+.ripple-tower .core { width: 5px; height: 5px; background: #ff4757; border-radius: 50%; box-shadow: 0 0 8px #ff4757; }
+.ripple-tower .wave { position: absolute; width: 100%; height: 100%; border: 2px solid #ff4757; border-radius: 50%; animation: ripple 1.2s infinite ease-out; }
+@keyframes ripple { 0% { transform: scale(0.5); opacity: 1; } 100% { transform: scale(2.5); opacity: 0; } }
+
 .section-heading { font-size: 13px; color: #a29bfe; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; margin-top: 4px; display: flex; justify-content: space-between; align-items: center; }
 
 .item-card {
@@ -125,7 +132,6 @@ button.search-btn-custom {
 .item-title { font-size: 13px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .item-artist { font-size: 11px; color: #9999b0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-.save-btn { background: #2ed573; color: #000; border: none; padding: 7px 14px; font-size: 11px; font-weight: 800; border-radius: 16px; cursor: pointer; }
 .delete-btn { background: rgba(255,71,87,0.2); color: #ff4757; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
 /* Bottom 3 Icons Navigation Bar */
@@ -164,10 +170,6 @@ button.search-btn-custom {
   </div>
 </div>
 
-<div id="controls">
-  <button id="live-btn" onclick="startLiveAudio()"><i class="fa-solid fa-play"></i> TAP TO START LIVE FM</button>
-</div>
-
 <!-- Password Modal (3x Tap) -->
 <div id="auth-modal">
   <div class="auth-container">
@@ -187,15 +189,15 @@ button.search-btn-custom {
 <div id="category-modal">
   <div class="category-container">
     <div class="auth-title">
-      <span><i class="fa-solid fa-folder-plus"></i> Select Option</span>
+      <span><i class="fa-solid fa-folder-plus"></i> Select Destination</span>
       <button onclick="closeCategoryModal()" style="background:rgba(255,255,255,0.06); padding:6px 12px; font-size:12px; border:none; color:#fff; border-radius:10px;"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div style="display:flex; flex-direction:column; gap:8px;">
-      <button class="search-btn-custom" onclick="confirmAddSong('Live')" style="justify-content:center; background:linear-gradient(135deg, #2ed573, #1e90ff);">+ Live Station Queue</button>
-      <button class="search-btn-custom" onclick="confirmAddSong('Bhojpuri')" style="justify-content:center;">+ Bhojpuri Tab</button>
-      <button class="search-btn-custom" onclick="confirmAddSong('Hindi')" style="justify-content:center;">+ Hindi Tab</button>
-      <button class="search-btn-custom" onclick="confirmAddSong('Bhakti')" style="justify-content:center;">+ Bhakti Tab</button>
-      <button class="search-btn-custom" onclick="confirmAddSong('Punjabi')" style="justify-content:center;">+ Punjabi Tab</button>
+      <button class="search-btn-custom" onclick="confirmAddSong('Live')" style="justify-content:center; background:linear-gradient(135deg, #2ed573, #1e90ff); width:100%;">+ Live Station Queue</button>
+      <button class="search-btn-custom" onclick="confirmAddSong('Bhojpuri')" style="justify-content:center; width:100%;">+ Bhojpuri Tab</button>
+      <button class="search-btn-custom" onclick="confirmAddSong('Hindi')" style="justify-content:center; width:100%;">+ Hindi Tab</button>
+      <button class="search-btn-custom" onclick="confirmAddSong('Bhakti')" style="justify-content:center; width:100%;">+ Bhakti Tab</button>
+      <button class="search-btn-custom" onclick="confirmAddSong('Punjabi')" style="justify-content:center; width:100%;">+ Punjabi Tab</button>
     </div>
   </div>
 </div>
@@ -223,13 +225,13 @@ button.search-btn-custom {
       <button id="search-btn" class="search-btn-custom"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
     </div>
 
-    <!-- Search Results (Square Shape Grid - 4 Items per Line) -->
+    <!-- Square Search Results (4 items per line with Preview Seek Bar) -->
     <div class="search-grid-container" id="search-results"></div>
 
     <div class="section-heading">
-      <span><i class="fa-solid fa-fire"></i> For You (Banners)</span>
+      <span><i class="fa-solid fa-fire"></i> Manual Slideshow (Live & Upcoming)</span>
     </div>
-    <div class="for-you-section" id="for-you-container"></div>
+    <div class="slideshow-wrapper" id="slideshow-container"></div>
 
     <div style="border-top:1px solid rgba(255,255,255,0.08); padding-top:10px; display:flex; flex-direction:column; flex:1; overflow:hidden;">
       <div class="section-heading">
@@ -252,6 +254,7 @@ button.search-btn-custom {
 <div id="toast">Track saved successfully!</div>
 
 <audio id="audio-element" crossorigin="anonymous" controlslist="nodownload noplaybackrate" disablepictureinpicture></audio>
+<audio id="preview-audio"></audio>
 
 <script src="https://codepen.io/Tibixx/pen/BbBxRG.js"></script>
 
@@ -275,8 +278,8 @@ bgImage.src = config.centerImage;
 var AudioContext = window.AudioContext || window.webkitAudioContext;
 var actx, analyser, sourceNode, frequencyData, frequencyDataLen;
 var playing = false;
-var dotEmitter, lineEmitter;
 var audioEl = document.getElementById("audio-element");
+var previewAudio = document.getElementById("preview-audio");
 const liveDot = document.getElementById("live-dot");
 
 let currentTabCategory = 'All';
@@ -285,6 +288,8 @@ let categoryStore = { Bhojpuri: [], Hindi: [], Bhakti: [], Punjabi: [] };
 let activeIndex = -1;
 let syncTimeout = null;
 let selectedSongToAdd = null;
+let activePreviewUrl = null;
+let activePreviewIdx = null;
 
 if (localStorage.getItem('vfy_cat_store')) {
   try { categoryStore = JSON.parse(localStorage.getItem('vfy_cat_store')); } catch(e){}
@@ -331,14 +336,14 @@ function verifyAdminPassword() {
     closeAuthModal();
     document.getElementById("studio-modal").style.display = "flex";
     renderPlaylistUI();
-    renderForYouBanners();
+    renderSlideshow();
   } else {
     alert("Wrong Password!");
     document.getElementById("admin-pass-input").value = "";
   }
 }
 
-function closeStudio() { document.getElementById("studio-modal").style.display = "none"; }
+function closeStudio() { stopPreview(); document.getElementById("studio-modal").style.display = "none"; }
 
 function showToast(message) {
   const toast = document.getElementById("toast");
@@ -367,7 +372,7 @@ function pollGlobalState() {
       
       if (document.getElementById("studio-modal").style.display === "flex") {
         renderPlaylistUI();
-        renderForYouBanners();
+        renderSlideshow();
       }
 
       if (globalPlaylist.length > 0) {
@@ -451,21 +456,39 @@ function renderPlaylistUI() {
   }
 }
 
-function renderForYouBanners() {
-  const container = document.getElementById("for-you-container");
+function renderSlideshow() {
+  const container = document.getElementById("slideshow-container");
   if (globalPlaylist.length === 0) {
-    container.innerHTML = "<div style='font-size:11px; color:#666;'>No banners available.</div>";
+    container.innerHTML = "<div style='font-size:11px; color:#666;'>No active stream.</div>";
     return;
   }
+  
+  // Reorder so active live song comes first (80% width card), followed by upcoming songs (20% peek)
+  let orderedList = [];
+  if (activeIndex >= 0 && activeIndex < globalPlaylist.length) {
+    orderedList.push(globalPlaylist[activeIndex]);
+    globalPlaylist.forEach((s, idx) => { if (idx !== activeIndex) orderedList.push(s); });
+  } else {
+    orderedList = globalPlaylist;
+  }
+
   let html = "";
-  globalPlaylist.slice(0, 5).forEach((song, idx) => {
+  orderedList.forEach((song, idx) => {
+    let isLive = (song === globalPlaylist[activeIndex]);
     html += `
-      <div class="banner-card" onclick="adminSelectSong(${idx})" title="${song.title}">
+      <div class="slide-card" style="${isLive ? 'min-width: 80%;' : 'min-width: 25%; opacity: 0.7;'}">
         <img src="${song.image || config.centerImage}">
-        <div class="overlay"></div>
-        <div class="banner-info">
-          <div class="banner-title">${song.title}</div>
-          <div style="font-size:9px; color:#aaa;">${song.primaryArtists || 'Trending'}</div>
+        <div class="slide-overlay">
+          ${isLive ? `
+            <div class="live-vibe-badge">
+              <div class="ripple-tower"><div class="core"></div><div class="wave"></div></div>
+              <span style="font-size:9px; font-weight:800; color:#ff4757; letter-spacing:0.5px;">ON AIR LIVE</span>
+            </div>
+          ` : '<div style="font-size:9px; color:#aaa; font-weight:700;">UPCOMING</div>'}
+          <div>
+            <div style="font-size:12px; font-weight:800; color:#fff; text-shadow:0 2px 8px rgba(0,0,0,0.8);">${song.title}</div>
+            <div style="font-size:9px; color:#2ed573; font-weight:700;">${song.primaryArtists || 'VFY Radio'}</div>
+          </div>
         </div>
       </div>
     `;
@@ -485,6 +508,7 @@ function adminSelectSong(index) {
     activeIndex = data.currentIndex;
     playSongAtIndex(activeIndex, data.seekTime, data.serverTime);
     renderPlaylistUI();
+    renderSlideshow();
     scheduleNextSync();
   });
 }
@@ -503,7 +527,7 @@ function deleteGlobalSong(index) {
         liveDot.classList.remove("active");
       }
       renderPlaylistUI();
-      renderForYouBanners();
+      renderSlideshow();
       scheduleNextSync();
     });
 }
@@ -525,13 +549,17 @@ document.getElementById("search-btn").addEventListener("click", () => {
       }
 
       let html = "";
-      songs.forEach((s) => {
+      songs.forEach((s, idx) => {
         const songObj = encodeURIComponent(JSON.stringify(s));
         html += `
           <div class="grid-card">
             <img src="${s.image || config.centerImage}">
             <div class="grid-title" title="${s.title}">${s.title}</div>
-            <button class="search-btn-custom" onclick="openCategoryModal('${songObj}')" style="padding:3px 6px; font-size:8px; width:100%; justify-content:center; border-radius:8px;">+ Add</button>
+            <input type="range" class="grid-seek-bar" id="grid-seek-${idx}" value="0" max="100" oninput="seekPreview(${idx}, '${s.url}')">
+            <div style="display:flex; gap:2px; width:100%;">
+              <button class="search-btn-custom" onclick="togglePreview('${s.url}', ${idx})" style="padding:2px 4px; font-size:7px; flex:1; justify-content:center;" id="prev-p-btn-${idx}"><i class="fa-solid fa-play"></i></button>
+              <button class="search-btn-custom" onclick="openCategoryModal('${songObj}')" style="padding:2px 4px; font-size:7px; flex:1; justify-content:center; background:#2ed573; color:#000;">+ Add</button>
+            </div>
           </div>
         `;
       });
@@ -539,6 +567,55 @@ document.getElementById("search-btn").addEventListener("click", () => {
     })
     .catch(err => { resultsContainer.innerHTML = "<div style='font-size:11px; color:#ff4757; grid-column:span 4; text-align:center;'>Search Error.</div>"; });
 });
+
+function togglePreview(url, idx) {
+  if (activePreviewUrl === url && !previewAudio.paused) {
+    previewAudio.pause();
+    document.getElementById(`prev-p-btn-${idx}`).innerHTML = '<i class="fa-solid fa-play"></i>';
+  } else {
+    audioEl.muted = true;
+    previewAudio.src = url;
+    previewAudio.play().then(() => {
+      activePreviewUrl = url;
+      if (activePreviewIdx !== null && document.getElementById(`prev-p-btn-${activePreviewIdx}`)) {
+        document.getElementById(`prev-p-btn-${activePreviewIdx}`).innerHTML = '<i class="fa-solid fa-play"></i>';
+      }
+      activePreviewIdx = idx;
+      document.getElementById(`prev-p-btn-${idx}`).innerHTML = '<i class="fa-solid fa-pause"></i>';
+    }).catch(() => { audioEl.muted = false; alert("Preview error"); });
+  }
+}
+
+previewAudio.ontimeupdate = () => {
+  if (previewAudio.duration && activePreviewIdx !== null) {
+    let sb = document.getElementById(`grid-seek-${activePreviewIdx}`);
+    if (sb) sb.value = (previewAudio.currentTime / previewAudio.duration) * 100;
+  }
+};
+
+previewAudio.onended = () => {
+  audioEl.muted = false;
+  if (activePreviewIdx !== null && document.getElementById(`prev-p-btn-${activePreviewIdx}`)) {
+    document.getElementById(`prev-p-btn-${activePreviewIdx}`).innerHTML = '<i class="fa-solid fa-play"></i>';
+  }
+  activePreviewUrl = null;
+  activePreviewIdx = null;
+};
+
+function seekPreview(idx, url) {
+  let sb = document.getElementById(`grid-seek-${idx}`);
+  if (previewAudio.src.includes(url) && previewAudio.duration) {
+    previewAudio.currentTime = (sb.value / 100) * previewAudio.duration;
+  }
+}
+
+function stopPreview() {
+  previewAudio.pause();
+  previewAudio.currentTime = 0;
+  audioEl.muted = false;
+  activePreviewUrl = null;
+  activePreviewIdx = null;
+}
 
 function openCategoryModal(encodedObj) {
   selectedSongToAdd = JSON.parse(decodeURIComponent(encodedObj));
@@ -558,7 +635,7 @@ function confirmAddSong(target) {
       if (data.success) {
         globalPlaylist = data.playlist;
         renderPlaylistUI();
-        renderForYouBanners();
+        renderSlideshow();
         scheduleNextSync();
         showToast("✓ Added to Live Station Server Queue!");
       }
@@ -585,7 +662,7 @@ function addGlobalSongObj(encodedObj) {
     if (data.success) {
       globalPlaylist = data.playlist;
       renderPlaylistUI();
-      renderForYouBanners();
+      renderSlideshow();
       scheduleNextSync();
       showToast("✓ Synced to Live Server Queue!");
     }
@@ -613,8 +690,6 @@ function autoPlayLiveRadio() {
     })
     .catch(err => { console.error(err); });
 }
-
-function startLiveAudio() { autoPlayLiveRadio(); }
 
 function playSongAtIndex(index, baseSeekTime, serverTimestamp) {
   if (globalPlaylist.length === 0) return;
