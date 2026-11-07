@@ -31,18 +31,16 @@ canvas { position: fixed; inset: 0; z-index: 1; }
 .badge-box { display: flex; align-items: center; gap: 10px; }
 .badge { background: rgba(255, 255, 255, 0.05); padding: 6px 14px; border-radius: 14px; font-size: 11px; font-weight: 600; color: #aaa; border: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; gap: 6px; }
 
-/* Live Tower Wave Animation */
-.live-tower-icon { color: #ff4757; animation: towerPulse 1.5s infinite ease-in-out; }
-.live-tower-icon.active { color: #2ed573; }
-
-@keyframes towerPulse {
-  0% { transform: scale(1); opacity: 0.7; }
-  50% { transform: scale(1.2); opacity: 1; filter: drop-shadow(0 0 8px #2ed573); }
-  100% { transform: scale(1); opacity: 0.7; }
+/* Elegant Red Live Tower Pulse Effect (No Border) */
+.live-tower-icon { color: #ff4757; animation: redTowerGlow 1.8s infinite ease-in-out; }
+@keyframes redTowerGlow {
+  0% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(255,71,87,0.4)); }
+  50% { transform: scale(1.15); filter: drop-shadow(0 0 10px rgba(255,71,87,0.9)); }
+  100% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(255,71,87,0.4)); }
 }
 
 .live-dot { width: 9px; height: 9px; background: #ff4757; border-radius: 50%; box-shadow: 0 0 10px #ff4757; transition: 0.3s; }
-.live-dot.active { background: #2ed573; box-shadow: 0 0 14px #2ed573; }
+.live-dot.active { background: #ff4757; box-shadow: 0 0 14px #ff4757; }
 
 /* Glassmorphic Modals */
 #studio-modal, #auth-modal {
@@ -98,12 +96,12 @@ button.search-btn-custom {
   box-shadow: 0 10px 40px rgba(108, 92, 231, 0.5); color: #000; font-weight: 800; cursor: pointer; border: none;
 }
 
-/* Full Width Slideshow Container with Rich Black Shadow Gradient */
+/* Full Width Slideshow Container (Clean, No Green Border) */
 .section-heading { font-size: 13px; color: #a29bfe; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; margin-top: 4px; display: flex; justify-content: space-between; align-items: center; }
 
 .slideshow-container {
   position: relative; width: 100%; height: 175px; overflow: hidden; border-radius: 24px;
-  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 15px 35px rgba(0,0,0,0.6);
 }
 .slideshow-track { display: flex; height: 100%; transition: transform 0.45s cubic-bezier(0.25, 1, 0.5, 1); cursor: grab; }
 .slideshow-track:active { cursor: grabbing; }
@@ -111,11 +109,12 @@ button.search-btn-custom {
 .slide-banner-card {
   min-width: 100%; height: 100%; box-sizing: border-box; position: relative; overflow: hidden; flex-shrink: 0;
   display: flex; flex-direction: column; justify-content: flex-end; padding: 18px; cursor: pointer;
+  border: none !important; /* No border here */
 }
 .slide-banner-card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; transition: transform 0.5s ease; }
 .slide-banner-card:hover img { transform: scale(1.05); }
 
-/* Dark Black Gradient Shadow Overlay for High Contrast & Unique Vibe */
+/* Dark Black Gradient Shadow Overlay */
 .slide-banner-card .black-shadow-overlay {
   position: absolute; inset: 0;
   background: linear-gradient(180deg, rgba(0,0,0,0.1) 30%, rgba(5,3,12,0.92) 85%, rgba(5,3,12,0.98) 100%);
@@ -125,18 +124,6 @@ button.search-btn-custom {
 .slide-banner-card .banner-info { position: relative; z-index: 3; display: flex; flex-direction: column; gap: 3px; }
 .slide-banner-card .banner-title { font-size: 15px; font-weight: 800; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.9); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .slide-banner-card .banner-sub { font-size: 11px; color: #d0d0e2; font-weight: 600; text-shadow: 0 1px 6px rgba(0,0,0,0.8); }
-
-/* Live Ripple Glow Effect on Active ON AIR Banner */
-.slide-banner-card.on-air-slide {
-  border: 2px solid #2ed573;
-  animation: liveBannerPulse 2.2s infinite ease-in-out;
-}
-
-@keyframes liveBannerPulse {
-  0% { box-shadow: inset 0 0 20px rgba(46, 213, 115, 0.4), 0 0 15px rgba(46, 213, 115, 0.2); }
-  50% { box-shadow: inset 0 0 35px rgba(46, 213, 115, 0.7), 0 0 25px rgba(46, 213, 115, 0.5); }
-  100% { box-shadow: inset 0 0 20px rgba(46, 213, 115, 0.4), 0 0 15px rgba(46, 213, 115, 0.2); }
-}
 
 /* Slideshow Dots Indicator */
 .slideshow-dots { display: flex; justify-content: center; gap: 6px; margin-top: 4px; }
@@ -162,7 +149,7 @@ button.search-btn-custom {
 .item-card:hover { border-color: rgba(104, 109, 224, 0.4); background: rgba(255, 255, 255, 0.06); }
 .item-row { display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 10px; }
 
-.item-card.on-air-row { background: rgba(46, 213, 115, 0.08); border-color: #2ed573; box-shadow: 0 0 15px rgba(46,213,115,0.15); }
+.item-card.on-air-row { background: rgba(255, 71, 87, 0.06); border-color: rgba(255,71,87,0.3); }
 
 .album-art { width: 42px; height: 42px; border-radius: 12px; object-fit: cover; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.1); }
 .item-info { flex: 1; overflow: hidden; display: flex; flex-direction: column; justify-content: center; gap: 2px; }
@@ -209,7 +196,7 @@ button.search-btn-custom {
     <i class="fa-solid fa-compact-disc fa-spin" style="--fa-animation-duration: 6s;"></i> <span>VFY</span> <small style="font-size:10px; color:rgba(255,255,255,0.3); font-weight:normal;">(Tap 3x)</small>
   </div>
   <div class="badge-box">
-    <div class="badge"><i class="fa-solid fa-tower-broadcast live-tower-icon" id="tower-icon"></i> Live 24/7</div>
+    <div class="badge"><i class="fa-solid fa-tower-broadcast live-tower-icon"></i> Live 24/7</div>
     <div class="live-dot" id="live-dot"></div>
   </div>
 </div>
@@ -334,7 +321,6 @@ var dotEmitter, lineEmitter;
 var audioEl = document.getElementById("audio-element");
 var previewAudio = document.getElementById("preview-audio");
 const liveDot = document.getElementById("live-dot");
-const towerIcon = document.getElementById("tower-icon");
 
 let activePreviewUrl = null;
 let currentTabCategory = 'All';
@@ -447,7 +433,6 @@ function pollGlobalState() {
       } else {
         document.getElementById("controls").style.display = "flex";
         liveDot.classList.remove("active");
-        towerIcon.classList.remove("active");
       }
       scheduleNextSync();
     })
@@ -455,7 +440,6 @@ function pollGlobalState() {
       console.error("Sync error:", err);
       document.getElementById("controls").style.display = "flex";
       liveDot.classList.remove("active");
-      towerIcon.classList.remove("active");
       syncTimeout = setTimeout(pollGlobalState, 10000);
     });
 }
@@ -503,7 +487,7 @@ function renderPlaylistUI() {
         <div class="item-row">
           <img src="${song.image || config.centerImage}" class="album-art">
           <div class="item-info">
-            <div class="item-title">${isOnAir ? '<i class="fa-solid fa-tower-broadcast live-tower-icon active"></i> [ON AIR] ' : ''}${song.title}</div>
+            <div class="item-title">${isOnAir ? '<i class="fa-solid fa-tower-broadcast live-tower-icon"></i> [ON AIR] ' : ''}${song.title}</div>
             <div class="item-artist">${song.primaryArtists || 'VFY Artist'} • <span style="color:#8c7ae6;">${song.category || 'All'}</span></div>
           </div>
           <button class="delete-btn" onclick="event.stopPropagation(); deleteGlobalSong(${globalIndex})"><i class="fa-solid fa-trash"></i></button>
@@ -514,7 +498,7 @@ function renderPlaylistUI() {
   container.innerHTML = html;
 }
 
-// Full-width Slideshow Banners with Live Ripple Effect & Dark Black Shadow
+// Full-width Slideshow Banners (Clean, No Green Border, Dark Shadow with Title)
 let currentSlideIndex = 0;
 
 function renderSlideshowBanners() {
@@ -536,14 +520,13 @@ function renderSlideshowBanners() {
   
   globalPlaylist.forEach((song, idx) => {
     let isOnAir = (idx === activeIndex);
-    let slideClass = isOnAir ? "slide-banner-card on-air-slide" : "slide-banner-card";
 
     slidesHtml += `
-      <div class="${slideClass}" onclick="adminSelectSong(${idx})">
+      <div class="slide-banner-card" onclick="adminSelectSong(${idx})">
         <img src="${song.image || config.centerImage}">
         <div class="black-shadow-overlay"></div>
         <div class="banner-info">
-          <div class="banner-title">${isOnAir ? '<i class="fa-solid fa-tower-broadcast live-tower-icon active"></i> [ON AIR] ' : ''}${song.title}</div>
+          <div class="banner-title">${isOnAir ? '<i class="fa-solid fa-tower-broadcast live-tower-icon"></i> [ON AIR] ' : ''}${song.title}</div>
           <div class="banner-sub">${song.primaryArtists || 'Featured Live Artist'} • <span style="color:#a29bfe;">${song.category || 'General'}</span></div>
         </div>
       </div>
@@ -619,7 +602,6 @@ function deleteGlobalSong(index) {
         audioEl.src = "";
         playing = false;
         liveDot.classList.remove("active");
-        towerIcon.classList.remove("active");
         document.getElementById("controls").style.display = "flex";
       }
       renderPlaylistUI();
@@ -797,7 +779,6 @@ function playSongAtIndex(index, baseSeekTime, serverTimestamp) {
   audioEl.play().then(() => {
     document.getElementById("controls").style.display = "none";
     liveDot.classList.add("active");
-    towerIcon.classList.add("active");
     if (!playing) {
       dotEmitter = setInterval(emitDot, 50);
       lineEmitter = setInterval(emitLine, 100);
@@ -807,7 +788,6 @@ function playSongAtIndex(index, baseSeekTime, serverTimestamp) {
   }).catch(err => {
     document.getElementById("controls").style.display = "block";
     liveDot.classList.remove("active");
-    towerIcon.classList.remove("active");
   });
 }
 
