@@ -15,21 +15,35 @@ html, body {
 }
 canvas { position: fixed; inset: 0; z-index: 1; }
 
+/* Top Header with Brand, Live Status & Header Search Bar */
 #studio-header {
-  position: fixed; top: 15px; left: 15px; right: 15px;
+  position: fixed; top: 12px; left: 12px; right: 12px;
   background: rgba(18, 14, 32, 0.85); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
-  padding: 10px 18px; border-radius: 24px; z-index: 40; display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 16px; border-radius: 22px; z-index: 40; display: flex; justify-content: space-between; align-items: center; gap: 10px;
   border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 20px 50px rgba(0,0,0,0.7); user-select: none;
 }
-.brand-logo-box { 
+.brand-title { 
   font-size: 16px; font-weight: 800; color: #fff; cursor: pointer; 
-  display: flex; align-items: center; gap: 8px; letter-spacing: 1px;
+  display: flex; align-items: center; gap: 6px; letter-spacing: 0.5px; flex-shrink: 0;
 }
-.brand-logo-box i { color: #8c7ae6; filter: drop-shadow(0 0 10px rgba(140,122,230,0.8)); }
-.brand-logo-box span { color: #8c7ae6; }
+.brand-logo-img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 1px solid #8c7ae6; box-shadow: 0 0 10px rgba(140,122,230,0.8); }
+.brand-title span { color: #8c7ae6; }
 
-.badge-box { display: flex; align-items: center; gap: 8px; }
-.badge { background: rgba(255, 255, 255, 0.05); padding: 5px 12px; border-radius: 14px; font-size: 10px; font-weight: 600; color: #aaa; border: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; gap: 5px; }
+/* Header Search Bar */
+.header-search-wrapper { display: flex; gap: 6px; align-items: center; flex: 1; max-width: 220px; }
+.header-search-wrapper input {
+  width: 100%; padding: 8px 12px; background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; border-radius: 16px; outline: none; font-size: 11px; font-weight: 600;
+  transition: 0.25s ease;
+}
+.header-search-wrapper input:focus { border-color: #686de0; box-shadow: 0 0 15px rgba(104,109,224,0.3); }
+.header-search-btn {
+  background: linear-gradient(135deg, #4834d4, #686de0); color: white; border: none; padding: 8px 12px;
+  font-size: 11px; font-weight: 700; border-radius: 16px; cursor: pointer; transition: 0.25s ease; flex-shrink: 0;
+}
+
+.badge-box { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.badge { background: rgba(255, 255, 255, 0.05); padding: 5px 10px; border-radius: 12px; font-size: 10px; font-weight: 600; color: #aaa; border: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; gap: 5px; }
 
 .live-tower-icon { color: #ff4757; animation: redTowerGlow 1.8s infinite ease-in-out; }
 @keyframes redTowerGlow {
@@ -38,36 +52,31 @@ canvas { position: fixed; inset: 0; z-index: 1; }
   100% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(255,71,87,0.4)); }
 }
 
-#controls {
-  position: fixed; bottom: 85px; left: 50%; transform: translateX(-50%);
-  z-index: 30; display: none;
-}
-#live-btn {
-  background: linear-gradient(135deg, #6c5ce7, #a29bfe); padding: 14px 36px; font-size: 13px; border-radius: 50px;
-  box-shadow: 0 10px 40px rgba(108, 92, 231, 0.5); color: #000; font-weight: 800; cursor: pointer; border: none;
-}
+.live-dot { width: 8px; height: 8px; background: #ff4757; border-radius: 50%; box-shadow: 0 0 10px #ff4757; transition: 0.3s; }
+.live-dot.active { background: #ff4757; box-shadow: 0 0 14px #ff4757; }
 
-/* Modals (Password, Admin Studio, Profile) */
+/* Glassmorphic Modals & Profiles */
 #studio-modal, #auth-modal, #profile-modal {
   position: fixed; inset: 0; background: rgba(5, 3, 12, 0.9); z-index: 100;
   display: none; align-items: center; justify-content: center; backdrop-filter: blur(35px); -webkit-backdrop-filter: blur(35px);
 }
 .studio-container {
   background: linear-gradient(180deg, rgba(22, 16, 40, 0.96) 0%, rgba(10, 8, 20, 0.99) 100%);
-  backdrop-filter: blur(30px); width: 94%; max-width: 440px; height: 85vh;
-  border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 36px; padding: 20px;
+  backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+  width: 94%; max-width: 440px; height: 86vh;
+  border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 36px; padding: 18px;
   box-shadow: 0 30px 100px rgba(0,0,0,0.95); display: flex; flex-direction: column; gap: 12px;
   position: relative; overflow: hidden;
 }
 .auth-container, .profile-container {
   background: rgba(20, 15, 36, 0.96); backdrop-filter: blur(30px);
   width: 90%; max-width: 340px; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 28px; padding: 24px;
-  box-shadow: 0 30px 80px rgba(0,0,0,0.95); display: flex; flex-direction: column; gap: 16px;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.95); display: flex; flex-direction: column; gap: 16px; text-align: center;
 }
-.studio-title, .auth-title, .profile-title { font-size: 16px; color: #fff; font-weight: 800; display: flex; justify-content: space-between; align-items: center; }
+.studio-title, .auth-title { font-size: 16px; color: #fff; font-weight: 800; display: flex; justify-content: space-between; align-items: center; }
 
 /* Category Chips */
-.category-chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+.category-chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
 .category-chips::-webkit-scrollbar { display: none; }
 .chip { 
   background: rgba(255, 255, 255, 0.06); padding: 7px 16px; border-radius: 30px; font-size: 11px; font-weight: 700; 
@@ -75,44 +84,40 @@ canvas { position: fixed; inset: 0; z-index: 1; }
 }
 .chip.active, .chip:hover { background: linear-gradient(135deg, #4834d4, #686de0); color: #fff; border-color: transparent; box-shadow: 0 4px 15px rgba(104, 109, 224, 0.4); }
 
-/* Search Bar inside Admin Panel */
-.search-box-wrapper { display: flex; gap: 8px; align-items: center; width: 100%; }
-.search-box-wrapper input {
-  flex: 1; padding: 10px 14px; background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; border-radius: 16px; outline: none; font-size: 12px; font-weight: 600;
-  transition: 0.25s ease;
+#controls {
+  position: fixed; bottom: 35px; left: 50%; transform: translateX(-50%);
+  z-index: 30; display: none;
 }
-.search-box-wrapper input:focus { border-color: #686de0; box-shadow: 0 0 15px rgba(104,109,224,0.3); }
-.search-btn-custom {
-  background: linear-gradient(135deg, #4834d4, #686de0); color: white; border: none; padding: 10px 16px;
-  font-size: 12px; font-weight: 700; border-radius: 16px; cursor: pointer; flex-shrink: 0;
+#live-btn {
+  background: linear-gradient(135deg, #6c5ce7, #a29bfe); padding: 16px 44px; font-size: 14px; border-radius: 50px;
+  box-shadow: 0 10px 40px rgba(108, 92, 231, 0.5); color: #000; font-weight: 800; cursor: pointer; border: none;
 }
 
-/* Slideshow Container */
-.section-heading { font-size: 11px; color: #a29bfe; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; margin-top: 2px; display: flex; justify-content: space-between; align-items: center; }
+/* Full Width Slideshow Container */
+.section-heading { font-size: 12px; color: #a29bfe; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; margin-top: 2px; display: flex; justify-content: space-between; align-items: center; }
 
 .slideshow-container {
-  position: relative; width: 100%; height: 150px; overflow: hidden; border-radius: 20px;
+  position: relative; width: 100%; height: 160px; overflow: hidden; border-radius: 20px;
   background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 15px 35px rgba(0,0,0,0.6);
 }
 .slideshow-track { display: flex; height: 100%; transition: transform 0.45s cubic-bezier(0.25, 1, 0.5, 1); cursor: grab; }
 .slide-banner-card {
   min-width: 100%; height: 100%; box-sizing: border-box; position: relative; overflow: hidden; flex-shrink: 0;
-  display: flex; flex-direction: column; justify-content: flex-end; padding: 14px; cursor: pointer;
+  display: flex; flex-direction: column; justify-content: flex-end; padding: 16px; cursor: pointer;
 }
-.slide-banner-card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
+.slide-banner-card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; transition: transform 0.5s ease; }
 .slide-banner-card .black-shadow-overlay {
   position: absolute; inset: 0;
   background: linear-gradient(180deg, rgba(0,0,0,0.1) 30%, rgba(5,3,12,0.92) 85%, rgba(5,3,12,0.98) 100%);
   z-index: 2;
 }
 .slide-banner-card .banner-info { position: relative; z-index: 3; display: flex; flex-direction: column; gap: 2px; }
-.slide-banner-card .banner-title { font-size: 13px; font-weight: 800; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.9); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.slide-banner-card .banner-title { font-size: 14px; font-weight: 800; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.9); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .slide-banner-card .banner-sub { font-size: 10px; color: #d0d0e2; font-weight: 600; text-shadow: 0 1px 6px rgba(0,0,0,0.8); }
 
-.slideshow-dots { display: flex; justify-content: center; gap: 5px; margin-top: 4px; }
+.slideshow-dots { display: flex; justify-content: center; gap: 5px; margin-top: 3px; }
 .slide-dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,0.2); cursor: pointer; transition: 0.3s; }
-.slide-dot.active { width: 16px; border-radius: 4px; background: #686de0; }
+.slide-dot.active { width: 16px; border-radius: 4px; background: #686de0; box-shadow: 0 0 8px rgba(104,109,224,0.8); }
 
 /* Playlist Picker Modal */
 #playlist-picker-modal {
@@ -125,68 +130,70 @@ canvas { position: fixed; inset: 0; z-index: 1; }
   box-shadow: 0 20px 50px rgba(0,0,0,0.8);
 }
 
-/* Queue List */
+/* Full Width Trending Queue List */
 .item-card {
   background: rgba(255, 255, 255, 0.03); padding: 8px 12px; border-radius: 16px;
   display: flex; flex-direction: column; gap: 4px; border: 1px solid rgba(255, 255, 255, 0.06); margin-bottom: 6px; transition: 0.2s;
 }
-.item-card:hover { background: rgba(255, 255, 255, 0.06); }
+.item-card:hover { border-color: rgba(104, 109, 224, 0.4); background: rgba(255, 255, 255, 0.06); }
 .item-row { display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 10px; }
 .item-card.on-air-row { background: rgba(255, 71, 87, 0.06); border-color: rgba(255,71,87,0.3); }
 
-.album-art { width: 36px; height: 36px; border-radius: 10px; object-fit: cover; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.1); }
-.item-info { flex: 1; overflow: hidden; display: flex; flex-direction: column; justify-content: center; gap: 2px; }
+.album-art { width: 38px; height: 38px; border-radius: 10px; object-fit: cover; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.1); }
+.item-info { flex: 1; overflow: hidden; display: flex; flex-direction: column; justify-content: center; gap: 1px; }
 .item-title { font-size: 11px; font-weight: 700; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,0.8); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .item-artist { font-size: 9px; color: #9999b0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .round-preview-btn {
-  width: 26px; height: 26px; border-radius: 50%; background: rgba(255,255,255,0.08); color: #fff;
-  border: none; display: flex; align-items: center; justify-content: center; font-size: 9px; cursor: pointer;
+  width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,0.08); color: #fff;
+  border: none; display: flex; align-items: center; justify-content: center; font-size: 10px; cursor: pointer; transition: 0.2s;
 }
-.save-btn { background: #2ed573; color: #000; border: none; padding: 5px 10px; font-size: 9px; font-weight: 800; border-radius: 14px; cursor: pointer; }
+.round-preview-btn:hover { background: #686de0; box-shadow: 0 0 12px rgba(104,109,224,0.6); }
+
+.save-btn { background: #2ed573; color: #000; border: none; padding: 5px 10px; font-size: 10px; font-weight: 800; border-radius: 14px; cursor: pointer; }
 .delete-btn { background: rgba(255,71,87,0.2); color: #ff4757; border: none; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 10px; }
 
-/* Fixed Bottom 3 Icons Navigation Bar */
+/* Bottom 3 Icons Navigation Bar */
 .bottom-nav-bar {
-  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
   display: flex; justify-content: space-around; align-items: center;
-  background: rgba(18, 14, 32, 0.85); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
-  border: 1px solid rgba(255, 255, 255, 0.12); padding: 12px 24px; border-radius: 40px;
-  width: 200px; z-index: 50; box-shadow: 0 15px 40px rgba(0,0,0,0.8);
+  background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12); padding: 10px 20px; border-radius: 35px;
+  width: 190px; margin: auto auto 0 auto; flex-shrink: 0; box-shadow: 0 10px 30px rgba(0,0,0,0.6);
 }
-.nav-item { color: rgba(255,255,255,0.4); font-size: 18px; cursor: pointer; transition: 0.25s; }
-.nav-item.active, .nav-item:hover { color: #8c7ae6; transform: scale(1.2); text-shadow: 0 0 12px rgba(140,122,230,0.8); }
+.nav-item { color: rgba(255,255,255,0.4); font-size: 16px; cursor: pointer; transition: 0.2s; }
+.nav-item.active, .nav-item:hover { color: #8c7ae6; transform: scale(1.15); }
 
-/* Profile Modal Styling */
-.profile-avatar { width: 75px; height: 75px; border-radius: 50%; object-fit: cover; border: 2px solid #8c7ae6; box-shadow: 0 0 20px rgba(140,122,230,0.5); margin: 0 auto; }
-.profile-info-row { display: flex; justify-content: space-between; font-size: 11px; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
-.profile-info-label { color: #888; font-weight: 600; }
-.profile-info-val { color: #fff; font-weight: 700; }
-
-/* Toast */
+/* Toast Notification */
 #toast {
-  position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(100px);
+  position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px);
   background: #6c5ce7; color: #fff; padding: 10px 24px; border-radius: 30px;
   font-size: 12px; font-weight: 800; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.6);
   transition: transform 0.35s ease, opacity 0.3s ease; opacity: 0; pointer-events: none;
 }
 #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
-.dev-sig { height: 12px; line-height: 12px; font-size: 8px; color: rgba(255,255,255,0.25); text-align: center; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 700; margin-top: auto; }
+.dev-sig { height: 12px; line-height: 12px; font-size: 8px; color: rgba(255,255,255,0.25); text-align: center; letter-spacing: 1.5px; text-transform: uppercase; margin-top: auto; font-weight: 700; }
 </style>
 </head>
 <body>
 
 <canvas id="canvas"></canvas>
 
-<!-- Top Header with Brand Logo & Live Badge -->
+<!-- Top Header with Search Bar & Logo -->
 <div id="studio-header">
-  <div class="brand-logo-box" id="brand-title" title="Tap 3x for Admin Panel">
-    <i class="fa-solid fa-compact-disc fa-spin" style="--fa-animation-duration: 6s;"></i> <span>VFY</span>
+  <div class="brand-title" id="brand-title">
+    <img src="https://i.imgur.com/8Q5N8bB.png" class="brand-logo-img"> <span>VFY</span> <small style="font-size:9px; color:rgba(255,255,255,0.3); font-weight:normal;">(Tap 3x)</small>
+  </div>
+  
+  <!-- Header Search Bar -->
+  <div class="header-search-wrapper">
+    <input type="text" id="query-input" placeholder="Search track..." onkeydown="if(event.key==='Enter') document.getElementById('search-btn').click()">
+    <button id="search-btn" class="header-search-btn" onclick="performSearch()"><i class="fa-solid fa-magnifying-glass"></i></button>
   </div>
 
   <div class="badge-box">
-    <div class="badge"><i class="fa-solid fa-tower-broadcast live-tower-icon"></i> Live 24/7</div>
+    <div class="badge"><i class="fa-solid fa-tower-broadcast live-tower-icon"></i> Live</div>
+    <div class="live-dot" id="live-dot"></div>
   </div>
 </div>
 
@@ -194,14 +201,14 @@ canvas { position: fixed; inset: 0; z-index: 1; }
   <button id="live-btn" onclick="startLiveAudio()"><i class="fa-solid fa-play"></i> TAP TO START LIVE FM</button>
 </div>
 
-<!-- Password Modal (Triggered by triple-clicking VFY logo) -->
+<!-- Password Modal (3x Tap Protected) -->
 <div id="auth-modal">
   <div class="auth-container">
     <div class="auth-title">
       <span><i class="fa-solid fa-shield-halved"></i> Admin Access</span>
-      <button onclick="closeAuthModal()" style="background:rgba(255,255,255,0.06); padding:4px 10px; font-size:11px; border:none; color:#fff; border-radius:8px; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+      <button onclick="closeAuthModal()" style="background:rgba(255,255,255,0.06); padding:4px 10px; font-size:11px; border:none; color:#fff; border-radius:8px;"><i class="fa-solid fa-xmark"></i></button>
     </div>
-    <input type="password" id="admin-pass-input" placeholder="Enter password..." style="padding:10px 14px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:16px; outline:none; font-size:12px;" onkeydown="if(event.key==='Enter') verifyAdminPassword()">
+    <input type="password" id="admin-pass-input" placeholder="Enter password..." onkeydown="if(event.key==='Enter') verifyAdminPassword()" style="padding:10px 14px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:16px; outline:none; font-size:12px;">
     <div style="display:flex; gap:8px; justify-content:flex-end;">
       <button onclick="closeAuthModal()" style="background:rgba(255,255,255,0.06); border:none; color:#fff; padding:8px 14px; border-radius:10px; cursor:pointer; font-size:11px;">Cancel</button>
       <button onclick="verifyAdminPassword()" style="background:linear-gradient(135deg, #4834d4, #686de0); color:#fff; border:none; padding:8px 16px; border-radius:10px; font-weight:700; cursor:pointer; font-size:11px;">Login</button>
@@ -209,24 +216,19 @@ canvas { position: fixed; inset: 0; z-index: 1; }
   </div>
 </div>
 
-<!-- Profile Modal (App Details & Developer Vivek Masona) -->
-<div id="profile-modal">
+<!-- Profile Modal (Vivek Masona Details & Image) -->
+<div id="profile-modal" onclick="if(event.target === this) closeProfileModal()">
   <div class="profile-container">
-    <div class="profile-title">
-      <span><i class="fa-solid fa-user-gear"></i> App Profile</span>
-      <button onclick="closeProfileModal()" style="background:rgba(255,255,255,0.06); padding:4px 10px; font-size:11px; border:none; color:#fff; border-radius:8px; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+    <div style="display:flex; justify-content:flex-end;"><button onclick="closeProfileModal()" style="background:none; border:none; color:#aaa; font-size:14px; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button></div>
+    <img src="https://i.imgur.com/8Q5N8bB.png" style="width:80px; height:80px; border-radius:50%; object-fit:cover; margin:0 auto; border:2px solid #8c7ae6; box-shadow:0 0 20px rgba(140,122,230,0.6);">
+    <h3 style="margin:6px 0 2px 0; font-size:18px; color:#fff;">Vivek Masona</h3>
+    <div style="font-size:11px; color:#8c7ae6; font-weight:700;">Lead Developer & App Creator</div>
+    <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:12px; text-align:left; font-size:11px; color:#aaa; display:flex; flex-direction:column; gap:4px; margin-top:6px;">
+      <div><strong style="color:#fff;">App Name:</strong> VFY Studio FM Player</div>
+      <div><strong style="color:#fff;">Version:</strong> v2.6 Pro Active</div>
+      <div><strong style="color:#fff;">Architecture:</strong> Synchronized Live Audio</div>
     </div>
-    <img src="https://i.imgur.com/8Q5N8bB.png" alt="Developer Avatar" class="profile-avatar">
-    <div style="text-align:center; font-size:14px; font-weight:800; color:#fff; margin-top:2px;">Vivek Masona</div>
-    <div style="text-align:center; font-size:9px; color:#8c7ae6; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px;">Lead Developer & Creator</div>
-    
-    <div style="display:flex; flex-direction:column; gap:4px; background:rgba(255,255,255,0.03); padding:8px 12px; border-radius:14px; border:1px solid rgba(255,255,255,0.06);">
-      <div class="profile-info-row"><span class="profile-info-label">App Name</span><span class="profile-info-val">VFY Studio FM</span></div>
-      <div class="profile-info-row"><span class="profile-info-label">Version</span><span class="profile-info-val">3.5.0 Pro</span></div>
-      <div class="profile-info-row"><span class="profile-info-label">Platform</span><span class="profile-info-val">Android WebView & Web</span></div>
-      <div class="profile-info-row"><span class="profile-info-label">Audio Sync</span><span class="profile-info-val">Real-time 24/7</span></div>
-    </div>
-    <button onclick="closeProfileModal()" style="background:linear-gradient(135deg, #4834d4, #686de0); color:#fff; border:none; padding:8px; border-radius:12px; font-weight:700; cursor:pointer; font-size:11px; margin-top:2px;">Close</button>
+    <button onclick="closeProfileModal()" style="background:linear-gradient(135deg, #4834d4, #686de0); color:#fff; border:none; padding:10px; border-radius:16px; font-weight:700; cursor:pointer; font-size:12px; margin-top:6px;">Close Profile</button>
   </div>
 </div>
 
@@ -238,20 +240,20 @@ canvas { position: fixed; inset: 0; z-index: 1; }
       <button onclick="closePlaylistPicker()" style="background:none; border:none; color:#aaa; font-size:13px; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div style="font-size:10px; color:#aaa;">Choose category to save track:</div>
-    <div id="playlist-options-container" style="display:flex; flex-direction:column; gap:6px; max-height:120px; overflow-y:auto;"></div>
-    <div style="display:flex; gap:6px; margin-top:2px;">
-      <input type="text" id="new-category-input" placeholder="New category..." style="font-size:11px; padding:6px 10px; flex:1; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:12px; outline:none;">
+    <div id="playlist-options-container" style="display:flex; flex-direction:column; gap:5px; max-height:120px; overflow-y:auto;"></div>
+    <div style="display:flex; gap:5px; margin-top:4px;">
+      <input type="text" id="new-category-input" placeholder="New category..." style="font-size:10px; padding:6px 10px; flex:1; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:12px; outline:none;">
       <button onclick="createNewCategoryAndSave()" style="background:#686de0; color:#fff; border:none; border-radius:12px; padding:6px 10px; font-size:10px; font-weight:700; cursor:pointer;">Add</button>
     </div>
   </div>
 </div>
 
-<!-- Master Studio Console Modal (Protected Under Admin Password) -->
+<!-- Master Studio Console Modal -->
 <div id="studio-modal">
   <div class="studio-container">
     <div class="studio-title">
-      <span><i class="fa-solid fa-sliders"></i> VFY Admin Studio</span>
-      <button onclick="closeStudio()" style="background:rgba(255,255,255,0.06); padding:4px 10px; font-size:11px; border:none; color:#fff; border-radius:8px; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+      <span><i class="fa-solid fa-sliders"></i> VFY Studio Dashboard</span>
+      <button onclick="closeStudio()" style="background:rgba(255,255,255,0.06); padding:5px 10px; font-size:11px; border:none; color:#fff; border-radius:8px; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
     </div>
 
     <!-- Category Chips -->
@@ -263,17 +265,11 @@ canvas { position: fixed; inset: 0; z-index: 1; }
       <div class="chip" onclick="filterTab('Punjabi', this)">Punjabi</div>
     </div>
 
-    <!-- Search Bar inside Admin Panel -->
-    <div class="search-box-wrapper">
-      <input type="text" id="query-input" placeholder="Search track or artist name..." onkeydown="if(event.key==='Enter') document.getElementById('search-btn').click()">
-      <button id="search-btn" class="search-btn-custom" onclick="executeSearch()"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
-    </div>
-
     <!-- Search Results Container -->
-    <div id="search-results" style="max-height:110px; overflow-y:auto; padding-right:4px;"></div>
+    <div id="search-results" style="max-height:110px; overflow-y:auto; padding-right:2px;"></div>
 
     <div class="section-heading">
-      <span><i class="fa-solid fa-tower-broadcast live-tower-icon"></i> Live Station Slideshow</span>
+      <span><i class="fa-solid fa-tower-broadcast live-tower-icon"></i> Live Featured Station</span>
     </div>
     
     <!-- Full Width Slideshow Container -->
@@ -284,20 +280,20 @@ canvas { position: fixed; inset: 0; z-index: 1; }
 
     <div style="border-top:1px solid rgba(255,255,255,0.08); padding-top:6px; display:flex; flex-direction:column; flex:1; overflow:hidden;">
       <div class="section-heading">
-        <span><i class="fa-solid fa-list-ul"></i> Trending Queue (Playlist)</span>
+        <span><i class="fa-solid fa-list-ul"></i> Trending Queue</span>
       </div>
-      <div id="playlist-container" style="overflow-y:auto; font-size:12px; color:#aaa; flex:1; padding-right:4px;">Loading queue...</div>
+      <div id="playlist-container" style="overflow-y:auto; font-size:12px; color:#aaa; flex:1; padding-right:2px;">Loading queue...</div>
     </div>
     
+    <!-- Bottom 3 Icons Navigation Bar (Working Links) -->
+    <div class="bottom-nav-bar">
+      <div class="nav-item active" id="nav-home" title="Home" onclick="navigateToHome()"><i class="fa-solid fa-house"></i></div>
+      <div class="nav-item" id="nav-music" title="Queue / Close" onclick="toggleStudioModal()"><i class="fa-solid fa-music"></i></div>
+      <div class="nav-item" id="nav-profile" title="Profile" onclick="openProfileModal()"><i class="fa-solid fa-user"></i></div>
+    </div>
+
     <div class="dev-sig">DEVELOPER VIVEKMASONA</div>
   </div>
-</div>
-
-<!-- Bottom Fixed 3 Icons Navigation Bar -->
-<div class="bottom-nav-bar">
-  <div class="nav-item active" id="nav-home" onclick="navHome()" title="Home"><i class="fa-solid fa-house"></i></div>
-  <div class="nav-item" id="nav-queue" onclick="navQueue()" title="Queue & Studio"><i class="fa-solid fa-music"></i></div>
-  <div class="nav-item" id="nav-profile" onclick="navProfile()" title="Profile"><i class="fa-solid fa-user"></i></div>
 </div>
 
 <div id="toast">Track saved successfully!</div>
@@ -330,6 +326,7 @@ var playing = false;
 var dotEmitter, lineEmitter;
 var audioEl = document.getElementById("audio-element");
 var previewAudio = document.getElementById("preview-audio");
+const liveDot = document.getElementById("live-dot");
 
 let activePreviewUrl = null;
 let currentTabCategory = 'All';
@@ -346,7 +343,7 @@ function loadLocalPlaylists() {
 
 function renderCategoryChips() {
   const container = document.getElementById("category-chips-container");
-  if (!container) return;
+  if(!container) return;
   let html = `<div class="chip ${currentTabCategory === 'All' ? 'active' : ''}" onclick="filterTab('All', this)">All</div>`;
   customCategories.forEach(cat => {
     html += `<div class="chip ${currentTabCategory === cat ? 'active' : ''}" onclick="filterTab('${cat}', this)">${cat}</div>`;
@@ -373,7 +370,6 @@ let globalPlaylist = [];
 let activeIndex = -1;
 let syncTimeout = null;
 
-// Triple click on VFY brand opens Admin Login Modal
 let tapCount = 0;
 let tapTimer = null;
 const brandTitle = document.getElementById("brand-title");
@@ -406,42 +402,42 @@ function verifyAdminPassword() {
   }
 }
 
-// Bottom Navigation Handlers
-function setActiveNav(navId) {
-  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-  document.getElementById(navId).classList.add('active');
-}
-
-function navHome() {
-  setActiveNav('nav-home');
-  closeStudio();
-  closeProfileModal();
-}
-
-function navQueue() {
-  setActiveNav('nav-queue');
-  closeProfileModal();
-  // Prompt password before letting anyone access admin queue panel from bottom navigation
-  document.getElementById("auth-modal").style.display = "flex";
-  document.getElementById("admin-pass-input").value = "";
-  document.getElementById("admin-pass-input").focus();
-}
-
-function navProfile() {
-  setActiveNav('nav-profile');
-  closeStudio();
-  document.getElementById("profile-modal").style.display = "flex";
-}
-
 function closeStudio() { 
   stopPreview(); 
   document.getElementById("studio-modal").style.display = "none"; 
-  setActiveNav('nav-home');
+}
+
+function toggleStudioModal() {
+  const modal = document.getElementById("studio-modal");
+  if (modal.style.display === "flex") {
+    closeStudio();
+  } else {
+    loadLocalPlaylists();
+    modal.style.display = "flex";
+    renderPlaylistUI();
+    renderSlideshowBanners();
+  }
+}
+
+function navigateToHome() {
+  const modal = document.getElementById("studio-modal");
+  if (modal.style.display !== "flex") {
+    loadLocalPlaylists();
+    modal.style.display = "flex";
+    renderPlaylistUI();
+    renderSlideshowBanners();
+  }
+  document.getElementById("query-input").value = "";
+  document.getElementById("search-results").innerHTML = "";
+  showToast("🏠 Switched to Home view");
+}
+
+function openProfileModal() {
+  document.getElementById("profile-modal").style.display = "flex";
 }
 
 function closeProfileModal() {
   document.getElementById("profile-modal").style.display = "none";
-  setActiveNav('nav-home');
 }
 
 function showToast(message) {
@@ -479,12 +475,14 @@ function pollGlobalState() {
         playSongAtIndex(activeIndex, seekTime, sTime);
       } else {
         document.getElementById("controls").style.display = "flex";
+        liveDot.classList.remove("active");
       }
       scheduleNextSync();
     })
     .catch(err => {
       console.error("Sync error:", err);
       document.getElementById("controls").style.display = "flex";
+      liveDot.classList.remove("active");
       syncTimeout = setTimeout(pollGlobalState, 10000);
     });
 }
@@ -503,10 +501,10 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') { pollGlobalState(); }
 });
 
-// Render Playlist Queue
+// Full width Queue List
 function renderPlaylistUI() {
   const container = document.getElementById("playlist-container");
-  if (!container) return;
+  if(!container) return;
   if (globalPlaylist.length === 0) {
     container.innerHTML = "No tracks in queue.";
     return;
@@ -518,7 +516,7 @@ function renderPlaylistUI() {
   });
 
   if (filteredList.length === 0 && currentTabCategory !== 'All') {
-    container.innerHTML = `<div style="padding:10px; color:#777;">No tracks found in ${currentTabCategory} category.</div>`;
+    container.innerHTML = `<div style="padding:8px; color:#777;">No tracks found in ${currentTabCategory} category.</div>`;
     return;
   }
 
@@ -544,13 +542,13 @@ function renderPlaylistUI() {
   container.innerHTML = html;
 }
 
-// Slideshow Banners
+// Full-width Slideshow Banners
 let currentSlideIndex = 0;
 
 function renderSlideshowBanners() {
   const trackContainer = document.getElementById("slideshow-track");
   const dotsContainer = document.getElementById("slideshow-dots");
-  if (!trackContainer || !dotsContainer) return;
+  if(!trackContainer || !dotsContainer) return;
   
   if (globalPlaylist.length === 0) {
     trackContainer.innerHTML = "<div style='font-size:11px; color:#666; padding:20px; text-align:center;'>No banner tracks available.</div>";
@@ -648,6 +646,7 @@ function deleteGlobalSong(index) {
         audioEl.pause();
         audioEl.src = "";
         playing = false;
+        liveDot.classList.remove("active");
         document.getElementById("controls").style.display = "flex";
       }
       renderPlaylistUI();
@@ -656,13 +655,12 @@ function deleteGlobalSong(index) {
     });
 }
 
-// Admin Search Execution
-function executeSearch() {
+function performSearch() {
   const query = document.getElementById("query-input").value.trim();
   if (!query) return;
 
   const resultsContainer = document.getElementById("search-results");
-  resultsContainer.innerHTML = "<div style='font-size:11px; color:#888; padding:6px;'>Searching tracks...</div>";
+  resultsContainer.innerHTML = "<div style='font-size:11px; color:#888; padding:6px;'>Searching...</div>";
 
   fetch(`/api/search?q=${encodeURIComponent(query)}`)
     .then(res => res.json())
@@ -684,7 +682,7 @@ function executeSearch() {
                 <div class="item-title">${s.title}</div>
                 <div class="item-artist">${s.primaryArtists}</div>
               </div>
-              <div style="display:flex; gap:6px; align-items:center;">
+              <div style="display:flex; gap:5px; align-items:center;">
                 <button class="round-preview-btn" id="prev-btn-${idx}" onclick="toggleSearchPreview('${s.url}', 'prev-btn-${idx}')"><i class="fa-solid fa-play"></i></button>
                 <button class="save-btn" onclick="openPlaylistPicker('${songObj}')">+ Save</button>
               </div>
@@ -825,6 +823,7 @@ function playSongAtIndex(index, baseSeekTime, serverTimestamp) {
 
   audioEl.play().then(() => {
     document.getElementById("controls").style.display = "none";
+    liveDot.classList.add("active");
     if (!playing) {
       dotEmitter = setInterval(emitDot, 50);
       lineEmitter = setInterval(emitLine, 100);
@@ -833,6 +832,7 @@ function playSongAtIndex(index, baseSeekTime, serverTimestamp) {
     }
   }).catch(err => {
     document.getElementById("controls").style.display = "block";
+    liveDot.classList.remove("active");
   });
 }
 
