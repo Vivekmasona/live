@@ -15,36 +15,23 @@ html, body {
 }
 canvas { position: fixed; inset: 0; z-index: 1; }
 
-/* Top Header with Brand, Live Status & Header Search Bar */
 #studio-header {
-  position: fixed; top: 12px; left: 12px; right: 12px;
-  background: rgba(18, 14, 32, 0.85); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
-  padding: 10px 16px; border-radius: 22px; z-index: 40; display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  position: fixed; top: 15px; left: 15px; right: 15px;
+  background: rgba(18, 14, 32, 0.75); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+  padding: 12px 20px; border-radius: 24px; z-index: 40; display: flex; justify-content: space-between; align-items: center;
   border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 20px 50px rgba(0,0,0,0.7); user-select: none;
 }
 .brand-title { 
-  font-size: 16px; font-weight: 800; color: #fff; cursor: pointer; 
-  display: flex; align-items: center; gap: 6px; letter-spacing: 0.5px; flex-shrink: 0;
+  font-size: 18px; font-weight: 800; color: #fff; cursor: pointer; 
+  display: flex; align-items: center; gap: 10px; letter-spacing: 1px;
 }
-.brand-logo-img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 1px solid #8c7ae6; box-shadow: 0 0 10px rgba(140,122,230,0.8); }
+.brand-title i { color: #8c7ae6; filter: drop-shadow(0 0 10px rgba(140,122,230,0.8)); }
 .brand-title span { color: #8c7ae6; }
 
-/* Header Search Bar */
-.header-search-wrapper { display: flex; gap: 6px; align-items: center; flex: 1; max-width: 220px; }
-.header-search-wrapper input {
-  width: 100%; padding: 8px 12px; background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; border-radius: 16px; outline: none; font-size: 11px; font-weight: 600;
-  transition: 0.25s ease;
-}
-.header-search-wrapper input:focus { border-color: #686de0; box-shadow: 0 0 15px rgba(104,109,224,0.3); }
-.header-search-btn {
-  background: linear-gradient(135deg, #4834d4, #686de0); color: white; border: none; padding: 8px 12px;
-  font-size: 11px; font-weight: 700; border-radius: 16px; cursor: pointer; transition: 0.25s ease; flex-shrink: 0;
-}
+.badge-box { display: flex; align-items: center; gap: 10px; }
+.badge { background: rgba(255, 255, 255, 0.05); padding: 6px 14px; border-radius: 14px; font-size: 11px; font-weight: 600; color: #aaa; border: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; gap: 6px; }
 
-.badge-box { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-.badge { background: rgba(255, 255, 255, 0.05); padding: 5px 10px; border-radius: 12px; font-size: 10px; font-weight: 600; color: #aaa; border: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; gap: 5px; }
-
+/* Elegant Red Live Tower Pulse Effect (No Border) */
 .live-tower-icon { color: #ff4757; animation: redTowerGlow 1.8s infinite ease-in-out; }
 @keyframes redTowerGlow {
   0% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(255,71,87,0.4)); }
@@ -52,37 +39,53 @@ canvas { position: fixed; inset: 0; z-index: 1; }
   100% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(255,71,87,0.4)); }
 }
 
-.live-dot { width: 8px; height: 8px; background: #ff4757; border-radius: 50%; box-shadow: 0 0 10px #ff4757; transition: 0.3s; }
+.live-dot { width: 9px; height: 9px; background: #ff4757; border-radius: 50%; box-shadow: 0 0 10px #ff4757; transition: 0.3s; }
 .live-dot.active { background: #ff4757; box-shadow: 0 0 14px #ff4757; }
 
-/* Glassmorphic Modals & Profiles */
-#studio-modal, #auth-modal, #profile-modal {
+/* Glassmorphic Modals */
+#studio-modal, #auth-modal {
   position: fixed; inset: 0; background: rgba(5, 3, 12, 0.9); z-index: 100;
   display: none; align-items: center; justify-content: center; backdrop-filter: blur(35px); -webkit-backdrop-filter: blur(35px);
 }
 .studio-container {
   background: linear-gradient(180deg, rgba(22, 16, 40, 0.96) 0%, rgba(10, 8, 20, 0.99) 100%);
   backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
-  width: 94%; max-width: 440px; height: 86vh;
-  border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 36px; padding: 18px;
-  box-shadow: 0 30px 100px rgba(0,0,0,0.95); display: flex; flex-direction: column; gap: 12px;
+  width: 94%; max-width: 440px; height: 90vh;
+  border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 36px; padding: 20px;
+  box-shadow: 0 30px 100px rgba(0,0,0,0.95); display: flex; flex-direction: column; gap: 14px;
   position: relative; overflow: hidden;
 }
-.auth-container, .profile-container {
-  background: rgba(20, 15, 36, 0.96); backdrop-filter: blur(30px);
-  width: 90%; max-width: 340px; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 28px; padding: 24px;
-  box-shadow: 0 30px 80px rgba(0,0,0,0.95); display: flex; flex-direction: column; gap: 16px; text-align: center;
+.auth-container {
+  background: rgba(20, 15, 36, 0.95); backdrop-filter: blur(30px);
+  width: 90%; max-width: 360px; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 28px; padding: 24px;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.95); display: flex; flex-direction: column; gap: 16px;
 }
-.studio-title, .auth-title { font-size: 16px; color: #fff; font-weight: 800; display: flex; justify-content: space-between; align-items: center; }
+.studio-title, .auth-title { font-size: 18px; color: #fff; font-weight: 800; display: flex; justify-content: space-between; align-items: center; }
 
 /* Category Chips */
-.category-chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+.category-chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
 .category-chips::-webkit-scrollbar { display: none; }
 .chip { 
-  background: rgba(255, 255, 255, 0.06); padding: 7px 16px; border-radius: 30px; font-size: 11px; font-weight: 700; 
+  background: rgba(255, 255, 255, 0.06); padding: 8px 18px; border-radius: 30px; font-size: 12px; font-weight: 700; 
   color: #a0a0b8; border: 1px solid rgba(255, 255, 255, 0.08); cursor: pointer; white-space: nowrap; transition: 0.25s ease; 
 }
 .chip.active, .chip:hover { background: linear-gradient(135deg, #4834d4, #686de0); color: #fff; border-color: transparent; box-shadow: 0 4px 15px rgba(104, 109, 224, 0.4); }
+
+/* Search Bar */
+.search-box-wrapper { display: flex; gap: 8px; align-items: center; width: 100%; }
+input[type="text"], input[type="password"] {
+  flex: 1; padding: 12px 16px; background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; border-radius: 20px; outline: none; font-size: 13px; font-weight: 600;
+  transition: 0.25s ease;
+}
+input[type="text"]:focus, input[type="password"]:focus { border-color: #686de0; box-shadow: 0 0 20px rgba(104,109,224,0.3); }
+
+button.search-btn-custom {
+  background: linear-gradient(135deg, #4834d4, #686de0); color: white; border: none; padding: 12px 18px;
+  font-size: 13px; font-weight: 700; border-radius: 20px; cursor: pointer; transition: 0.25s ease;
+  box-shadow: 0 6px 20px rgba(72, 52, 212, 0.4); display: flex; align-items: center; gap: 6px;
+  flex-shrink: 0;
+}
 
 #controls {
   position: fixed; bottom: 35px; left: 50%; transform: translateX(-50%);
@@ -93,31 +96,39 @@ canvas { position: fixed; inset: 0; z-index: 1; }
   box-shadow: 0 10px 40px rgba(108, 92, 231, 0.5); color: #000; font-weight: 800; cursor: pointer; border: none;
 }
 
-/* Full Width Slideshow Container */
-.section-heading { font-size: 12px; color: #a29bfe; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; margin-top: 2px; display: flex; justify-content: space-between; align-items: center; }
+/* Full Width Slideshow Container (Clean, No Green Border) */
+.section-heading { font-size: 13px; color: #a29bfe; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; margin-top: 4px; display: flex; justify-content: space-between; align-items: center; }
 
 .slideshow-container {
-  position: relative; width: 100%; height: 160px; overflow: hidden; border-radius: 20px;
+  position: relative; width: 100%; height: 175px; overflow: hidden; border-radius: 24px;
   background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 15px 35px rgba(0,0,0,0.6);
 }
 .slideshow-track { display: flex; height: 100%; transition: transform 0.45s cubic-bezier(0.25, 1, 0.5, 1); cursor: grab; }
+.slideshow-track:active { cursor: grabbing; }
+
 .slide-banner-card {
   min-width: 100%; height: 100%; box-sizing: border-box; position: relative; overflow: hidden; flex-shrink: 0;
-  display: flex; flex-direction: column; justify-content: flex-end; padding: 16px; cursor: pointer;
+  display: flex; flex-direction: column; justify-content: flex-end; padding: 18px; cursor: pointer;
+  border: none !important; /* No border here */
 }
 .slide-banner-card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; transition: transform 0.5s ease; }
+.slide-banner-card:hover img { transform: scale(1.05); }
+
+/* Dark Black Gradient Shadow Overlay */
 .slide-banner-card .black-shadow-overlay {
   position: absolute; inset: 0;
   background: linear-gradient(180deg, rgba(0,0,0,0.1) 30%, rgba(5,3,12,0.92) 85%, rgba(5,3,12,0.98) 100%);
   z-index: 2;
 }
-.slide-banner-card .banner-info { position: relative; z-index: 3; display: flex; flex-direction: column; gap: 2px; }
-.slide-banner-card .banner-title { font-size: 14px; font-weight: 800; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.9); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.slide-banner-card .banner-sub { font-size: 10px; color: #d0d0e2; font-weight: 600; text-shadow: 0 1px 6px rgba(0,0,0,0.8); }
 
-.slideshow-dots { display: flex; justify-content: center; gap: 5px; margin-top: 3px; }
-.slide-dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,0.2); cursor: pointer; transition: 0.3s; }
-.slide-dot.active { width: 16px; border-radius: 4px; background: #686de0; box-shadow: 0 0 8px rgba(104,109,224,0.8); }
+.slide-banner-card .banner-info { position: relative; z-index: 3; display: flex; flex-direction: column; gap: 3px; }
+.slide-banner-card .banner-title { font-size: 15px; font-weight: 800; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.9); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.slide-banner-card .banner-sub { font-size: 11px; color: #d0d0e2; font-weight: 600; text-shadow: 0 1px 6px rgba(0,0,0,0.8); }
+
+/* Slideshow Dots Indicator */
+.slideshow-dots { display: flex; justify-content: center; gap: 6px; margin-top: 4px; }
+.slide-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.2); cursor: pointer; transition: 0.3s; }
+.slide-dot.active { width: 20px; border-radius: 4px; background: #686de0; box-shadow: 0 0 8px rgba(104,109,224,0.8); }
 
 /* Playlist Picker Modal */
 #playlist-picker-modal {
@@ -132,26 +143,27 @@ canvas { position: fixed; inset: 0; z-index: 1; }
 
 /* Full Width Trending Queue List */
 .item-card {
-  background: rgba(255, 255, 255, 0.03); padding: 8px 12px; border-radius: 16px;
-  display: flex; flex-direction: column; gap: 4px; border: 1px solid rgba(255, 255, 255, 0.06); margin-bottom: 6px; transition: 0.2s;
+  background: rgba(255, 255, 255, 0.03); padding: 10px 14px; border-radius: 20px;
+  display: flex; flex-direction: column; gap: 6px; border: 1px solid rgba(255, 255, 255, 0.06); margin-bottom: 8px; transition: 0.2s;
 }
 .item-card:hover { border-color: rgba(104, 109, 224, 0.4); background: rgba(255, 255, 255, 0.06); }
 .item-row { display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 10px; }
+
 .item-card.on-air-row { background: rgba(255, 71, 87, 0.06); border-color: rgba(255,71,87,0.3); }
 
-.album-art { width: 38px; height: 38px; border-radius: 10px; object-fit: cover; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.1); }
-.item-info { flex: 1; overflow: hidden; display: flex; flex-direction: column; justify-content: center; gap: 1px; }
-.item-title { font-size: 11px; font-weight: 700; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,0.8); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.item-artist { font-size: 9px; color: #9999b0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.album-art { width: 42px; height: 42px; border-radius: 12px; object-fit: cover; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.1); }
+.item-info { flex: 1; overflow: hidden; display: flex; flex-direction: column; justify-content: center; gap: 2px; }
+.item-title { font-size: 12px; font-weight: 700; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,0.8); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item-artist { font-size: 10px; color: #9999b0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .round-preview-btn {
-  width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,0.08); color: #fff;
+  width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.08); color: #fff;
   border: none; display: flex; align-items: center; justify-content: center; font-size: 10px; cursor: pointer; transition: 0.2s;
 }
 .round-preview-btn:hover { background: #686de0; box-shadow: 0 0 12px rgba(104,109,224,0.6); }
 
-.save-btn { background: #2ed573; color: #000; border: none; padding: 5px 10px; font-size: 10px; font-weight: 800; border-radius: 14px; cursor: pointer; }
-.delete-btn { background: rgba(255,71,87,0.2); color: #ff4757; border: none; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 10px; }
+.save-btn { background: #2ed573; color: #000; border: none; padding: 6px 12px; font-size: 10px; font-weight: 800; border-radius: 16px; cursor: pointer; }
+.delete-btn { background: rgba(255,71,87,0.2); color: #ff4757; border: none; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
 /* Bottom 3 Icons Navigation Bar */
 .bottom-nav-bar {
@@ -166,33 +178,25 @@ canvas { position: fixed; inset: 0; z-index: 1; }
 /* Toast Notification */
 #toast {
   position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px);
-  background: #6c5ce7; color: #fff; padding: 10px 24px; border-radius: 30px;
-  font-size: 12px; font-weight: 800; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  background: #6c5ce7; color: #fff; padding: 12px 28px; border-radius: 30px;
+  font-size: 13px; font-weight: 800; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.6);
   transition: transform 0.35s ease, opacity 0.3s ease; opacity: 0; pointer-events: none;
 }
 #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
-.dev-sig { height: 12px; line-height: 12px; font-size: 8px; color: rgba(255,255,255,0.25); text-align: center; letter-spacing: 1.5px; text-transform: uppercase; margin-top: auto; font-weight: 700; }
+.dev-sig { height: 14px; line-height: 14px; font-size: 9px; color: rgba(255,255,255,0.25); text-align: center; letter-spacing: 1.5px; text-transform: uppercase; margin-top: auto; font-weight: 700; }
 </style>
 </head>
 <body>
 
 <canvas id="canvas"></canvas>
 
-<!-- Top Header with Search Bar & Logo -->
 <div id="studio-header">
   <div class="brand-title" id="brand-title">
-    <img src="https://i.imgur.com/8Q5N8bB.png" class="brand-logo-img"> <span>VFY</span> <small style="font-size:9px; color:rgba(255,255,255,0.3); font-weight:normal;">(Tap 3x)</small>
+    <i class="fa-solid fa-compact-disc fa-spin" style="--fa-animation-duration: 6s;"></i> <span>VFY</span> <small style="font-size:10px; color:rgba(255,255,255,0.3); font-weight:normal;">(Tap 3x)</small>
   </div>
-  
-  <!-- Header Search Bar -->
-  <div class="header-search-wrapper">
-    <input type="text" id="query-input" placeholder="Search track..." onkeydown="if(event.key==='Enter') document.getElementById('search-btn').click()">
-    <button id="search-btn" class="header-search-btn" onclick="performSearch()"><i class="fa-solid fa-magnifying-glass"></i></button>
-  </div>
-
   <div class="badge-box">
-    <div class="badge"><i class="fa-solid fa-tower-broadcast live-tower-icon"></i> Live</div>
+    <div class="badge"><i class="fa-solid fa-tower-broadcast live-tower-icon"></i> Live 24/7</div>
     <div class="live-dot" id="live-dot"></div>
   </div>
 </div>
@@ -201,49 +205,33 @@ canvas { position: fixed; inset: 0; z-index: 1; }
   <button id="live-btn" onclick="startLiveAudio()"><i class="fa-solid fa-play"></i> TAP TO START LIVE FM</button>
 </div>
 
-<!-- Password Modal (3x Tap Protected) -->
+<!-- Password Modal -->
 <div id="auth-modal">
   <div class="auth-container">
     <div class="auth-title">
       <span><i class="fa-solid fa-shield-halved"></i> Admin Access</span>
-      <button onclick="closeAuthModal()" style="background:rgba(255,255,255,0.06); padding:4px 10px; font-size:11px; border:none; color:#fff; border-radius:8px;"><i class="fa-solid fa-xmark"></i></button>
+      <button onclick="closeAuthModal()" style="background:rgba(255,255,255,0.06); padding:6px 12px; font-size:12px; border:none; color:#fff; border-radius:10px;"><i class="fa-solid fa-xmark"></i></button>
     </div>
-    <input type="password" id="admin-pass-input" placeholder="Enter password..." onkeydown="if(event.key==='Enter') verifyAdminPassword()" style="padding:10px 14px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:16px; outline:none; font-size:12px;">
-    <div style="display:flex; gap:8px; justify-content:flex-end;">
-      <button onclick="closeAuthModal()" style="background:rgba(255,255,255,0.06); border:none; color:#fff; padding:8px 14px; border-radius:10px; cursor:pointer; font-size:11px;">Cancel</button>
-      <button onclick="verifyAdminPassword()" style="background:linear-gradient(135deg, #4834d4, #686de0); color:#fff; border:none; padding:8px 16px; border-radius:10px; font-weight:700; cursor:pointer; font-size:11px;">Login</button>
+    <input type="password" id="admin-pass-input" placeholder="Enter password..." onkeydown="if(event.key==='Enter') verifyAdminPassword()">
+    <div style="display:flex; gap:10px; justify-content:flex-end;">
+      <button onclick="closeAuthModal()" style="background:rgba(255,255,255,0.06); border:none; color:#fff; padding:10px 16px; border-radius:12px; cursor:pointer;">Cancel</button>
+      <button onclick="verifyAdminPassword()" style="background:linear-gradient(135deg, #4834d4, #686de0); color:#fff; border:none; padding:10px 18px; border-radius:12px; font-weight:700; cursor:pointer;">Login</button>
     </div>
-  </div>
-</div>
-
-<!-- Profile Modal (Vivek Masona Details & Image) -->
-<div id="profile-modal" onclick="if(event.target === this) closeProfileModal()">
-  <div class="profile-container">
-    <div style="display:flex; justify-content:flex-end;"><button onclick="closeProfileModal()" style="background:none; border:none; color:#aaa; font-size:14px; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button></div>
-    <img src="https://i.imgur.com/8Q5N8bB.png" style="width:80px; height:80px; border-radius:50%; object-fit:cover; margin:0 auto; border:2px solid #8c7ae6; box-shadow:0 0 20px rgba(140,122,230,0.6);">
-    <h3 style="margin:6px 0 2px 0; font-size:18px; color:#fff;">Vivek Masona</h3>
-    <div style="font-size:11px; color:#8c7ae6; font-weight:700;">Lead Developer & App Creator</div>
-    <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:12px; text-align:left; font-size:11px; color:#aaa; display:flex; flex-direction:column; gap:4px; margin-top:6px;">
-      <div><strong style="color:#fff;">App Name:</strong> VFY Studio FM Player</div>
-      <div><strong style="color:#fff;">Version:</strong> v2.6 Pro Active</div>
-      <div><strong style="color:#fff;">Architecture:</strong> Synchronized Live Audio</div>
-    </div>
-    <button onclick="closeProfileModal()" style="background:linear-gradient(135deg, #4834d4, #686de0); color:#fff; border:none; padding:10px; border-radius:16px; font-weight:700; cursor:pointer; font-size:12px; margin-top:6px;">Close Profile</button>
   </div>
 </div>
 
 <!-- Playlist Picker Modal -->
 <div id="playlist-picker-modal">
   <div class="playlist-picker-box">
-    <div style="font-size:13px; font-weight:800; display:flex; justify-content:space-between; align-items:center;">
+    <div style="font-size:14px; font-weight:800; display:flex; justify-content:space-between; align-items:center;">
       <span><i class="fa-solid fa-folder-plus"></i> Select Playlist</span>
-      <button onclick="closePlaylistPicker()" style="background:none; border:none; color:#aaa; font-size:13px; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+      <button onclick="closePlaylistPicker()" style="background:none; border:none; color:#aaa; font-size:14px; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
     </div>
-    <div style="font-size:10px; color:#aaa;">Choose category to save track:</div>
-    <div id="playlist-options-container" style="display:flex; flex-direction:column; gap:5px; max-height:120px; overflow-y:auto;"></div>
-    <div style="display:flex; gap:5px; margin-top:4px;">
-      <input type="text" id="new-category-input" placeholder="New category..." style="font-size:10px; padding:6px 10px; flex:1; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:12px; outline:none;">
-      <button onclick="createNewCategoryAndSave()" style="background:#686de0; color:#fff; border:none; border-radius:12px; padding:6px 10px; font-size:10px; font-weight:700; cursor:pointer;">Add</button>
+    <div style="font-size:11px; color:#aaa;">Choose which playlist category to save this track into:</div>
+    <div id="playlist-options-container" style="display:flex; flex-direction:column; gap:6px; max-height:140px; overflow-y:auto;"></div>
+    <div style="display:flex; gap:6px; margin-top:4px;">
+      <input type="text" id="new-category-input" placeholder="Or new category name..." style="font-size:11px; padding:8px 12px;">
+      <button onclick="createNewCategoryAndSave()" style="background:#686de0; color:#fff; border:none; border-radius:14px; padding:8px 12px; font-size:11px; font-weight:700; cursor:pointer;">Add</button>
     </div>
   </div>
 </div>
@@ -252,8 +240,8 @@ canvas { position: fixed; inset: 0; z-index: 1; }
 <div id="studio-modal">
   <div class="studio-container">
     <div class="studio-title">
-      <span><i class="fa-solid fa-sliders"></i> VFY Studio Dashboard</span>
-      <button onclick="closeStudio()" style="background:rgba(255,255,255,0.06); padding:5px 10px; font-size:11px; border:none; color:#fff; border-radius:8px; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+      <span><i class="fa-solid fa-sliders"></i> VFY Studio</span>
+      <button onclick="closeStudio()" style="background:rgba(255,255,255,0.06); padding:6px 12px; font-size:12px; border:none; color:#fff; border-radius:10px; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
     </div>
 
     <!-- Category Chips -->
@@ -265,11 +253,17 @@ canvas { position: fixed; inset: 0; z-index: 1; }
       <div class="chip" onclick="filterTab('Punjabi', this)">Punjabi</div>
     </div>
 
+    <!-- Search Box -->
+    <div class="search-box-wrapper">
+      <input type="text" id="query-input" placeholder="Search track or artist name..." onkeydown="if(event.key==='Enter') document.getElementById('search-btn').click()">
+      <button id="search-btn" class="search-btn-custom"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
+    </div>
+
     <!-- Search Results Container -->
-    <div id="search-results" style="max-height:110px; overflow-y:auto; padding-right:2px;"></div>
+    <div id="search-results" style="max-height:120px; overflow-y:auto; padding-right:4px;"></div>
 
     <div class="section-heading">
-      <span><i class="fa-solid fa-tower-broadcast live-tower-icon"></i> Live Featured Station</span>
+      <span><i class="fa-solid fa-tower-broadcast live-tower-icon"></i> Live Featured Station (Slideshow)</span>
     </div>
     
     <!-- Full Width Slideshow Container -->
@@ -278,18 +272,18 @@ canvas { position: fixed; inset: 0; z-index: 1; }
     </div>
     <div class="slideshow-dots" id="slideshow-dots"></div>
 
-    <div style="border-top:1px solid rgba(255,255,255,0.08); padding-top:6px; display:flex; flex-direction:column; flex:1; overflow:hidden;">
+    <div style="border-top:1px solid rgba(255,255,255,0.08); padding-top:8px; display:flex; flex-direction:column; flex:1; overflow:hidden;">
       <div class="section-heading">
-        <span><i class="fa-solid fa-list-ul"></i> Trending Queue</span>
+        <span><i class="fa-solid fa-list-ul"></i> Trending Queue (Full Playlist)</span>
       </div>
-      <div id="playlist-container" style="overflow-y:auto; font-size:12px; color:#aaa; flex:1; padding-right:2px;">Loading queue...</div>
+      <div id="playlist-container" style="overflow-y:auto; font-size:13px; color:#aaa; flex:1; padding-right:4px;">Loading queue...</div>
     </div>
     
-    <!-- Bottom 3 Icons Navigation Bar (Working Links) -->
+    <!-- Bottom 3 Icons Bar -->
     <div class="bottom-nav-bar">
-      <div class="nav-item active" id="nav-home" title="Home" onclick="navigateToHome()"><i class="fa-solid fa-house"></i></div>
-      <div class="nav-item" id="nav-music" title="Queue / Close" onclick="toggleStudioModal()"><i class="fa-solid fa-music"></i></div>
-      <div class="nav-item" id="nav-profile" title="Profile" onclick="openProfileModal()"><i class="fa-solid fa-user"></i></div>
+      <div class="nav-item active" title="Home"><i class="fa-solid fa-house"></i></div>
+      <div class="nav-item" title="Queue"><i class="fa-solid fa-music"></i></div>
+      <div class="nav-item" title="Profile"><i class="fa-solid fa-user"></i></div>
     </div>
 
     <div class="dev-sig">DEVELOPER VIVEKMASONA</div>
@@ -343,7 +337,6 @@ function loadLocalPlaylists() {
 
 function renderCategoryChips() {
   const container = document.getElementById("category-chips-container");
-  if(!container) return;
   let html = `<div class="chip ${currentTabCategory === 'All' ? 'active' : ''}" onclick="filterTab('All', this)">All</div>`;
   customCategories.forEach(cat => {
     html += `<div class="chip ${currentTabCategory === cat ? 'active' : ''}" onclick="filterTab('${cat}', this)">${cat}</div>`;
@@ -402,43 +395,7 @@ function verifyAdminPassword() {
   }
 }
 
-function closeStudio() { 
-  stopPreview(); 
-  document.getElementById("studio-modal").style.display = "none"; 
-}
-
-function toggleStudioModal() {
-  const modal = document.getElementById("studio-modal");
-  if (modal.style.display === "flex") {
-    closeStudio();
-  } else {
-    loadLocalPlaylists();
-    modal.style.display = "flex";
-    renderPlaylistUI();
-    renderSlideshowBanners();
-  }
-}
-
-function navigateToHome() {
-  const modal = document.getElementById("studio-modal");
-  if (modal.style.display !== "flex") {
-    loadLocalPlaylists();
-    modal.style.display = "flex";
-    renderPlaylistUI();
-    renderSlideshowBanners();
-  }
-  document.getElementById("query-input").value = "";
-  document.getElementById("search-results").innerHTML = "";
-  showToast("🏠 Switched to Home view");
-}
-
-function openProfileModal() {
-  document.getElementById("profile-modal").style.display = "flex";
-}
-
-function closeProfileModal() {
-  document.getElementById("profile-modal").style.display = "none";
-}
+function closeStudio() { stopPreview(); document.getElementById("studio-modal").style.display = "none"; }
 
 function showToast(message) {
   const toast = document.getElementById("toast");
@@ -504,7 +461,6 @@ document.addEventListener('visibilitychange', () => {
 // Full width Queue List
 function renderPlaylistUI() {
   const container = document.getElementById("playlist-container");
-  if(!container) return;
   if (globalPlaylist.length === 0) {
     container.innerHTML = "No tracks in queue.";
     return;
@@ -516,7 +472,7 @@ function renderPlaylistUI() {
   });
 
   if (filteredList.length === 0 && currentTabCategory !== 'All') {
-    container.innerHTML = `<div style="padding:8px; color:#777;">No tracks found in ${currentTabCategory} category.</div>`;
+    container.innerHTML = `<div style="padding:10px; color:#777;">No tracks found in ${currentTabCategory} category.</div>`;
     return;
   }
 
@@ -542,13 +498,12 @@ function renderPlaylistUI() {
   container.innerHTML = html;
 }
 
-// Full-width Slideshow Banners
+// Full-width Slideshow Banners (Clean, No Green Border, Dark Shadow with Title)
 let currentSlideIndex = 0;
 
 function renderSlideshowBanners() {
   const trackContainer = document.getElementById("slideshow-track");
   const dotsContainer = document.getElementById("slideshow-dots");
-  if(!trackContainer || !dotsContainer) return;
   
   if (globalPlaylist.length === 0) {
     trackContainer.innerHTML = "<div style='font-size:11px; color:#666; padding:20px; text-align:center;'>No banner tracks available.</div>";
@@ -655,19 +610,19 @@ function deleteGlobalSong(index) {
     });
 }
 
-function performSearch() {
+document.getElementById("search-btn").addEventListener("click", () => {
   const query = document.getElementById("query-input").value.trim();
   if (!query) return;
 
   const resultsContainer = document.getElementById("search-results");
-  resultsContainer.innerHTML = "<div style='font-size:11px; color:#888; padding:6px;'>Searching...</div>";
+  resultsContainer.innerHTML = "<div style='font-size:12px; color:#888; padding:6px;'>Searching...</div>";
 
   fetch(`/api/search?q=${encodeURIComponent(query)}`)
     .then(res => res.json())
     .then(data => {
       const songs = data.results || [];
       if (songs.length === 0) {
-        resultsContainer.innerHTML = "<div style='font-size:11px; color:#888; padding:6px;'>No tracks found.</div>";
+        resultsContainer.innerHTML = "<div style='font-size:12px; color:#888; padding:6px;'>No tracks found.</div>";
         return;
       }
 
@@ -682,9 +637,9 @@ function performSearch() {
                 <div class="item-title">${s.title}</div>
                 <div class="item-artist">${s.primaryArtists}</div>
               </div>
-              <div style="display:flex; gap:5px; align-items:center;">
+              <div style="display:flex; gap:6px; align-items:center;">
                 <button class="round-preview-btn" id="prev-btn-${idx}" onclick="toggleSearchPreview('${s.url}', 'prev-btn-${idx}')"><i class="fa-solid fa-play"></i></button>
-                <button class="save-btn" onclick="openPlaylistPicker('${songObj}')">+ Save</button>
+                <button class="save-btn" onclick="openPlaylistPicker('${songObj}')">+ Save to...</button>
               </div>
             </div>
           </div>
@@ -692,8 +647,8 @@ function performSearch() {
       });
       resultsContainer.innerHTML = html;
     })
-    .catch(err => { resultsContainer.innerHTML = "<div style='font-size:11px; color:#ff4757;'>Search Error.</div>"; });
-}
+    .catch(err => { resultsContainer.innerHTML = "<div style='font-size:12px; color:#ff4757;'>Search Error.</div>"; });
+});
 
 function toggleSearchPreview(url, btnId) {
   const btn = document.getElementById(btnId);
@@ -725,7 +680,7 @@ function openPlaylistPicker(encodedObj) {
   const container = document.getElementById("playlist-options-container");
   let html = "";
   customCategories.forEach(cat => {
-    html += `<button onclick="confirmSaveToCategory('${cat}')" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:8px 12px; border-radius:12px; text-align:left; font-weight:700; font-size:11px; cursor:pointer;"><i class="fa-solid fa-folder"></i> ${cat}</button>`;
+    html += `<button onclick="confirmSaveToCategory('${cat}')" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px 14px; border-radius:14px; text-align:left; font-weight:700; font-size:12px; cursor:pointer;"><i class="fa-solid fa-folder"></i> ${cat}</button>`;
   });
   container.innerHTML = html;
   document.getElementById("playlist-picker-modal").style.display = "flex";
@@ -768,7 +723,7 @@ function confirmSaveToCategory(categoryName) {
       renderPlaylistUI();
       renderSlideshowBanners();
       scheduleNextSync();
-      showToast(`✓ Added to ${categoryName}!`);
+      showToast(`✓ Added to ${categoryName} playlist!`);
     }
   })
   .catch(err => { showToast("❌ Error saving track."); });
