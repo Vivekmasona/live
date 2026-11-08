@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VFY Studio Player</title>
+<!-- FontAwesome Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+html, body {
+  margin: 0; padding: 0; overflow: hidden; background: #07050f;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; color: #fff;
+}
+canvas { position: fixed; inset: 0; z-index: 1; }
+
+#studio-header {
+  position: fixed; top: 15px; left: 15px; right: 15px;
+  background: rgba(18, 14, 32, 0.75); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+  padding: 10px 18px; border-radius: 24px; z-index: 40; display: flex; justify-content: space-between; align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 20px 50px rgba(0,0,0,0.7); user-select: none; gap: 10px;
+}
+.brand-title { 
+  font-size: 16px; font-weight: 800; color: #fff; cursor: pointer; 
+  display: flex; align-items: center; gap: 8px; letter-spacing: 1px; flex-shrink: 0;
+}
+.brand-title i { color: #8c7ae6; filter: drop-shadow(0 0 10px rgba(140,122,230,0.8)); }
+.brand-title span { color: #8c7ae6; }
+
+.header-center-controls {
+  display: flex; align-items: center; gap: 8px; flex: 1; justify-content: center;
+}
+
+/* Glassy Visualizer Selector Dropdown */
+.viz-selector-box {
+  background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #a29bfe; border-radius: 16px; padding: 6px 12px; font-size: 11px; font-weight: 700;
+  outline: none; cursor: pointer; transition: 0.25s ease; backdrop-filter: blur(15px);
+  max-width: 170px;
+}
+.viz-selector-box:hover, .viz-selector-box:focus {
+  background: rgba(108, 92, 231, 0.2); border-color: #8c7ae6; color: #fff;
+  box-shadow: 0 0 15px rgba(140, 122, 230, 0.4);
+}
+.viz-selector-box option { background: #120e20; color: #fff; font-weight: 600; }
+
+.badge-box { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.badge { background: rgba(255, 255, 255, 0.05); padding: 6px 14px; border-radius: 14px; font-size: 11px; font-weight: 600; color: #aaa; border: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; gap: 6px; }
+
+.live-tower-icon { color: #ff4757; animation: redTowerGlow 1.8s infinite ease-in-out; }
+@keyframes redTowerGlow {
+  0% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(255,71,87,0.4)); }
+  50% { transform: scale(1.15); filter: drop-shadow(0 0 10px rgba(255,71,87,0.9)); }
+  100% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(255,71,87,0.4)); }
+}
+
+.live-dot { width: 9px; height: 9px; background: #ff4757; border-radius: 50%; box-shadow: 0 0 10px #ff4757; transition: 0.3s; }
+.live-dot.active { background: #ff4757; box-shadow: 0 0 14px #ff4757; }
+
+/* Glassmorphic Modals */
+#studio-modal, #auth-modal {
+  position: fixed; inset: 0; background: rgba(5, 3, 12, 0.9); z-index: 100;
+  display: none; align-items: center; justify-content: center; backdrop-filter: blur(35px); -webkit-backdrop-filter: blur(35px);
+}
+.studio-container {
+  background: linear-gradient(180deg, rgba(22, 16, 40, 0.96) 0%, rgba(10, 8, 20, 0.99) 100%);
+  backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+  width: 94%; max-width: 440px; height: 90vh;
+  border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 36px; padding: 20px;
+  box-shadow: 0 30px 100px rgba(0,0,0,0.95); display: flex; flex-direction: column; gap: 14px;
+  position: relative; overflow: hidden;
+}
+.auth-container {
+  background: rgba(20, 15, 36, 0.95); backdrop-filter: blur(30px);
+  width: 90%; max-width: 360px; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 28px; padding: 24px;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.95); display: flex; flex-direction: column; gap: 16px;
+}
+.studio-title, .auth-title { font-size: 18px; color: #fff; font-weight: 800; display: flex; justify-content: space-between; align-items: center; }
+
+/* Category Chips */
+.category-chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+.category-chips::-webkit-scrollbar { display: none; }
+.chip { 
+  background: rgba(255, 255, 255, 0.06); padding: 8px 18px; border-radius: 30px; font-size: 12px; font-weight: 700; 
+  color: #a0a0b8; border: 1px solid rgba(255, 255, 255, 0.08); cursor: pointer; white-space: nowrap; transition: 0.25s ease; 
+}
+.chip.active, .chip:hover { background: linear-gradient(135deg, #4834d4, #686de0); color: #fff; border-color: transparent; box-shadow: 0 4px 15px rgba(104, 109, 224, 0.4); }
+
+/* Search Bar */
+.search-box-wrapper { display: flex; gap: 8px; align-items: center; width: 100%; }
+input[type="text"], input[type="password"] {
+  flex: 1; padding: 12px 16px; background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; border-radius: 20px; outline: none; font-size: 13px; font-weight: 600;
+  transition: 0.25s ease;
+}
+input[type="text"]:focus, input[type="password"]:focus { border-color: #686de0; box-shadow: 0 0 20px rgba(104,109,224,0.3); }
+
+button.search-btn-custom {
+  background: linear-gradient(135deg, #4834d4, #686de0); color: white; border: none; padding: 12px 18px;
+  font-size: 13px; font-weight: 700; border-radius: 20px; cursor: pointer; transition: 0.25s ease;
+  box-shadow: 0 6px 20px rgba(72, 52, 212, 0.4); display: flex; align-items: center; gap: 6px;
+  flex-shrink: 0;
+}
+
+#controls {
+  position: fixed; bottom: 35px; left: 50%; transform: translateX(-50%);
+  z-index: 30; display: none;
+}
+#live-btn {
+  background: linear-gradient(135deg, #6c5ce7, #a29bfe); padding: 16px 44px; font-size: 14px; border-radius: 50px;
+  box-shadow: 0 10px 40px rgba(108, 92, 231, 0.5); color: #000; font-weight: 800; cursor: pointer; border: none;
+}
+
+.section-heading { font-size: 13px; color: #a29bfe; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; margin-top: 4px; display: flex; justify-content: space-between; align-items: center; }
+
+.slideshow-container {
+  position: relative; width: 100%; height: 175px; overflow: hidden; border-radius: 24px;
+  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+}
+.slideshow-track { display: flex; height: 100%; transition: transform 0.45s cubic-bezier(0.25, 1, 0.5, 1); cursor: grab; }
+.slideshow-track:active { cursor: grabbing; }
+
+.slide-banner-card {
+  min-width: 100%; height: 100%; box-sizing: border-box; position: relative; overflow: hidden; flex-shrink: 0;
+  display: flex; flex-direction: column; justify-content: flex-end; padding: 18px; cursor: pointer;
+  border: none !important;
+}
+.slide-banner-card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; transition: transform 0.5s ease; }
+.slide-banner-card:hover img { transform: scale(1.05); }
+
+.slide-banner-card .black-shadow-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0.1) 30%, rgba(5,3,12,0.92) 85%, rgba(5,3,12,0.98) 100%);
+  z-index: 2;
+}
+
+.slide-banner-card .banner-info { position: relative; z-index: 3; display: flex; flex-direction: column; gap: 3px; }
+.slide-banner-card .banner-title { font-size: 15px; font-weight: 800; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.9); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.slide-banner-card .banner-sub { font-size: 11px; color: #d0d0e2; font-weight: 600; text-shadow: 0 1px 6px rgba(0,0,0,0.8); }
+
+.slideshow-dots { display: flex; justify-content: center; gap: 6px; margin-top: 4px; }
+.slide-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.2); cursor: pointer; transition: 0.3s; }
+.slide-dot.active { width: 20px; border-radius: 4px; background: #686de0; box-shadow: 0 0 8px rgba(104,109,224,0.8); }
+
+#playlist-picker-modal {
+  position: fixed; inset: 0; background: rgba(5, 3, 12, 0.85); z-index: 200;
+  display: none; align-items: center; justify-content: center; backdrop-filter: blur(20px);
+}
+.playlist-picker-box {
+  background: #151025; border: 1px solid rgba(255,255,255,0.15); width: 85%; max-width: 320px;
+  border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 12px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+}
+
+.item-card {
+  background: rgba(255, 255, 255, 0.03); padding: 10px 14px; border-radius: 20px;
+  display: flex; flex-direction: column; gap: 6px; border: 1px solid rgba(255, 255, 255, 0.06); margin-bottom: 8px; transition: 0.2s;
+}
+.item-card:hover { border-color: rgba(104, 109, 224, 0.4); background: rgba(255, 255, 255, 0.06); }
+.item-row { display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 10px; }
+
+.item-card.on-air-row { background: rgba(255, 71, 87, 0.06); border-color: rgba(255,71,87,0.3); }
+
+.album-art { width: 42px; height: 42px; border-radius: 12px; object-fit: cover; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.1); }
+.item-info { flex: 1; overflow: hidden; display: flex; flex-direction: column; justify-content: center; gap: 2px; }
+.item-title { font-size: 12px; font-weight: 700; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,0.8); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item-artist { font-size: 10px; color: #9999b0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.round-preview-btn {
+  width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.08); color: #fff;
+  border: none; display: flex; align-items: center; justify-content: center; font-size: 10px; cursor: pointer; transition: 0.2s;
+}
+.round-preview-btn:hover { background: #686de0; box-shadow: 0 0 12px rgba(104,109,224,0.6); }
+
+.save-btn { background: #2ed573; color: #000; border: none; padding: 6px 12px; font-size: 10px; font-weight: 800; border-radius: 16px; cursor: pointer; }
+.delete-btn { background: rgba(255,71,87,0.2); color: #ff4757; border: none; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+.bottom-nav-bar {
+  display: flex; justify-content: space-around; align-items: center;
+  background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12); padding: 10px 20px; border-radius: 35px;
+  width: 190px; margin: auto auto 0 auto; flex-shrink: 0; box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+}
+.nav-item { color: rgba(255,255,255,0.4); font-size: 16px; cursor: pointer; transition: 0.2s; }
+.nav-item.active, .nav-item:hover { color: #8c7ae6; transform: scale(1.15); }
+
+#toast {
+  position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px);
+  background: #6c5ce7; color: #fff; padding: 12px 28px; border-radius: 30px;
+  font-size: 13px; font-weight: 800; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  transition: transform 0.35s ease, opacity 0.3s ease; opacity: 0; pointer-events: none;
+}
+#toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+.dev-sig { height: 14px; line-height: 14px; font-size: 9px; color: rgba(255,255,255,0.25); text-align: center; letter-spacing: 1.5px; text-transform: uppercase; margin-top: auto; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<canvas id="canvas"></canvas>
+
+<div id="studio-header">
+  <div class="brand-title" id="brand-title">
+    <i class="fa-solid fa-compact-disc fa-spin" style="--fa-animation-duration: 6s;"></i> <span>VFY</span> <small style="font-size:9px; color:rgba(255,255,255,0.3);">(3x)</small>
+  </div>
+
+  <div class="header-center-controls">
+    <select id="viz-mode-select" class="viz-selector-box" onchange="changeVisualizerMode(this.value)">
+      <!-- 100 Visualizer Options generated dynamically -->
+    </select>
+  </div>
+
+  <div class="badge-box">
+    <div class="badge"><i class="fa-solid fa-tower-broadcast live-tower-icon"></i> Live</div>
+    <div class="live-dot" id="live-dot"></div>
+  </div>
+</div>
+
+<div id="controls">
+  <button id="live-btn" onclick="startLiveAudio()"><i class="fa-solid fa-play"></i> TAP TO START LIVE FM</button>
+</div>
+
+<!-- Password Modal -->
+<div id="auth-modal">
+  <div class="auth-container">
+    <div class="auth-title">
+      <span><i class="fa-solid fa-shield-halved"></i> Admin Access</span>
+      <button onclick="closeAuthModal()" style="background:rgba(255,255,255,0.06); padding:6px 12px; font-size:12px; border:none; color:#fff; border-radius:10px;"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <input type="password" id="admin-pass-input" placeholder="Enter password..." onkeydown="if(event.key==='Enter') verifyAdminPassword()">
+    <div style="display:flex; gap:10px; justify-content:flex-end;">
+      <button onclick="closeAuthModal()" style="background:rgba(255,255,255,0.06); border:none; color:#fff; padding:10px 16px; border-radius:12px; cursor:pointer;">Cancel</button>
+      <button onclick="verifyAdminPassword()" style="background:linear-gradient(135deg, #4834d4, #686de0); color:#fff; border:none; padding:10px 18px; border-radius:12px; font-weight:700; cursor:pointer;">Login</button>
+    </div>
+  </div>
+</div>
+
+<!-- Playlist Picker Modal -->
+<div id="playlist-picker-modal">
+  <div class="playlist-picker-box">
+    <div style="font-size:14px; font-weight:800; display:flex; justify-content:space-between; align-items:center;">
+      <span><i class="fa-solid fa-folder-plus"></i> Select Playlist</span>
+      <button onclick="closePlaylistPicker()" style="background:none; border:none; color:#aaa; font-size:14px; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div style="font-size:11px; color:#aaa;">Choose which playlist category to save this track into:</div>
+    <div id="playlist-options-container" style="display:flex; flex-direction:column; gap:6px; max-height:140px; overflow-y:auto;"></div>
+    <div style="display:flex; gap:6px; margin-top:4px;">
+      <input type="text" id="new-category-input" placeholder="Or new category name..." style="font-size:11px; padding:8px 12px;">
+      <button onclick="createNewCategoryAndSave()" style="background:#686de0; color:#fff; border:none; border-radius:14px; padding:8px 12px; font-size:11px; font-weight:700; cursor:pointer;">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- Master Studio Console Modal -->
+<div id="studio-modal">
+  <div class="studio-container">
+    <div class="studio-title">
+      <span><i class="fa-solid fa-sliders"></i> VFY Studio</span>
+      <button onclick="closeStudio()" style="background:rgba(255,255,255,0.06); padding:6px 12px; font-size:12px; border:none; color:#fff; border-radius:10px; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <!-- Category Chips -->
+    <div class="category-chips" id="category-chips-container">
+      <div class="chip active" onclick="filterTab('All', this)">All</div>
+      <div class="chip" onclick="filterTab('Hindi', this)">Hindi</div>
+      <div class="chip" onclick="filterTab('Bhojpuri', this)">Bhojpuri</div>
+      <div class="chip" onclick="filterTab('Bhakti', this)">Bhakti</div>
+      <div class="chip" onclick="filterTab('Punjabi', this)">Punjabi</div>
+    </div>
+
+    <!-- Search Box -->
+    <div class="search-box-wrapper">
+      <input type="text" id="query-input" placeholder="Search track or artist name..." onkeydown="if(event.key==='Enter') document.getElementById('search-btn').click()">
+      <button id="search-btn" class="search-btn-custom"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
+    </div>
+
+    <!-- Search Results Container -->
+    <div id="search-results" style="max-height:120px; overflow-y:auto; padding-right:4px;"></div>
+
+    <div class="section-heading">
+      <span><i class="fa-solid fa-tower-broadcast live-tower-icon"></i> Live Featured Station (Slideshow)</span>
+    </div>
+    
+    <!-- Full Width Slideshow Container -->
+    <div class="slideshow-container" id="slideshow-container">
+      <div class="slideshow-track" id="slideshow-track"></div>
+    </div>
+    <div class="slideshow-dots" id="slideshow-dots"></div>
+
+    <div style="border-top:1px solid rgba(255,255,255,0.08); padding-top:8px; display:flex; flex-direction:column; flex:1; overflow:hidden;">
+      <div class="section-heading">
+        <span><i class="fa-solid fa-list-ul"></i> Trending Queue (Full Playlist)</span>
+      </div>
+      <div id="playlist-container" style="overflow-y:auto; font-size:13px; color:#aaa; flex:1; padding-right:4px;">Loading queue...</div>
+    </div>
+    
+    <!-- Bottom 3 Icons Bar -->
+    <div class="bottom-nav-bar">
+      <div class="nav-item active" title="Home"><i class="fa-solid fa-house"></i></div>
+      <div class="nav-item" title="Queue"><i class="fa-solid fa-music"></i></div>
+      <div class="nav-item" title="Profile"><i class="fa-solid fa-user"></i></div>
+    </div>
+
+    <div class="dev-sig">DEVELOPER VIVEKMASONA</div>
+  </div>
+</div>
+
+<div id="toast">Track saved successfully!</div>
+
+<audio id="audio-element" crossorigin="anonymous" controlslist="nodownload noplaybackrate" disablepictureinpicture></audio>
+<audio id="preview-audio"></audio>
+
+<script src="https://codepen.io/Tibixx/pen/BbBxRG.js"></script>
+
+<script>
+var canvas = document.getElementById("canvas");
+var ctx = canvas.getContext("2d");
+var w = ctx.canvas.width = window.innerWidth;
+var h = ctx.canvas.height = window.innerHeight;
+
+window.onresize = function() {
+  w = ctx.canvas.width = window.innerWidth;
+  h = ctx.canvas.height = window.innerHeight;
+};
+
+var nrt=0, npt=0, dots=[], lines=[];
+var config = { minRadius: 55, maxRadius: 95, multiplier: 45, colorSpeed: 20, hueStart: 220, centerImage: "https://i.imgur.com/8Q5N8bB.png" };
+
+var bgImage = new Image();
+bgImage.src = config.centerImage;
+
+var AudioContext = window.AudioContext || window.webkitAudioContext;
+var actx, analyser, sourceNode, frequencyData, frequencyDataLen;
+var playing = false;
+var dotEmitter, lineEmitter;
+var audioEl = document.getElementById("audio-element");
+var previewAudio = document.getElementById("preview-audio");
+const liveDot = document.getElementById("live-dot");
+
+let activePreviewUrl = null;
+let currentTabCategory = 'All';
+let pendingSongToSave = null;
+let customCategories = ['Hindi', 'Bhojpuri', 'Bhakti', 'Punjabi'];
+
+// 100 Visualizer Engine Logic
+let activeVizMode = parseInt(localStorage.getItem('vfy_viz_mode') || '1', 10);
+const VIZ_NAMES = [
+  "Original Pulsing Disk", "Classic Spectrum Bars", "Neon Radial Wave", "Cyber Matrix Rain", "Hyper Speed Starfield",
+  "Plasma Fluid Waves", "Electric Pulse Ring", "Cosmic Tunnel", "Frequency Volcano", "Quantum Dot Matrix",
+  "Vortex Orbit", "Solar Flare Burst", "Digital Waveform", "Sonic Crystal Grid", "Hexagon Hive Pulse",
+  "Hypnotic Spirograph", "Neon Fireflies", "Audio Laser Beams", "Cyberpunk Equalizer", "Galactic Nebula",
+  "Aurora Borealis", "Supernova Shockwave", "Synthwave Horizon", "Bouncing Bar Cascade", "Circle Frequency Mesh",
+  "Black Hole Singularity", "Radiant Flower Petals", "DNA Helix Pulse", "Particle Waterfall", "Retro Grid Tunnel",
+  "Electro Ring Shock", "Abstract Geometry", "Geometric Mandala", "Vibe Mirror Wave", "Orbiting Satellites",
+  "Lightning Strike Freq", "Techno Pulse Drops", "Deep Space Nebula", "Vibrant Floating Bubbles", "Neon Crosshair Grid",
+  "Strobe Light Beams", "Glitch Signal Lines", "Spectral Spiral", "Prism Wave Mirror", "Hyperdrive Warp",
+  "Atomic Orbit Shells", "Radioactive Signal", "Golden Ratio Spiral", "Laser Mirror Grid", "Liquid Audio Drops",
+  "Infinite Tunnel Mesh", "Cyber City Silhouette", "Magma Core Pulse", "Kaleidoscope Mirror", "Cyber Starburst",
+  "Echo Wave Ring", "Quantum String Freq", "Tectonic Wave Motion", "Cyber Pulse Sphere", "Orbital Particle Cluster",
+  "Fractal Tree Branch", "Solar Wind Burst", "Chrono Clock Dial", "Cyber Matrix Tunnel", "Cosmic Beam Array",
+  "Digital Sound Wave", "Pulsar Beam Lighthouse", "Sonic Flower Ring", "Starlight Explosion", "Neon DNA Strand",
+  "Abstract Fluid Blob", "Laser Scanner Line", "Hyper Octagon Chamber", "Gravity Well Pulse", "Cyber Horizon Sunset",
+  "Subwoofer Bass Bloom", "Electromagnetic Grid", "Quantum Cloud Dust", "Interstellar Rift", "Synthwave Starburst",
+  "Supercharged Orb", "Radiant Sparkler", "Neon Equalizer Circle", "Cyber Ring Spinner", "Cosmic Dust Ring",
+  "Dynamic Peak Meter", "Laser Grid Tunnel", "Solar Flare Wave", "Abstract Sound Web", "Electric Arc Burst",
+  "Vortex Tunnel Speed", "Sonic Particle Jet", "Neon Pulse Helix", "Quantum Singularity", "Hyper Wave Horizon",
+  "Cyber Dot Matrix 3D", "Aurora Spiral Flow", "Cosmic Particle Ray", "Solar Core Fusion", "Master VFY Hyperdrive"
+];
+
+function initVisualizerDropdown() {
+  const select = document.getElementById("viz-mode-select");
+  let html = "";
+  VIZ_NAMES.forEach((name, i) => {
+    const modeNum = i + 1;
+    const selected = modeNum === activeVizMode ? "selected" : "";
+    html += `<option value="${modeNum}" ${selected}>Mode ${modeNum}: ${name}</option>`;
+  });
+  select.innerHTML = html;
+}
+
+function changeVisualizerMode(val) {
+  activeVizMode = parseInt(val, 10);
+  localStorage.setItem('vfy_viz_mode', activeVizMode);
+  showToast(`Visualizer: Mode ${activeVizMode}`);
+}
+
+function loadLocalPlaylists() {
+  const savedCats = localStorage.getItem('vfy_categories');
+  if (savedCats) {
+    try { customCategories = JSON.parse(savedCats); } catch(e){}
+  }
+  renderCategoryChips();
+}
+
+function renderCategoryChips() {
+  const container = document.getElementById("category-chips-container");
+  let html = `<div class="chip ${currentTabCategory === 'All' ? 'active' : ''}" onclick="filterTab('All', this)">All</div>`;
+  customCategories.forEach(cat => {
+    html += `<div class="chip ${currentTabCategory === cat ? 'active' : ''}" onclick="filterTab('${cat}', this)">${cat}</div>`;
+  });
+  container.innerHTML = html;
+}
+
+function initAudioContext() {
+  if (!actx && AudioContext) {
+    actx = new AudioContext();
+    analyser = actx.createAnalyser();
+    analyser.fftSize = 256;
+    analyser.smoothingTimeConstant = 0.55;
+    sourceNode = actx.createMediaElementSource(audioEl);
+    sourceNode.connect(analyser);
+    analyser.connect(actx.destination);
+    frequencyDataLen = analyser.frequencyBinCount;
+    frequencyData = new Uint8Array(frequencyDataLen);
+  }
+  if (actx && actx.state === 'suspended') { actx.resume(); }
+}
+
+let globalPlaylist = [];
+let activeIndex = -1;
+let syncTimeout = null;
+
+let tapCount = 0;
+let tapTimer = null;
+const brandTitle = document.getElementById("brand-title");
+
+brandTitle.addEventListener('click', () => {
+  tapCount++;
+  if (tapCount === 3) {
+    document.getElementById("auth-modal").style.display = "flex";
+    document.getElementById("admin-pass-input").value = "";
+    document.getElementById("admin-pass-input").focus();
+    tapCount = 0;
+  }
+  if (tapTimer) clearTimeout(tapTimer);
+  tapTimer = setTimeout(() => { tapCount = 0; }, 800);
+});
+
+function closeAuthModal() { document.getElementById("auth-modal").style.display = "none"; }
+
+function verifyAdminPassword() {
+  const pass = document.getElementById("admin-pass-input").value;
+  if (pass === "vivekbabu") {
+    closeAuthModal();
+    loadLocalPlaylists();
+    document.getElementById("studio-modal").style.display = "flex";
+    renderPlaylistUI();
+    renderSlideshowBanners();
+  } else {
+    alert("Wrong Password!");
+    document.getElementById("admin-pass-input").value = "";
+  }
+}
+
+function closeStudio() { stopPreview(); document.getElementById("studio-modal").style.display = "none"; }
+
+function showToast(message) {
+  const toast = document.getElementById("toast");
+  toast.innerText = message;
+  toast.classList.add("show");
+  setTimeout(() => { toast.classList.remove("show"); }, 2500);
+}
+
+function filterTab(category, el) {
+  currentTabCategory = category;
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderPlaylistUI();
+}
+
+function pollGlobalState() {
+  const fetchStartTime = Date.now();
+  fetch('/api/playlist')
+    .then(res => res.json())
+    .then(data => {
+      globalPlaylist = Array.isArray(data.playlist) ? data.playlist : [];
+      let newIndex = data.currentIndex || 0;
+      let seekTime = data.seekTime || 0;
+      let sTime = data.serverTime || fetchStartTime;
+      
+      if (document.getElementById("studio-modal").style.display === "flex") {
+        renderPlaylistUI();
+        renderSlideshowBanners();
+      }
+
+      if (globalPlaylist.length > 0) {
+        document.getElementById("controls").style.display = "none";
+        activeIndex = newIndex;
+        playSongAtIndex(activeIndex, seekTime, sTime);
+      } else {
+        document.getElementById("controls").style.display = "flex";
+        liveDot.classList.remove("active");
+      }
+      scheduleNextSync();
+    })
+    .catch(err => {
+      console.error("Sync error:", err);
+      document.getElementById("controls").style.display = "flex";
+      liveDot.classList.remove("active");
+      syncTimeout = setTimeout(pollGlobalState, 10000);
+    });
+}
+
+function scheduleNextSync() {
+  if (syncTimeout) clearTimeout(syncTimeout);
+  if (audioEl.duration && !isNaN(audioEl.duration)) {
+    let remainingTimeMs = Math.max(2000, (audioEl.duration - audioEl.currentTime) * 1000);
+    syncTimeout = setTimeout(pollGlobalState, remainingTimeMs);
+  } else {
+    syncTimeout = setTimeout(pollGlobalState, 30000);
+  }
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') { pollGlobalState(); }
+});
+
+function renderPlaylistUI() {
+  const container = document.getElementById("playlist-container");
+  if (globalPlaylist.length === 0) {
+    container.innerHTML = "No tracks in queue.";
+    return;
+  }
+
+  let filteredList = globalPlaylist.filter(song => {
+    if (currentTabCategory === 'All') return true;
+    return song.category === currentTabCategory;
+  });
+
+  if (filteredList.length === 0 && currentTabCategory !== 'All') {
+    container.innerHTML = `<div style="padding:10px; color:#777;">No tracks found in ${currentTabCategory} category.</div>`;
+    return;
+  }
+
+  let html = "";
+  (filteredList.length > 0 ? filteredList : globalPlaylist).forEach((song) => {
+    let globalIndex = globalPlaylist.indexOf(song);
+    let isOnAir = (globalIndex === activeIndex);
+    let cardClass = isOnAir ? "item-card on-air-row" : "item-card";
+
+    html += `
+      <div class="${cardClass}" onclick="adminSelectSong(${globalIndex})">
+        <div class="item-row">
+          <img src="${song.image || config.centerImage}" class="album-art">
+          <div class="item-info">
+            <div class="item-title">${isOnAir ? '<i class="fa-solid fa-tower-broadcast live-tower-icon"></i> [ON AIR] ' : ''}${song.title}</div>
+            <div class="item-artist">${song.primaryArtists || 'VFY Artist'} • <span style="color:#8c7ae6;">${song.category || 'All'}</span></div>
+          </div>
+          <button class="delete-btn" onclick="event.stopPropagation(); deleteGlobalSong(${globalIndex})"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </div>
+    `;
+  });
+  container.innerHTML = html;
+}
+
+let currentSlideIndex = 0;
+
+function renderSlideshowBanners() {
+  const trackContainer = document.getElementById("slideshow-track");
+  const dotsContainer = document.getElementById("slideshow-dots");
+  
+  if (globalPlaylist.length === 0) {
+    trackContainer.innerHTML = "<div style='font-size:11px; color:#666; padding:20px; text-align:center;'>No banner tracks available.</div>";
+    dotsContainer.innerHTML = "";
+    return;
+  }
+
+  if (activeIndex >= 0 && activeIndex < globalPlaylist.length) {
+    currentSlideIndex = activeIndex;
+  }
+
+  let slidesHtml = "";
+  let dotsHtml = "";
+  
+  globalPlaylist.forEach((song, idx) => {
+    let isOnAir = (idx === activeIndex);
+
+    slidesHtml += `
+      <div class="slide-banner-card" onclick="adminSelectSong(${idx})">
+        <img src="${song.image || config.centerImage}">
+        <div class="black-shadow-overlay"></div>
+        <div class="banner-info">
+          <div class="banner-title">${isOnAir ? '<i class="fa-solid fa-tower-broadcast live-tower-icon"></i> [ON AIR] ' : ''}${song.title}</div>
+          <div class="banner-sub">${song.primaryArtists || 'Featured Live Artist'} • <span style="color:#a29bfe;">${song.category || 'General'}</span></div>
+        </div>
+      </div>
+    `;
+    dotsHtml += `<div class="slide-dot ${idx === currentSlideIndex ? 'active' : ''}" onclick="currentSlide(${idx})"></div>`;
+  });
+
+  trackContainer.innerHTML = slidesHtml;
+  dotsContainer.innerHTML = dotsHtml;
+  updateSlideshowPosition();
+}
+
+function currentSlide(idx) {
+  currentSlideIndex = idx;
+  updateSlideshowPosition();
+}
+
+function updateSlideshowPosition() {
+  const trackContainer = document.getElementById("slideshow-track");
+  if (trackContainer) {
+    trackContainer.style.transform = `translateX(-${currentSlideIndex * 100}%)`;
+  }
+  const dots = document.querySelectorAll(".slide-dot");
+  dots.forEach((dot, i) => {
+    if (i === currentSlideIndex) dot.classList.add("active");
+    else dot.classList.remove("active");
+  });
+}
+
+let touchStartX = 0;
+const slideshowEl = document.getElementById("slideshow-container");
+if (slideshowEl) {
+  slideshowEl.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, {passive: true});
+  slideshowEl.addEventListener('touchend', e => {
+    let diff = e.changedTouches[0].screenX - touchStartX;
+    if (Math.abs(diff) > 30) {
+      if (diff > 0) { currentSlideIndex = (currentSlideIndex - 1 + globalPlaylist.length) % globalPlaylist.length; }
+      else { currentSlideIndex = (currentSlideIndex + 1) % globalPlaylist.length; }
+      currentSlide(currentSlideIndex);
+    }
+  }, {passive: true});
+}
+
+function adminSelectSong(index) {
+  fetch('/api/play', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ index: index })
+  })
+  .then(res => res.json())
+  .then(data => {
+    globalPlaylist = data.playlist;
+    activeIndex = data.currentIndex;
+    playSongAtIndex(activeIndex, data.seekTime, data.serverTime);
+    renderPlaylistUI();
+    renderSlideshowBanners();
+    scheduleNextSync();
+  });
+}
+
+function deleteGlobalSong(index) {
+  if (!confirm("Delete track?")) return;
+  fetch(`/api/playlist/${index}`, { method: 'DELETE' })
+    .then(res => res.json())
+    .then(data => {
+      globalPlaylist = data.playlist;
+      activeIndex = data.currentIndex;
+      if (globalPlaylist.length > 0) {
+        playSongAtIndex(activeIndex, data.seekTime, data.serverTime);
+      } else {
+        audioEl.pause();
+        audioEl.src = "";
+        playing = false;
+        liveDot.classList.remove("active");
+        document.getElementById("controls").style.display = "flex";
+      }
+      renderPlaylistUI();
+      renderSlideshowBanners();
+      scheduleNextSync();
+    });
+}
+
+document.getElementById("search-btn").addEventListener("click", () => {
+  const query = document.getElementById("query-input").value.trim();
+  if (!query) return;
+
+  const resultsContainer = document.getElementById("search-results");
+  resultsContainer.innerHTML = "<div style='font-size:12px; color:#888; padding:6px;'>Searching...</div>";
+
+  fetch(`/api/search?q=${encodeURIComponent(query)}`)
+    .then(res => res.json())
+    .then(data => {
+      const songs = data.results || [];
+      if (songs.length === 0) {
+        resultsContainer.innerHTML = "<div style='font-size:12px; color:#888; padding:6px;'>No tracks found.</div>";
+        return;
+      }
+
+      let html = "";
+      songs.forEach((s, idx) => {
+        const songObj = encodeURIComponent(JSON.stringify(s));
+        html += `
+          <div class="item-card">
+            <div class="item-row">
+              <img src="${s.image || config.centerImage}" class="album-art">
+              <div class="item-info">
+                <div class="item-title">${s.title}</div>
+                <div class="item-artist">${s.primaryArtists}</div>
+              </div>
+              <div style="display:flex; gap:6px; align-items:center;">
+                <button class="round-preview-btn" id="prev-btn-${idx}" onclick="toggleSearchPreview('${s.url}', 'prev-btn-${idx}')"><i class="fa-solid fa-play"></i></button>
+                <button class="save-btn" onclick="openPlaylistPicker('${songObj}')">+ Save to...</button>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      resultsContainer.innerHTML = html;
+    })
+    .catch(err => { resultsContainer.innerHTML = "<div style='font-size:12px; color:#ff4757;'>Search Error.</div>"; });
+});
+
+function toggleSearchPreview(url, btnId) {
+  const btn = document.getElementById(btnId);
+  const icon = btn.querySelector("i");
+  if (activePreviewUrl === url && !previewAudio.paused) {
+    previewAudio.pause();
+    icon.className = "fa-solid fa-play";
+  } else {
+    audioEl.muted = true;
+    previewAudio.src = url;
+    previewAudio.play().then(() => {
+      activePreviewUrl = url;
+      icon.className = "fa-solid fa-pause";
+    }).catch(err => { audioEl.muted = false; alert("Preview failed"); });
+  }
+}
+
+previewAudio.onended = () => { stopPreview(); };
+
+function stopPreview() {
+  previewAudio.pause();
+  previewAudio.currentTime = 0;
+  audioEl.muted = false;
+  activePreviewUrl = null;
+}
+
+function openPlaylistPicker(encodedObj) {
+  pendingSongToSave = encodedObj;
+  const container = document.getElementById("playlist-options-container");
+  let html = "";
+  customCategories.forEach(cat => {
+    html += `<button onclick="confirmSaveToCategory('${cat}')" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px 14px; border-radius:14px; text-align:left; font-weight:700; font-size:12px; cursor:pointer;"><i class="fa-solid fa-folder"></i> ${cat}</button>`;
+  });
+  container.innerHTML = html;
+  document.getElementById("playlist-picker-modal").style.display = "flex";
+}
+
+function closePlaylistPicker() {
+  document.getElementById("playlist-picker-modal").style.display = "none";
+  pendingSongToSave = null;
+}
+
+function createNewCategoryAndSave() {
+  const input = document.getElementById("new-category-input");
+  const newCat = input.value.trim();
+  if (!newCat) return;
+  if (!customCategories.includes(newCat)) {
+    customCategories.push(newCat);
+    localStorage.setItem('vfy_categories', JSON.stringify(customCategories));
+    renderCategoryChips();
+  }
+  input.value = "";
+  confirmSaveToCategory(newCat);
+}
+
+function confirmSaveToCategory(categoryName) {
+  if (!pendingSongToSave) return;
+  const songData = JSON.parse(decodeURIComponent(pendingSongToSave));
+  songData.duration = Number(songData.duration) || 180;
+  songData.category = categoryName;
+
+  fetch('/api/playlist', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(songData)
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      globalPlaylist = data.playlist;
+      closePlaylistPicker();
+      renderPlaylistUI();
+      renderSlideshowBanners();
+      scheduleNextSync();
+      showToast(`✓ Added to ${categoryName} playlist!`);
+    }
+  })
+  .catch(err => { showToast("❌ Error saving track."); });
+}
+
+window.addEventListener('load', () => { 
+  initVisualizerDropdown();
+  loadLocalPlaylists();
+  autoPlayLiveRadio(); 
+});
+
+function autoPlayLiveRadio() {
+  initAudioContext();
+  fetch('/api/playlist')
+    .then(res => res.json())
+    .then(data => {
+      globalPlaylist = Array.isArray(data.playlist) ? data.playlist : [];
+      if (globalPlaylist.length === 0) return;
+      activeIndex = data.currentIndex || 0;
+      playSongAtIndex(activeIndex, data.seekTime || 0, data.serverTime || Date.now());
+      scheduleNextSync();
+    })
+    .catch(err => { document.getElementById("controls").style.display = "block"; });
+}
+
+function startLiveAudio() {
+  document.getElementById("controls").style.display = "none";
+  autoPlayLiveRadio();
+}
+
+function playSongAtIndex(index, baseSeekTime, serverTimestamp) {
+  if (globalPlaylist.length === 0) return;
+  activeIndex = index % globalPlaylist.length;
+  const song = globalPlaylist[activeIndex];
+
+  if (!song || !song.url) return;
+  if (song.image) { bgImage.src = song.image; }
+
+  renderSlideshowBanners();
+  renderPlaylistUI();
+
+  const networkDelay = (Date.now() - serverTimestamp) / 1000;
+  const exactTargetSeek = baseSeekTime + Math.max(0, networkDelay);
+
+  if (audioEl.src !== song.url) {
+    audioEl.src = song.url;
+    audioEl.currentTime = exactTargetSeek;
+  } else {
+    if (Math.abs(audioEl.currentTime - exactTargetSeek) > 0.6) {
+      audioEl.currentTime = exactTargetSeek;
+    }
+  }
+
+  audioEl.play().then(() => {
+    document.getElementById("controls").style.display = "none";
+    liveDot.classList.add("active");
+    if (!playing) {
+      dotEmitter = setInterval(emitDot, 50);
+      lineEmitter = setInterval(emitLine, 100);
+      playing = true;
+      render();
+    }
+  }).catch(err => {
+    document.getElementById("controls").style.display = "block";
+    liveDot.classList.remove("active");
+  });
+}
+
+// -------------------------------------------------------------
+// VISUALIZER HELPERS & 100 UNIQUE MODES RENDER ENGINE
+// -------------------------------------------------------------
+function emitDot(){ if (dots.length > 80) return; dots.push({ xp: w/2, yp: h/2, xv: Math.random()*0.4-0.2, yv: Math.random()*0.4-0.2, rad: Math.random()*(10-2)+2, hue: Math.random()*50-25 }); }
+function emitLine(){ if (lines.length > 30) return; lines.push({ xp: w/2, yp: h/2, xv: Math.random()*0.4-0.2, yv: Math.random()*0.4-0.2, hue: Math.random()*50-25 }); }
+function clear(){ ctx.beginPath(); var grd = ctx.createLinearGradient(w/2, 0, w/2, h); grd.addColorStop(0, "hsl("+(config.hueStart + npt * config.colorSpeed)+", 35%, 8%"); grd.addColorStop(1, "hsl("+(config.hueStart + npt * config.colorSpeed)+", 75%, 3%)"); ctx.fillStyle = grd; ctx.fillRect(0, 0, w, h); ctx.closePath(); }
+function drawDots(){ var avg = averageFrequency(); for(let i = 0; i < dots.length; i++){ ctx.beginPath(); var grd = ctx.createRadialGradient(dots[i].xp + dots[i].rad, dots[i].yp + dots[i].rad, 0, dots[i].xp + dots[i].rad, dots[i].yp + dots[i].rad, dots[i].rad); grd.addColorStop(0, "hsla("+(config.hueStart + npt * config.colorSpeed + dots[i].hue)+", 50%, 50%, "+(avg / 400)+"%)"); grd.addColorStop(1, "hsla("+(config.hueStart + npt * config.colorSpeed + dots[i].hue)+", 50%, 50%, 0%)"); ctx.fillStyle = grd; ctx.fillRect(dots[i].xp, dots[i].yp, dots[i].rad*2, dots[i].rad*2); ctx.closePath(); if(dots[i].xp > w || dots[i].xp < 0 || dots[i].yp > w || dots[i].yp < 0){ dots[i] = dots[dots.length-1]; dots.pop(); } else { dots[i].xp += dots[i].xv * Math.pow(avg/1000, 1.5); dots[i].yp += dots[i].yv * Math.pow(avg/1000, 1.5); } } }
+function drawLines() { var avg = averageFrequency(); var maxDist = 100; for (let i = 0; i < lines.length; i++) { for (let j = 0; j < lines.length; j++) { var proDist = 100 / maxDist; var opacity = 100 - dist(lines[j].xp, lines[j].yp, lines[i].xp, lines[i].yp) * proDist; if (dist(lines[j].xp, lines[j].yp, lines[i].xp, lines[i].yp) < maxDist) { ctx.beginPath(); ctx.lineWidth = 1; ctx.strokeStyle = "hsla(" + (config.hueStart + npt * config.colorSpeed) + ", 50%, 50%, " + (opacity - 50) + "%)"; ctx.moveTo(lines[i].xp, lines[i].yp); ctx.lineTo(lines[j].xp, lines[j].yp); ctx.stroke(); ctx.closePath(); } } if (lines[i].xp > w || lines[i].xp < 0 || lines[i].yp > w || lines[i].yp < 0) { lines[i] = lines[lines.length - 1]; lines.pop(); } else { lines[i].xp += lines[i].xv * avg/500; lines[i].yp += lines[i].yv * avg/500; } } }
+function getBassPulse() { if (!frequencyData) return 0; var bassSum = 0; for (let i = 0; i < 8; i++) { bassSum += frequencyData[i]; } return bassSum / 8; }
+function dist(x1, y1, x2, y2) { var a = x1 - x2; var b = y1 - y2; return Math.sqrt(a * a + b * b); }
+function averageFrequency() { var avg = 0; if(!frequencyData) return 0; for (let i = 0; i < frequencyData.length; i++) { avg += frequencyData[i]; } return avg / frequencyData.length; }
+
+function render() {
+  if (!playing) return;
+  if (analyser) analyser.getByteFrequencyData(frequencyData);
+
+  clear();
+  drawDots();
+  
+  // Render Selected Visualizer Engine (1-100)
+  drawSelectedVisualizer(activeVizMode);
+
+  drawLines();
+  requestAnimationFrame(render);
+}
+
+// 100 Mode Renderer Dispatcher
+function drawSelectedVisualizer(mode) {
+  if (!frequencyData) return;
+  noiseSpeed = averageFrequency();
+  nrt += noiseSpeed/3000000; 
+  npt += noiseSpeed/1000000; 
+  const avg = averageFrequency();
+  const bassPower = getBassPulse();
+
+  ctx.save();
+  
+  switch(mode) {
+    case 1: // Original Pulsing Disk
+      drawSpectrumMode1();
+      break;
+
+    case 2: // Classic Spectrum Bars
+      var barWidth = (w / frequencyDataLen) * 2;
+      for (let i = 0; i < frequencyDataLen; i++) {
+        var barHeight = (frequencyData[i] / 255) * (h * 0.5);
+        ctx.fillStyle = "hsla(" + (i * 3 + npt * 50) + ", 80%, 50%, 0.8)";
+        ctx.fillRect(i * barWidth, h - barHeight, barWidth - 2, barHeight);
+      }
+      break;
+
+    case 3: // Neon Radial Wave
+      var radius = 100 + bassPower * 0.5;
+      ctx.beginPath();
+      for (let i = 0; i < frequencyDataLen; i++) {
+        var angle = (i / frequencyDataLen) * Math.PI * 2;
+        var r = radius + (frequencyData[i] / 255) * 80;
+        var x = w / 2 + Math.cos(angle) * r;
+        var y = h / 2 + Math.sin(angle) * r;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.strokeStyle = "hsl(" + (npt * 100) + ", 100%, 60%)";
+      ctx.lineWidth = 4;
+      ctx.stroke();
+      break;
+
+    case 4: // Cyber Matrix Rain
+      for (let i = 0; i < 40; i++) {
+        var val = frequencyData[i % frequencyDataLen];
+        var rx = (i / 40) * w;
+        var ry = (npt * 500 + i * 40) % h;
+        ctx.fillStyle = "#00ffcc";
+        ctx.font = (10 + val * 0.1) + "px monospace";
+        ctx.fillText(String.fromCharCode(0x30A0 + (i % 96)), rx, ry);
+      }
+      break;
+
+    case 5: // Hyper Speed Starfield
+      for (let i = 0; i < 60; i++) {
+        var speed = 1 + (frequencyData[i % frequencyDataLen] / 20);
+        var sx = (w / 2) + Math.cos(i) * ((npt * 200 * speed + i * 20) % (w / 2));
+        var sy = (h / 2) + Math.sin(i) * ((npt * 200 * speed + i * 20) % (h / 2));
+        ctx.fillStyle = "hsl(" + (i * 6) + ", 100%, 70%)";
+        ctx.beginPath(); ctx.arc(sx, sy, 2 + bassPower * 0.03, 0, Math.PI * 2); ctx.fill();
+      }
+      break;
+
+    default:
+      // General Procedural Shader Generator for Modes 6 to 100
+      var dynamicZoom = config.minRadius + (bassPower * 0.16);
+      if (dynamicZoom > config.maxRadius) dynamicZoom = config.maxRadius;
+
+      var numPoints = Math.round(frequencyDataLen - frequencyDataLen / 3);
+      var hueOffset = (mode * 15 + npt * config.colorSpeed) % 360;
+
+      for (let i = 0; i < numPoints; i++) {
+        var fVal = frequencyData[i];
+        var angle = (i / numPoints) * Math.PI * 2 + (nrt * (mode % 5 + 1));
+        
+        // Mathematical Preset Variation Based on Mode Number
+        var amp = (fVal / 255) * (config.multiplier * (1 + (mode % 10) * 0.1));
+        var r1 = dynamicZoom + Math.sin(angle * (mode % 7 + 1)) * (mode * 0.5);
+        var r2 = dynamicZoom + amp + Math.cos(angle * ((mode + 3) % 8 + 1)) * 10;
+
+        var x1 = w / 2 + r1 * Math.cos(angle);
+        var y1 = h / 2 + r1 * Math.sin(angle);
+        var x2 = w / 2 + r2 * Math.cos(angle);
+        var y2 = h / 2 + r2 * Math.sin(angle);
+
+        ctx.beginPath();
+        ctx.lineWidth = 1 + (mode % 4);
+        ctx.strokeStyle = "hsla(" + (hueOffset + i * 2) + ", 80%, " + (40 + (fVal / 255) * 50) + "%, 0.85)";
+        
+        if (mode % 3 === 0) {
+          ctx.arc(x2, y2, 2 + (fVal / 255) * 6, 0, Math.PI * 2);
+          ctx.fillStyle = ctx.strokeStyle;
+          ctx.fill();
+        } else if (mode % 3 === 1) {
+          ctx.moveTo(x1, y1);
+          ctx.lineTo(x2, y2);
+          ctx.stroke();
+        } else {
+          ctx.rect(x2 - 2, y2 - 2, 4 + (fVal / 255) * 8, 4 + (fVal / 255) * 8);
+          ctx.stroke();
+        }
+      }
+
+      // Draw Center Album Art Disc
+      if (bgImage.complete) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(w / 2, h / 2, dynamicZoom, 0, Math.PI * 2);
+        ctx.clip();
+        ctx.drawImage(bgImage, (w / 2) - dynamicZoom, (h / 2) - dynamicZoom, dynamicZoom * 2, dynamicZoom * 2);
+        ctx.restore();
+      }
+      break;
+  }
+
+  ctx.restore();
+}
+
+function drawSpectrumMode1() {
+  var noiseRotate = noise.perlin2(10, nrt); 
+  var points = Math.round(frequencyDataLen - frequencyDataLen / 3); 
+  var bassPower = getBassPulse(); 
+  var dynamicZoom = config.minRadius + (bassPower * 0.16); 
+  if (dynamicZoom > config.maxRadius) { dynamicZoom = config.maxRadius; }
+  
+  if (bgImage.complete) { 
+    ctx.save(); ctx.beginPath(); ctx.arc(w / 2, h / 2, dynamicZoom, 0, Math.PI * 2); 
+    ctx.clip(); ctx.drawImage(bgImage, (w / 2) - dynamicZoom, (h / 2) - dynamicZoom, dynamicZoom * 2, dynamicZoom * 2); ctx.restore(); 
+  }
+
+  var avg = averageFrequency();
+  for (let i = 0.5; i < points; i++) { 
+    var val = frequencyData[Math.floor(i)];
+    var x1 = w / 2 + (dynamicZoom) * Math.cos(-Math.PI/2 + 2 * Math.PI * i / points + noiseRotate); 
+    var y1 = h / 2 + (dynamicZoom) * Math.sin(-Math.PI/2 + 2 * Math.PI * i / points + noiseRotate); 
+    var x2 = w / 2 + ((dynamicZoom) + val * 0.45) * Math.cos(-Math.PI/2 + 2 * Math.PI * i / points + noiseRotate); 
+    var y2 = h / 2 + ((dynamicZoom) + val * 0.45) * Math.sin(-Math.PI/2 + 2 * Math.PI * i / points + noiseRotate); 
+    var x3 = w / 2 + ((dynamicZoom) + Math.pow((val * 0.45) * 0.09, 2)) * Math.cos(-Math.PI/2 + 2 * Math.PI * i / points + noiseRotate); 
+    var y3 = h / 2 + ((dynamicZoom) + Math.pow((val * 0.45) * 0.09, 2)) * Math.sin(-Math.PI/2 + 2 * Math.PI * i / points + noiseRotate); 
+    var nd1 = noise.simplex2(y1/100, npt)*10; 
+    
+    ctx.beginPath(); ctx.lineCap = "round"; ctx.lineWidth = 1.5; 
+    ctx.strokeStyle = "hsla("+(config.hueStart + npt * config.colorSpeed)+", 50%, "+(20+(Math.pow(val * 0.1, 2)))+"%, 100%)"; 
+    ctx.moveTo(x1+nd1, y1+nd1); ctx.lineTo(x2+nd1, y2+nd1); ctx.stroke(); ctx.closePath(); 
+    
+    ctx.beginPath(); ctx.lineCap = "round"; ctx.lineWidth = 3.5; 
+    ctx.strokeStyle = "hsla("+(config.hueStart + npt * config.colorSpeed)+", 50%, "+(30+(Math.pow(val * 0.1, 2)))+"%, 100%)"; 
+    ctx.moveTo(x1+nd1, y1+nd1); ctx.lineTo(x3+nd1, y3+nd1); ctx.stroke(); ctx.closePath(); 
+  } 
+}
+</script>
+
+</body>
+</html>
