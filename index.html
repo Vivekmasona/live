@@ -37,7 +37,7 @@ canvas { position: fixed; inset: 0; z-index: 1; }
   background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12);
   color: #a29bfe; border-radius: 16px; padding: 6px 12px; font-size: 11px; font-weight: 700;
   outline: none; cursor: pointer; transition: 0.25s ease; backdrop-filter: blur(15px);
-  max-width: 170px;
+  max-width: 210px; text-overflow: ellipsis;
 }
 .viz-selector-box:hover, .viz-selector-box:focus {
   background: rgba(108, 92, 231, 0.2); border-color: #8c7ae6; color: #fff;
@@ -207,7 +207,7 @@ button.search-btn-custom {
 
   <div class="header-center-controls">
     <select id="viz-mode-select" class="viz-selector-box" onchange="changeVisualizerMode(this.value)">
-      <!-- 100 Visualizer Options generated dynamically -->
+      <!-- Master Unique Visualizers -->
     </select>
   </div>
 
@@ -325,7 +325,7 @@ window.onresize = function() {
 };
 
 var nrt=0, npt=0, dots=[], lines=[];
-var config = { minRadius: 55, maxRadius: 95, multiplier: 45, colorSpeed: 20, hueStart: 220, centerImage: "https://i.imgur.com/8Q5N8bB.png" };
+var config = { minRadius: 70, maxRadius: 130, multiplier: 45, colorSpeed: 20, hueStart: 220, centerImage: "https://i.imgur.com/8Q5N8bB.png" };
 
 var bgImage = new Image();
 bgImage.src = config.centerImage;
@@ -333,7 +333,6 @@ bgImage.src = config.centerImage;
 var AudioContext = window.AudioContext || window.webkitAudioContext;
 var actx, analyser, sourceNode, frequencyData, frequencyDataLen;
 var playing = false;
-var dotEmitter, lineEmitter;
 var audioEl = document.getElementById("audio-element");
 var previewAudio = document.getElementById("preview-audio");
 const liveDot = document.getElementById("live-dot");
@@ -343,38 +342,27 @@ let currentTabCategory = 'All';
 let pendingSongToSave = null;
 let customCategories = ['Hindi', 'Bhojpuri', 'Bhakti', 'Punjabi'];
 
-// 100 Visualizer Engine Logic
-let activeVizMode = parseInt(localStorage.getItem('vfy_viz_mode') || '1', 10);
-const VIZ_NAMES = [
-  "Original Pulsing Disk", "Classic Spectrum Bars", "Neon Radial Wave", "Cyber Matrix Rain", "Hyper Speed Starfield",
-  "Plasma Fluid Waves", "Electric Pulse Ring", "Cosmic Tunnel", "Frequency Volcano", "Quantum Dot Matrix",
-  "Vortex Orbit", "Solar Flare Burst", "Digital Waveform", "Sonic Crystal Grid", "Hexagon Hive Pulse",
-  "Hypnotic Spirograph", "Neon Fireflies", "Audio Laser Beams", "Cyberpunk Equalizer", "Galactic Nebula",
-  "Aurora Borealis", "Supernova Shockwave", "Synthwave Horizon", "Bouncing Bar Cascade", "Circle Frequency Mesh",
-  "Black Hole Singularity", "Radiant Flower Petals", "DNA Helix Pulse", "Particle Waterfall", "Retro Grid Tunnel",
-  "Electro Ring Shock", "Abstract Geometry", "Geometric Mandala", "Vibe Mirror Wave", "Orbiting Satellites",
-  "Lightning Strike Freq", "Techno Pulse Drops", "Deep Space Nebula", "Vibrant Floating Bubbles", "Neon Crosshair Grid",
-  "Strobe Light Beams", "Glitch Signal Lines", "Spectral Spiral", "Prism Wave Mirror", "Hyperdrive Warp",
-  "Atomic Orbit Shells", "Radioactive Signal", "Golden Ratio Spiral", "Laser Mirror Grid", "Liquid Audio Drops",
-  "Infinite Tunnel Mesh", "Cyber City Silhouette", "Magma Core Pulse", "Kaleidoscope Mirror", "Cyber Starburst",
-  "Echo Wave Ring", "Quantum String Freq", "Tectonic Wave Motion", "Cyber Pulse Sphere", "Orbital Particle Cluster",
-  "Fractal Tree Branch", "Solar Wind Burst", "Chrono Clock Dial", "Cyber Matrix Tunnel", "Cosmic Beam Array",
-  "Digital Sound Wave", "Pulsar Beam Lighthouse", "Sonic Flower Ring", "Starlight Explosion", "Neon DNA Strand",
-  "Abstract Fluid Blob", "Laser Scanner Line", "Hyper Octagon Chamber", "Gravity Well Pulse", "Cyber Horizon Sunset",
-  "Subwoofer Bass Bloom", "Electromagnetic Grid", "Quantum Cloud Dust", "Interstellar Rift", "Synthwave Starburst",
-  "Supercharged Orb", "Radiant Sparkler", "Neon Equalizer Circle", "Cyber Ring Spinner", "Cosmic Dust Ring",
-  "Dynamic Peak Meter", "Laser Grid Tunnel", "Solar Flare Wave", "Abstract Sound Web", "Electric Arc Burst",
-  "Vortex Tunnel Speed", "Sonic Particle Jet", "Neon Pulse Helix", "Quantum Singularity", "Hyper Wave Horizon",
-  "Cyber Dot Matrix 3D", "Aurora Spiral Flow", "Cosmic Particle Ray", "Solar Core Fusion", "Master VFY Hyperdrive"
+// 10 Distinct Master Visualizer Engines
+let activeVizMode = parseInt(localStorage.getItem('vfy_viz_mode') || '10', 10);
+const MASTER_VIZ_LIST = [
+  { id: 1, name: "1. Circular Spectrum Wave" },
+  { id: 2, name: "2. Full-Screen Dual Equalizer Bars" },
+  { id: 3, name: "3. Floating Quantum Sparks" },
+  { id: 4, name: "4. 3D Warp Field Starburst" },
+  { id: 5, name: "5. Matrix Rain & Screen Equalizer" },
+  { id: 6, name: "6. Concentric Pulsing Audio Rings" },
+  { id: 7, name: "7. Mirror Wave Horizon" },
+  { id: 8, name: "8. Spirograph Cyber Mandala" },
+  { id: 9, name: "9. Cyberpunk Grid Laser Beams" },
+  { id: 10, name: "10. Mixed Master Studio (All In One)" }
 ];
 
 function initVisualizerDropdown() {
   const select = document.getElementById("viz-mode-select");
   let html = "";
-  VIZ_NAMES.forEach((name, i) => {
-    const modeNum = i + 1;
-    const selected = modeNum === activeVizMode ? "selected" : "";
-    html += `<option value="${modeNum}" ${selected}>Mode ${modeNum}: ${name}</option>`;
+  MASTER_VIZ_LIST.forEach(item => {
+    const selected = item.id === activeVizMode ? "selected" : "";
+    html += `<option value="${item.id}" ${selected}>${item.name}</option>`;
   });
   select.innerHTML = html;
 }
@@ -382,7 +370,7 @@ function initVisualizerDropdown() {
 function changeVisualizerMode(val) {
   activeVizMode = parseInt(val, 10);
   localStorage.setItem('vfy_viz_mode', activeVizMode);
-  showToast(`Visualizer: Mode ${activeVizMode}`);
+  showToast(`Visualizer: ${MASTER_VIZ_LIST.find(v => v.id === activeVizMode).name}`);
 }
 
 function loadLocalPlaylists() {
@@ -836,8 +824,6 @@ function playSongAtIndex(index, baseSeekTime, serverTimestamp) {
     document.getElementById("controls").style.display = "none";
     liveDot.classList.add("active");
     if (!playing) {
-      dotEmitter = setInterval(emitDot, 50);
-      lineEmitter = setInterval(emitLine, 100);
       playing = true;
       render();
     }
@@ -848,179 +834,228 @@ function playSongAtIndex(index, baseSeekTime, serverTimestamp) {
 }
 
 // -------------------------------------------------------------
-// VISUALIZER HELPERS & 100 UNIQUE MODES RENDER ENGINE
+// FULL-SCREEN CANVAS RENDER ENGINE & 10 MASTER UNIQUE MODES
 // -------------------------------------------------------------
-function emitDot(){ if (dots.length > 80) return; dots.push({ xp: w/2, yp: h/2, xv: Math.random()*0.4-0.2, yv: Math.random()*0.4-0.2, rad: Math.random()*(10-2)+2, hue: Math.random()*50-25 }); }
-function emitLine(){ if (lines.length > 30) return; lines.push({ xp: w/2, yp: h/2, xv: Math.random()*0.4-0.2, yv: Math.random()*0.4-0.2, hue: Math.random()*50-25 }); }
-function clear(){ ctx.beginPath(); var grd = ctx.createLinearGradient(w/2, 0, w/2, h); grd.addColorStop(0, "hsl("+(config.hueStart + npt * config.colorSpeed)+", 35%, 8%"); grd.addColorStop(1, "hsl("+(config.hueStart + npt * config.colorSpeed)+", 75%, 3%)"); ctx.fillStyle = grd; ctx.fillRect(0, 0, w, h); ctx.closePath(); }
-function drawDots(){ var avg = averageFrequency(); for(let i = 0; i < dots.length; i++){ ctx.beginPath(); var grd = ctx.createRadialGradient(dots[i].xp + dots[i].rad, dots[i].yp + dots[i].rad, 0, dots[i].xp + dots[i].rad, dots[i].yp + dots[i].rad, dots[i].rad); grd.addColorStop(0, "hsla("+(config.hueStart + npt * config.colorSpeed + dots[i].hue)+", 50%, 50%, "+(avg / 400)+"%)"); grd.addColorStop(1, "hsla("+(config.hueStart + npt * config.colorSpeed + dots[i].hue)+", 50%, 50%, 0%)"); ctx.fillStyle = grd; ctx.fillRect(dots[i].xp, dots[i].yp, dots[i].rad*2, dots[i].rad*2); ctx.closePath(); if(dots[i].xp > w || dots[i].xp < 0 || dots[i].yp > w || dots[i].yp < 0){ dots[i] = dots[dots.length-1]; dots.pop(); } else { dots[i].xp += dots[i].xv * Math.pow(avg/1000, 1.5); dots[i].yp += dots[i].yv * Math.pow(avg/1000, 1.5); } } }
-function drawLines() { var avg = averageFrequency(); var maxDist = 100; for (let i = 0; i < lines.length; i++) { for (let j = 0; j < lines.length; j++) { var proDist = 100 / maxDist; var opacity = 100 - dist(lines[j].xp, lines[j].yp, lines[i].xp, lines[i].yp) * proDist; if (dist(lines[j].xp, lines[j].yp, lines[i].xp, lines[i].yp) < maxDist) { ctx.beginPath(); ctx.lineWidth = 1; ctx.strokeStyle = "hsla(" + (config.hueStart + npt * config.colorSpeed) + ", 50%, 50%, " + (opacity - 50) + "%)"; ctx.moveTo(lines[i].xp, lines[i].yp); ctx.lineTo(lines[j].xp, lines[j].yp); ctx.stroke(); ctx.closePath(); } } if (lines[i].xp > w || lines[i].xp < 0 || lines[i].yp > w || lines[i].yp < 0) { lines[i] = lines[lines.length - 1]; lines.pop(); } else { lines[i].xp += lines[i].xv * avg/500; lines[i].yp += lines[i].yv * avg/500; } } }
-function getBassPulse() { if (!frequencyData) return 0; var bassSum = 0; for (let i = 0; i < 8; i++) { bassSum += frequencyData[i]; } return bassSum / 8; }
-function dist(x1, y1, x2, y2) { var a = x1 - x2; var b = y1 - y2; return Math.sqrt(a * a + b * b); }
-function averageFrequency() { var avg = 0; if(!frequencyData) return 0; for (let i = 0; i < frequencyData.length; i++) { avg += frequencyData[i]; } return avg / frequencyData.length; }
+function clearCanvas(){
+  ctx.fillStyle = "rgba(7, 5, 15, 0.3)";
+  ctx.fillRect(0, 0, w, h);
+}
+
+function getBassPulse() { 
+  if (!frequencyData) return 0; 
+  let bassSum = 0; 
+  for (let i = 0; i < 8; i++) { bassSum += frequencyData[i]; } 
+  return bassSum / 8; 
+}
+
+function averageFrequency() { 
+  if(!frequencyData) return 0; 
+  let avg = 0; 
+  for (let i = 0; i < frequencyData.length; i++) { avg += frequencyData[i]; } 
+  return avg / frequencyData.length; 
+}
+
+// Draw Center Pulsing Album Cover Image
+function drawCenterAlbumArt(bassPower) {
+  const dynamicZoom = Math.min(w, h) * 0.14 + (bassPower * 0.22);
+  if (bgImage.complete && bgImage.src) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(w / 2, h / 2, dynamicZoom, 0, Math.PI * 2);
+    ctx.shadowColor = "#8c7ae6";
+    ctx.shadowBlur = 20 + (bassPower * 0.3);
+    ctx.strokeStyle = "rgba(140, 122, 230, 0.8)";
+    ctx.lineWidth = 4;
+    ctx.stroke();
+    ctx.clip();
+    ctx.drawImage(bgImage, (w / 2) - dynamicZoom, (h / 2) - dynamicZoom, dynamicZoom * 2, dynamicZoom * 2);
+    ctx.restore();
+  }
+}
+
+// Particle System State for Mode 3 & 10
+var quantumParticles = [];
+for(let i = 0; i < 70; i++) {
+  quantumParticles.push({
+    x: Math.random() * window.innerWidth,
+    y: Math.random() * window.innerHeight,
+    vx: (Math.random() - 0.5) * 1.5,
+    vy: (Math.random() - 0.5) * 1.5,
+    size: Math.random() * 4 + 2
+  });
+}
 
 function render() {
   if (!playing) return;
   if (analyser) analyser.getByteFrequencyData(frequencyData);
 
-  clear();
-  drawDots();
-  
-  // Render Selected Visualizer Engine (1-100)
-  drawSelectedVisualizer(activeVizMode);
+  clearCanvas();
+  npt += 0.01;
+  nrt += 0.005;
 
-  drawLines();
+  const bass = getBassPulse();
+
+  // Execute Selected Master Mode
+  switch(activeVizMode) {
+    case 1: drawMode1_CircularSpectrum(bass); break;
+    case 2: drawMode2_FullBars(bass); break;
+    case 3: drawMode3_QuantumSparks(bass); break;
+    case 4: drawMode4_WarpStarburst(bass); break;
+    case 5: drawMode5_MatrixEqualizer(bass); break;
+    case 6: drawMode6_AudioRings(bass); break;
+    case 7: drawMode7_MirrorHorizon(bass); break;
+    case 8: drawMode8_SpirographMandala(bass); break;
+    case 9: drawMode9_LaserGrid(bass); break;
+    case 10: drawMode10_MixedMasterStudio(bass); break;
+    default: drawMode10_MixedMasterStudio(bass); break;
+  }
+
+  // Draw Central Glowing Album Cover across all modes
+  drawCenterAlbumArt(bass);
+
   requestAnimationFrame(render);
 }
 
-// 100 Mode Renderer Dispatcher
-function drawSelectedVisualizer(mode) {
-  if (!frequencyData) return;
-  noiseSpeed = averageFrequency();
-  nrt += noiseSpeed/3000000; 
-  npt += noiseSpeed/1000000; 
-  const avg = averageFrequency();
-  const bassPower = getBassPulse();
+// Mode 1: Radial Spectrum Bars
+function drawMode1_CircularSpectrum(bass) {
+  const points = frequencyDataLen;
+  const radius = Math.min(w, h) * 0.16 + (bass * 0.2);
+  for (let i = 0; i < points; i++) {
+    const val = frequencyData[i];
+    const angle = (i / points) * Math.PI * 2;
+    const barLen = (val / 255) * 120;
+    const x1 = w / 2 + Math.cos(angle) * radius;
+    const y1 = h / 2 + Math.sin(angle) * radius;
+    const x2 = w / 2 + Math.cos(angle) * (radius + barLen);
+    const y2 = h / 2 + Math.sin(angle) * (radius + barLen);
 
-  ctx.save();
-  
-  switch(mode) {
-    case 1: // Original Pulsing Disk
-      drawSpectrumMode1();
-      break;
-
-    case 2: // Classic Spectrum Bars
-      var barWidth = (w / frequencyDataLen) * 2;
-      for (let i = 0; i < frequencyDataLen; i++) {
-        var barHeight = (frequencyData[i] / 255) * (h * 0.5);
-        ctx.fillStyle = "hsla(" + (i * 3 + npt * 50) + ", 80%, 50%, 0.8)";
-        ctx.fillRect(i * barWidth, h - barHeight, barWidth - 2, barHeight);
-      }
-      break;
-
-    case 3: // Neon Radial Wave
-      var radius = 100 + bassPower * 0.5;
-      ctx.beginPath();
-      for (let i = 0; i < frequencyDataLen; i++) {
-        var angle = (i / frequencyDataLen) * Math.PI * 2;
-        var r = radius + (frequencyData[i] / 255) * 80;
-        var x = w / 2 + Math.cos(angle) * r;
-        var y = h / 2 + Math.sin(angle) * r;
-        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-      }
-      ctx.closePath();
-      ctx.strokeStyle = "hsl(" + (npt * 100) + ", 100%, 60%)";
-      ctx.lineWidth = 4;
-      ctx.stroke();
-      break;
-
-    case 4: // Cyber Matrix Rain
-      for (let i = 0; i < 40; i++) {
-        var val = frequencyData[i % frequencyDataLen];
-        var rx = (i / 40) * w;
-        var ry = (npt * 500 + i * 40) % h;
-        ctx.fillStyle = "#00ffcc";
-        ctx.font = (10 + val * 0.1) + "px monospace";
-        ctx.fillText(String.fromCharCode(0x30A0 + (i % 96)), rx, ry);
-      }
-      break;
-
-    case 5: // Hyper Speed Starfield
-      for (let i = 0; i < 60; i++) {
-        var speed = 1 + (frequencyData[i % frequencyDataLen] / 20);
-        var sx = (w / 2) + Math.cos(i) * ((npt * 200 * speed + i * 20) % (w / 2));
-        var sy = (h / 2) + Math.sin(i) * ((npt * 200 * speed + i * 20) % (h / 2));
-        ctx.fillStyle = "hsl(" + (i * 6) + ", 100%, 70%)";
-        ctx.beginPath(); ctx.arc(sx, sy, 2 + bassPower * 0.03, 0, Math.PI * 2); ctx.fill();
-      }
-      break;
-
-    default:
-      // General Procedural Shader Generator for Modes 6 to 100
-      var dynamicZoom = config.minRadius + (bassPower * 0.16);
-      if (dynamicZoom > config.maxRadius) dynamicZoom = config.maxRadius;
-
-      var numPoints = Math.round(frequencyDataLen - frequencyDataLen / 3);
-      var hueOffset = (mode * 15 + npt * config.colorSpeed) % 360;
-
-      for (let i = 0; i < numPoints; i++) {
-        var fVal = frequencyData[i];
-        var angle = (i / numPoints) * Math.PI * 2 + (nrt * (mode % 5 + 1));
-        
-        // Mathematical Preset Variation Based on Mode Number
-        var amp = (fVal / 255) * (config.multiplier * (1 + (mode % 10) * 0.1));
-        var r1 = dynamicZoom + Math.sin(angle * (mode % 7 + 1)) * (mode * 0.5);
-        var r2 = dynamicZoom + amp + Math.cos(angle * ((mode + 3) % 8 + 1)) * 10;
-
-        var x1 = w / 2 + r1 * Math.cos(angle);
-        var y1 = h / 2 + r1 * Math.sin(angle);
-        var x2 = w / 2 + r2 * Math.cos(angle);
-        var y2 = h / 2 + r2 * Math.sin(angle);
-
-        ctx.beginPath();
-        ctx.lineWidth = 1 + (mode % 4);
-        ctx.strokeStyle = "hsla(" + (hueOffset + i * 2) + ", 80%, " + (40 + (fVal / 255) * 50) + "%, 0.85)";
-        
-        if (mode % 3 === 0) {
-          ctx.arc(x2, y2, 2 + (fVal / 255) * 6, 0, Math.PI * 2);
-          ctx.fillStyle = ctx.strokeStyle;
-          ctx.fill();
-        } else if (mode % 3 === 1) {
-          ctx.moveTo(x1, y1);
-          ctx.lineTo(x2, y2);
-          ctx.stroke();
-        } else {
-          ctx.rect(x2 - 2, y2 - 2, 4 + (fVal / 255) * 8, 4 + (fVal / 255) * 8);
-          ctx.stroke();
-        }
-      }
-
-      // Draw Center Album Art Disc
-      if (bgImage.complete) {
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(w / 2, h / 2, dynamicZoom, 0, Math.PI * 2);
-        ctx.clip();
-        ctx.drawImage(bgImage, (w / 2) - dynamicZoom, (h / 2) - dynamicZoom, dynamicZoom * 2, dynamicZoom * 2);
-        ctx.restore();
-      }
-      break;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.strokeStyle = "hsl(" + (i * 4 + npt * 50) + ", 85%, 60%)";
+    ctx.lineWidth = 3;
+    ctx.stroke();
   }
-
-  ctx.restore();
 }
 
-function drawSpectrumMode1() {
-  var noiseRotate = noise.perlin2(10, nrt); 
-  var points = Math.round(frequencyDataLen - frequencyDataLen / 3); 
-  var bassPower = getBassPulse(); 
-  var dynamicZoom = config.minRadius + (bassPower * 0.16); 
-  if (dynamicZoom > config.maxRadius) { dynamicZoom = config.maxRadius; }
-  
-  if (bgImage.complete) { 
-    ctx.save(); ctx.beginPath(); ctx.arc(w / 2, h / 2, dynamicZoom, 0, Math.PI * 2); 
-    ctx.clip(); ctx.drawImage(bgImage, (w / 2) - dynamicZoom, (h / 2) - dynamicZoom, dynamicZoom * 2, dynamicZoom * 2); ctx.restore(); 
+// Mode 2: Full Bottom Dual Equalizer Bars
+function drawMode2_FullBars(bass) {
+  const barWidth = (w / frequencyDataLen);
+  for (let i = 0; i < frequencyDataLen; i++) {
+    const barHeight = (frequencyData[i] / 255) * (h * 0.45);
+    ctx.fillStyle = "hsla(" + (i * 4 + npt * 40) + ", 90%, 55%, 0.85)";
+    ctx.fillRect(i * barWidth, h - barHeight, barWidth - 3, barHeight);
+    ctx.fillRect(w - (i * barWidth), 0, barWidth - 3, barHeight * 0.6);
   }
+}
 
-  var avg = averageFrequency();
-  for (let i = 0.5; i < points; i++) { 
-    var val = frequencyData[Math.floor(i)];
-    var x1 = w / 2 + (dynamicZoom) * Math.cos(-Math.PI/2 + 2 * Math.PI * i / points + noiseRotate); 
-    var y1 = h / 2 + (dynamicZoom) * Math.sin(-Math.PI/2 + 2 * Math.PI * i / points + noiseRotate); 
-    var x2 = w / 2 + ((dynamicZoom) + val * 0.45) * Math.cos(-Math.PI/2 + 2 * Math.PI * i / points + noiseRotate); 
-    var y2 = h / 2 + ((dynamicZoom) + val * 0.45) * Math.sin(-Math.PI/2 + 2 * Math.PI * i / points + noiseRotate); 
-    var x3 = w / 2 + ((dynamicZoom) + Math.pow((val * 0.45) * 0.09, 2)) * Math.cos(-Math.PI/2 + 2 * Math.PI * i / points + noiseRotate); 
-    var y3 = h / 2 + ((dynamicZoom) + Math.pow((val * 0.45) * 0.09, 2)) * Math.sin(-Math.PI/2 + 2 * Math.PI * i / points + noiseRotate); 
-    var nd1 = noise.simplex2(y1/100, npt)*10; 
-    
-    ctx.beginPath(); ctx.lineCap = "round"; ctx.lineWidth = 1.5; 
-    ctx.strokeStyle = "hsla("+(config.hueStart + npt * config.colorSpeed)+", 50%, "+(20+(Math.pow(val * 0.1, 2)))+"%, 100%)"; 
-    ctx.moveTo(x1+nd1, y1+nd1); ctx.lineTo(x2+nd1, y2+nd1); ctx.stroke(); ctx.closePath(); 
-    
-    ctx.beginPath(); ctx.lineCap = "round"; ctx.lineWidth = 3.5; 
-    ctx.strokeStyle = "hsla("+(config.hueStart + npt * config.colorSpeed)+", 50%, "+(30+(Math.pow(val * 0.1, 2)))+"%, 100%)"; 
-    ctx.moveTo(x1+nd1, y1+nd1); ctx.lineTo(x3+nd1, y3+nd1); ctx.stroke(); ctx.closePath(); 
-  } 
+// Mode 3: Floating Quantum Sparks
+function drawMode3_QuantumSparks(bass) {
+  quantumParticles.forEach((p, idx) => {
+    const freqVal = frequencyData[idx % frequencyDataLen];
+    p.x += p.vx * (1 + bass * 0.02);
+    p.y += p.vy * (1 + bass * 0.02);
+    if (p.x < 0 || p.x > w) p.vx *= -1;
+    if (p.y < 0 || p.y > h) p.vy *= -1;
+
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size + (freqVal / 255) * 6, 0, Math.PI * 2);
+    ctx.fillStyle = "hsla(" + (idx * 5 + npt * 60) + ", 100%, 65%, 0.9)";
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = ctx.fillStyle;
+    ctx.fill();
+  });
+}
+
+// Mode 4: 3D Warp Field Starburst
+function drawMode4_WarpStarburst(bass) {
+  for (let i = 0; i < frequencyDataLen; i++) {
+    const angle = (i / frequencyDataLen) * Math.PI * 2;
+    const speed = 2 + (frequencyData[i] / 255) * 8;
+    const dist = ((npt * 250 * (i + 1)) % (Math.max(w, h) / 1.8));
+    const sx = w / 2 + Math.cos(angle + nrt) * dist;
+    const sy = h / 2 + Math.sin(angle + nrt) * dist;
+
+    ctx.beginPath();
+    ctx.arc(sx, sy, 2 + (frequencyData[i] / 255) * 5, 0, Math.PI * 2);
+    ctx.fillStyle = "hsl(" + (i * 6 + npt * 80) + ", 100%, 70%)";
+    ctx.fill();
+  }
+}
+
+// Mode 5: Matrix Code Stream & Screen Equalizer
+function drawMode5_MatrixEqualizer(bass) {
+  for (let i = 0; i < 35; i++) {
+    const val = frequencyData[i % frequencyDataLen];
+    const rx = (i / 35) * w;
+    const ry = (npt * 400 + i * 50) % h;
+    ctx.fillStyle = "#00ff88";
+    ctx.font = (12 + val * 0.08) + "px monospace";
+    ctx.fillText(String.fromCharCode(0x30A0 + (i % 96)), rx, ry);
+  }
+}
+
+// Mode 6: Concentric Pulsing Audio Rings
+function drawMode6_AudioRings(bass) {
+  for (let i = 1; i <= 5; i++) {
+    const r = (i * 45) + (bass * 0.8 * i);
+    ctx.beginPath();
+    ctx.arc(w / 2, h / 2, r, 0, Math.PI * 2);
+    ctx.strokeStyle = "hsla(" + (i * 50 + npt * 40) + ", 90%, 60%, " + (1 - i * 0.18) + ")";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+  }
+}
+
+// Mode 7: Mirror Wave Horizon
+function drawMode7_MirrorHorizon(bass) {
+  const midY = h / 2;
+  ctx.beginPath();
+  for (let i = 0; i < w; i += 8) {
+    const idx = Math.floor((i / w) * frequencyDataLen);
+    const amp = (frequencyData[idx] / 255) * 100;
+    const y = midY + Math.sin(i * 0.02 + npt * 4) * amp;
+    if (i === 0) ctx.moveTo(i, y); else ctx.lineTo(i, y);
+  }
+  ctx.strokeStyle = "#ff4757";
+  ctx.lineWidth = 4;
+  ctx.stroke();
+}
+
+// Mode 8: Spirograph Cyber Mandala
+function drawMode8_SpirographMandala(bass) {
+  ctx.beginPath();
+  for (let i = 0; i < frequencyDataLen; i++) {
+    const angle = i * 0.1 + nrt;
+    const r = (frequencyData[i] / 255) * 160 + 50;
+    const x = w / 2 + Math.cos(angle * 3) * r;
+    const y = h / 2 + Math.sin(angle * 2) * r;
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.strokeStyle = "#2ed573";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+
+// Mode 9: Cyberpunk Grid Laser Beams
+function drawMode9_LaserGrid(bass) {
+  for (let i = 0; i < 16; i++) {
+    const val = frequencyData[i * 4];
+    const targetX = (i / 16) * w;
+    ctx.beginPath();
+    ctx.moveTo(w / 2, h / 2);
+    ctx.lineTo(targetX, (val / 255) * h);
+    ctx.strokeStyle = "hsla(" + (i * 20 + npt * 60) + ", 100%, 60%, 0.7)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+}
+
+// Mode 10: Mixed Master Studio (Combined Visualizer Suite)
+function drawMode10_MixedMasterStudio(bass) {
+  drawMode2_FullBars(bass);
+  drawMode3_QuantumSparks(bass);
+  drawMode1_CircularSpectrum(bass);
 }
 </script>
 
