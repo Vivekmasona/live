@@ -32,12 +32,12 @@ canvas { position: fixed; inset: 0; z-index: 1; }
   display: flex; align-items: center; gap: 8px; flex: 1; justify-content: center;
 }
 
-/* WMP Style Selector Dropdown */
+/* Short Names Dropdown */
 .viz-selector-box {
   background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15);
   color: #00ffcc; border-radius: 16px; padding: 6px 14px; font-size: 11px; font-weight: 700;
   outline: none; cursor: pointer; transition: 0.25s ease; backdrop-filter: blur(15px);
-  max-width: 180px; text-overflow: ellipsis;
+  max-width: 170px; text-overflow: ellipsis;
 }
 .viz-selector-box:hover, .viz-selector-box:focus {
   background: rgba(0, 255, 204, 0.15); border-color: #00ffcc; color: #fff;
@@ -207,9 +207,9 @@ button.search-btn-custom {
 
   <div class="header-center-controls">
     <select id="viz-mode-select" class="viz-selector-box" onchange="changeVisualizerMode(this.value)">
-      <option value="1">1. WMP Alchemy</option>
-      <option value="2">2. WMP Ambience</option>
-      <option value="3">3. WMP Particles</option>
+      <option value="1">1. Alchemy</option>
+      <option value="2">2. DNA Helix</option>
+      <option value="3">3. Particles</option>
     </select>
   </div>
 
@@ -331,7 +331,7 @@ var bgImage = new Image();
 bgImage.src = config.centerImage;
 
 var AudioContext = window.AudioContext || window.webkitAudioContext;
-var actx, analyser, sourceNode, frequencyData, frequencyDataLen;
+var actx, analyser, sourceNode, frequencyData, frequencyDataLen, gainNode;
 var playing = false;
 var audioEl = document.getElementById("audio-element");
 var previewAudio = document.getElementById("preview-audio");
@@ -351,7 +351,7 @@ function initVisualizerDropdown() {
 function changeVisualizerMode(val) {
   activeVizMode = parseInt(val, 10);
   localStorage.setItem('vfy_viz_mode', activeVizMode);
-  showToast(`WMP Mode ${activeVizMode} Selected`);
+  showToast(`Mode ${activeVizMode} Selected`);
 }
 
 function loadLocalPlaylists() {
@@ -376,10 +376,15 @@ function initAudioContext() {
     actx = new AudioContext();
     analyser = actx.createAnalyser();
     analyser.fftSize = 256;
-    analyser.smoothingTimeConstant = 0.75;
+    analyser.smoothingTimeConstant = 0.7;
+    
+    gainNode = actx.createGain(); // Gain node for live volume sensitivity tracking
+    
     sourceNode = actx.createMediaElementSource(audioEl);
     sourceNode.connect(analyser);
-    analyser.connect(actx.destination);
+    analyser.connect(gainNode);
+    gainNode.connect(actx.destination);
+    
     frequencyDataLen = analyser.frequencyBinCount;
     frequencyData = new Uint8Array(frequencyDataLen);
   }
@@ -778,6 +783,25 @@ function startLiveAudio() {
   autoPlayLiveRadio();
 }
 
+function setupMediaSession(song) {
+  if ('mediaSession' in navigator) {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: song.title || "VFY FM Live",
+      artist: song.primaryArtists || "VFY Artist",
+      album: "VFY Studio Radio",
+      artwork: [
+        { src: song.image || config.centerImage, sizes: '96x96', type: 'image/png' },
+        { src: song.image || config.centerImage, sizes: '128x128', type: 'image/png' },
+        { src: song.image || config.centerImage, sizes: '192x192', type: 'image/png' },
+        { src: song.image || config.centerImage, sizes: '512x512', type: 'image/png' },
+      ]
+    });
+
+    navigator.mediaSession.setActionHandler('play', () => { audioEl.play(); });
+    navigator.mediaSession.setActionHandler('pause', () => { audioEl.pause(); });
+  }
+}
+
 function playSongAtIndex(index, baseSeekTime, serverTimestamp) {
   if (globalPlaylist.length === 0) return;
   activeIndex = index % globalPlaylist.length;
@@ -786,6 +810,7 @@ function playSongAtIndex(index, baseSeekTime, serverTimestamp) {
   if (!song || !song.url) return;
   if (song.image) { bgImage.src = song.image; }
 
+  setupMediaSession(song);
   renderSlideshowBanners();
   renderPlaylistUI();
 
@@ -815,32 +840,39 @@ function playSongAtIndex(index, baseSeekTime, serverTimestamp) {
 }
 
 // -------------------------------------------------------------
-// AUTHENTIC WINDOWS MEDIA PLAYER RENDER ENGINE (TRUE AMOLED)
+// VOLUME-RESPONSIVE TRUE AMOLED WMP ENGINE
 // -------------------------------------------------------------
 function clearCanvas(){
-  if(activeVizMode === 2) {
-    ctx.fillStyle = "rgba(0, 0, 0, 0.15)"; // WMP Ambience Motion Blur Trail
-  } else {
-    ctx.fillStyle = "#000000"; // Pure Black True AMOLED
-  }
+  ctx.fillStyle = "#000000";
   ctx.fillRect(0, 0, w, h);
+}
+
+function getVolumeSensitivityMultiplier() {
+  if (!frequencyData) return 1;
+  let sum = 0;
+  for (let i = 0; i < frequencyDataLen; i++) {
+    sum += frequencyData[i];
+  }
+  let averageVolume = sum / frequencyDataLen;
+  // Dynamic scaling: volume kam hone par vizulizer automatically chhota/kam ho jayega
+  return Math.max(0.15, averageVolume / 75);
 }
 
 function getBassPulse() { 
   if (!frequencyData) return 0; 
   let bassSum = 0; 
   for (let i = 0; i < 6; i++) { bassSum += frequencyData[i]; } 
-  return bassSum / 6; 
+  return (bassSum / 6) * getVolumeSensitivityMultiplier(); 
 }
 
 function drawCenterAlbumArt(bassPower) {
-  const dynamicZoom = Math.min(w, h) * 0.15 + (bassPower * 0.2);
+  const dynamicZoom = Math.min(w, h) * 0.15 + (bassPower * 0.15);
   if (bgImage.complete && bgImage.src) {
     ctx.save();
     ctx.beginPath();
     ctx.arc(w / 2, h / 2, dynamicZoom, 0, Math.PI * 2);
     ctx.shadowColor = "#00ffcc";
-    ctx.shadowBlur = 30 + (bassPower * 0.5);
+    ctx.shadowBlur = 25 + (bassPower * 0.4);
     ctx.strokeStyle = "rgba(0, 255, 204, 0.9)";
     ctx.lineWidth = 4;
     ctx.stroke();
@@ -851,13 +883,13 @@ function drawCenterAlbumArt(bassPower) {
 }
 
 var wmpParticles = [];
-for(let i=0; i<100; i++) {
+for(let i=0; i<80; i++) {
   wmpParticles.push({
     x: Math.random() * window.innerWidth,
     y: Math.random() * window.innerHeight,
-    vx: (Math.random() - 0.5) * 1.2,
-    vy: (Math.random() - 0.5) * 1.2,
-    size: Math.random() * 2.5 + 0.8
+    vx: (Math.random() - 0.5),
+    vy: (Math.random() - 0.5),
+    size: Math.random() * 2 + 0.8
   });
 }
 
@@ -873,7 +905,7 @@ function render() {
 
   switch(activeVizMode) {
     case 1: drawWMP_Alchemy(bass); break;
-    case 2: drawWMP_Ambience(bass); break;
+    case 2: drawWMP_DNAHelix(bass); break;
     case 3: drawWMP_Particles(bass); break;
     default: drawWMP_Alchemy(bass); break;
   }
@@ -882,10 +914,11 @@ function render() {
   requestAnimationFrame(render);
 }
 
-// 1. WMP Alchemy (Kaleidoscopic Flower Art - Full Screen)
+// 1. WMP Alchemy (Flower Art)
 function drawWMP_Alchemy(bass) {
   const petals = 8;
-  const maxRadius = Math.min(w, h) * 0.48;
+  const maxRadius = Math.min(w, h) * 0.45;
+  const volScale = getVolumeSensitivityMultiplier();
   ctx.save();
   ctx.translate(w / 2, h / 2);
   for (let p = 0; p < petals; p++) {
@@ -893,58 +926,74 @@ function drawWMP_Alchemy(bass) {
     ctx.beginPath();
     let firstPoint = true;
     for (let i = 0; i < frequencyDataLen; i += 2) {
-      const val = frequencyData[i];
+      const val = frequencyData[i] * volScale;
       const angle = (i / frequencyDataLen) * Math.PI;
-      const radius = 90 + (val / 255) * (maxRadius - 90) + Math.sin(npt + i * 0.1) * bass * 0.4;
+      const radius = 85 + (val / 255) * (maxRadius - 85) + Math.sin(npt + i * 0.1) * bass * 0.3;
       const x = Math.cos(angle + nrt) * radius;
-      const y = Math.sin(angle * 2 + nrt) * (radius * 0.8);
+      const y = Math.sin(angle * 2 + nrt) * (radius * 0.75);
       if (firstPoint) { ctx.moveTo(x, y); firstPoint = false; } else { ctx.lineTo(x, y); }
     }
     const hue = (p * (360 / petals) + npt * 40) % 360;
     ctx.strokeStyle = `hsla(${hue}, 100%, 60%, 0.85)`;
     ctx.lineWidth = 3;
-    ctx.shadowBlur = 25;
+    ctx.shadowBlur = 20;
     ctx.shadowColor = `hsla(${hue}, 100%, 50%, 0.8)`;
     ctx.stroke();
   }
   ctx.restore();
 }
 
-// 2. WMP Ambience (Fluid Plasma Waves Across Screen)
-function drawWMP_Ambience(bass) {
+// 2. WMP DNA Helix (Unique, clean, elegant double helix wave without clutter)
+function drawWMP_DNAHelix(bass) {
+  const volScale = getVolumeSensitivityMultiplier();
   ctx.save();
-  for (let line = 0; line < 5; line++) {
+  ctx.translate(w / 2, h / 2);
+  for (let i = 0; i < frequencyDataLen; i += 4) {
+    const val = frequencyData[i] * volScale;
+    const angle = i * 0.12 + npt;
+    const radiusX = 130 + (val * 0.5);
+    const radiusY = 70 + (bass * 0.3);
+
+    const x1 = Math.cos(angle) * radiusX;
+    const y1 = Math.sin(angle) * radiusY;
+    const x2 = Math.cos(angle + Math.PI) * radiusX;
+    const y2 = Math.sin(angle + Math.PI) * radiusY;
+
+    // DNA Base Nodes
     ctx.beginPath();
-    for (let x = 0; x < w; x += 12) {
-      const idx = Math.floor((x / w) * frequencyDataLen);
-      const val = frequencyData[idx] || 0;
-      const y = (h / 2) + Math.sin(x * 0.008 + npt * 2 + line * 0.5) * (val * 0.9 + bass * 0.5) + (line * 30 - 60);
-      if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-    }
-    const hue = (line * 50 + npt * 30) % 360;
-    ctx.strokeStyle = `hsla(${hue}, 100%, 55%, 0.75)`;
-    ctx.lineWidth = 2.5;
-    ctx.shadowBlur = 15;
-    ctx.shadowColor = `hsla(${hue}, 100%, 50%, 0.6)`;
+    ctx.arc(x1, y1, 2.5, 0, Math.PI*2);
+    ctx.arc(x2, y2, 2.5, 0, Math.PI*2);
+    ctx.fillStyle = "#00ffcc";
+    ctx.shadowBlur = 12;
+    ctx.shadowColor = "#00ffcc";
+    ctx.fill();
+
+    // Connecting rungs
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.strokeStyle = "rgba(0, 255, 204, 0.3)";
+    ctx.lineWidth = 1;
     ctx.stroke();
   }
   ctx.restore();
 }
 
-// 3. WMP Particles (Audio Responsive Star Storm)
+// 3. WMP Particles
 function drawWMP_Particles(bass) {
+  const volScale = getVolumeSensitivityMultiplier();
   ctx.save();
   wmpParticles.forEach((p, idx) => {
-    const val = frequencyData[idx % frequencyDataLen];
-    p.x += p.vx * (1 + bass * 0.04);
-    p.y += p.vy * (1 + bass * 0.04);
+    const val = (frequencyData[idx % frequencyDataLen] || 0) * volScale;
+    p.x += p.vx * (1 + bass * 0.03);
+    p.y += p.vy * (1 + bass * 0.03);
     if(p.x < 0 || p.x > w) p.vx *= -1;
     if(p.y < 0 || p.y > h) p.vy *= -1;
 
     ctx.beginPath();
-    ctx.arc(p.x, p.y, p.size + (val/255)*5, 0, Math.PI*2);
-    ctx.fillStyle = `hsl(${idx * 15 + npt * 50}, 100%, 70%)`;
-    ctx.shadowBlur = 15;
+    ctx.arc(p.x, p.y, p.size + (val/255)*4, 0, Math.PI*2);
+    ctx.fillStyle = `hsl(${idx * 15 + npt * 40}, 100%, 70%)`;
+    ctx.shadowBlur = 12;
     ctx.shadowColor = ctx.fillStyle;
     ctx.fill();
   });
