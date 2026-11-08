@@ -841,7 +841,7 @@ function playSongAtIndex(index, baseSeekTime, serverTimestamp) {
 }
 
 // -------------------------------------------------------------
-// 4 ULTIMATE FULL-SCREEN AMOLED VISUALIZERS (CENTER THROW & FADE)
+// 4 ULTIMATE FULL-SCREEN AMOLED VISUALIZERS (SPACE-STYLE THROW)
 // -------------------------------------------------------------
 function clearCanvas(){
   if(activeVizMode === 2) {
@@ -877,13 +877,13 @@ function drawCenterAlbumArt(bassPower) {
   }
 }
 
-var burstParticles = [];
-for(let i=0; i<90; i++) {
-  burstParticles.push({
-    angle: Math.random() * Math.PI * 2,
-    dist: Math.random() * 50,
-    speed: Math.random() * 2 + 1,
-    size: Math.random() * 2.5 + 0.8
+var spaceStars = [];
+for(let i=0; i<100; i++) {
+  spaceStars.push({
+    x: (Math.random() - 0.5) * window.innerWidth,
+    y: (Math.random() - 0.5) * window.innerHeight,
+    z: Math.random() * window.innerWidth,
+    size: Math.random() * 2 + 0.8
   });
 }
 
@@ -900,7 +900,7 @@ function render() {
   switch(activeVizMode) {
     case 1: drawViz1_Flower(bass); break;
     case 2: drawViz2_Plasma(bass); break;
-    case 3: drawViz3_StarBurst(bass); break;
+    case 3: drawViz3_SpaceWarp(bass); break;
     case 4: drawViz4_LaserRing(bass); break;
     default: drawViz1_Flower(bass); break;
   }
@@ -958,36 +958,37 @@ function drawViz2_Plasma(bass) {
   ctx.restore();
 }
 
-// 3. Star Burst (Center Outward Throw with Edge Fade)
-function drawViz3_StarBurst(bass) {
+// 3. Space Warp (True Space Hyperspace Throw from Center with Fade)
+function drawViz3_SpaceWarp(bass) {
   ctx.save();
   ctx.translate(w / 2, h / 2);
-  const maxDist = Math.max(w, h) * 0.48;
+  const speed = 3 + (bass * 0.4);
 
-  burstParticles.forEach((p, idx) => {
-    const val = frequencyData[idx % frequencyDataLen];
-    p.dist += p.speed + (bass * 0.25) + (val * 0.05);
-    
-    // Reset back to center when reaching edge
-    if(p.dist > maxDist) {
-      p.dist = 40;
-      p.angle = Math.random() * Math.PI * 2;
+  spaceStars.forEach((star, idx) => {
+    star.z -= speed;
+    if (star.z <= 0) {
+      star.z = w;
+      star.x = (Math.random() - 0.5) * w;
+      star.y = (Math.random() - 0.5) * h;
     }
 
-    const x = Math.cos(p.angle) * p.dist;
-    const y = Math.sin(p.angle) * p.dist;
+    const k = 250 / star.z;
+    const px = star.x * k;
+    const py = star.y * k;
 
-    // Fade out as it goes from center to edge (last tak jaate-jaate fade)
-    let opacity = 1 - (p.dist / maxDist);
-    opacity = Math.max(0, opacity);
+    if (px >= -w/2 && px <= w/2 && py >= -h/2 && py <= h/2) {
+      const pSize = Math.max(0.5, (1 - star.z / w) * 4 * star.size);
+      let opacity = 1 - (star.z / w);
+      opacity = Math.max(0, opacity);
 
-    ctx.beginPath();
-    ctx.arc(x, y, p.size + (val/255)*2.5, 0, Math.PI*2);
-    const hue = (idx * 15 + npt * 40) % 360;
-    ctx.fillStyle = `hsla(${hue}, 100%, 65%, ${opacity})`;
-    ctx.shadowBlur = 12;
-    ctx.shadowColor = `hsla(${hue}, 100%, 50%, ${opacity})`;
-    ctx.fill();
+      ctx.beginPath();
+      ctx.arc(px, py, pSize, 0, Math.PI * 2);
+      const hue = (idx * 10 + npt * 30) % 360;
+      ctx.fillStyle = `hsla(${hue}, 100%, 75%, ${opacity})`;
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = `hsla(${hue}, 100%, 50%, ${opacity})`;
+      ctx.fill();
+    }
   });
   ctx.restore();
 }
@@ -1001,7 +1002,6 @@ function drawViz4_LaserRing(bass) {
 
   for (let r = 1; r <= rings; r++) {
     const val = frequencyData[r * 12] || 0;
-    // Rings expand outwards from center based on beat/bass
     let radius = (( (npt * 80 + r * 70) % maxRadius )) + (bass * 0.4) + (val * 0.2);
     if (radius > maxRadius) radius = 40;
 
