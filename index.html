@@ -10,40 +10,40 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 html, body {
-  margin: 0; padding: 0; overflow: hidden; background: #07050f;
+  margin: 0; padding: 0; overflow: hidden; background: #000000; /* Pure Pitch Black for AMOLED */
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; color: #fff;
 }
 canvas { position: fixed; inset: 0; z-index: 1; }
 
 #studio-header {
   position: fixed; top: 15px; left: 15px; right: 15px;
-  background: rgba(18, 14, 32, 0.75); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+  background: rgba(10, 10, 15, 0.8); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
   padding: 10px 18px; border-radius: 24px; z-index: 40; display: flex; justify-content: space-between; align-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 20px 50px rgba(0,0,0,0.7); user-select: none; gap: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 20px 50px rgba(0,0,0,0.9); user-select: none; gap: 10px;
 }
 .brand-title { 
   font-size: 16px; font-weight: 800; color: #fff; cursor: pointer; 
   display: flex; align-items: center; gap: 8px; letter-spacing: 1px; flex-shrink: 0;
 }
-.brand-title i { color: #8c7ae6; filter: drop-shadow(0 0 10px rgba(140,122,230,0.8)); }
-.brand-title span { color: #8c7ae6; }
+.brand-title i { color: #00ffcc; filter: drop-shadow(0 0 10px rgba(0,255,204,0.8)); }
+.brand-title span { color: #00ffcc; }
 
 .header-center-controls {
   display: flex; align-items: center; gap: 8px; flex: 1; justify-content: center;
 }
 
-/* Glassy Visualizer Selector Dropdown */
+/* AMOLED Glassy Visualizer Selector Dropdown */
 .viz-selector-box {
-  background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12);
-  color: #a29bfe; border-radius: 16px; padding: 6px 14px; font-size: 11px; font-weight: 700;
+  background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #00ffcc; border-radius: 16px; padding: 6px 14px; font-size: 11px; font-weight: 700;
   outline: none; cursor: pointer; transition: 0.25s ease; backdrop-filter: blur(15px);
-  max-width: 220px; text-overflow: ellipsis;
+  max-width: 230px; text-overflow: ellipsis;
 }
 .viz-selector-box:hover, .viz-selector-box:focus {
-  background: rgba(108, 92, 231, 0.2); border-color: #8c7ae6; color: #fff;
-  box-shadow: 0 0 15px rgba(140, 122, 230, 0.4);
+  background: rgba(0, 255, 204, 0.15); border-color: #00ffcc; color: #fff;
+  box-shadow: 0 0 20px rgba(0, 255, 204, 0.4);
 }
-.viz-selector-box option { background: #120e20; color: #fff; font-weight: 600; }
+.viz-selector-box option { background: #050505; color: #fff; font-weight: 600; }
 
 .badge-box { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 .badge { background: rgba(255, 255, 255, 0.05); padding: 6px 14px; border-radius: 14px; font-size: 11px; font-weight: 600; color: #aaa; border: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; gap: 6px; }
@@ -60,11 +60,11 @@ canvas { position: fixed; inset: 0; z-index: 1; }
 
 /* Glassmorphic Modals */
 #studio-modal, #auth-modal {
-  position: fixed; inset: 0; background: rgba(5, 3, 12, 0.9); z-index: 100;
+  position: fixed; inset: 0; background: rgba(0, 0, 0, 0.95); z-index: 100;
   display: none; align-items: center; justify-content: center; backdrop-filter: blur(35px); -webkit-backdrop-filter: blur(35px);
 }
 .studio-container {
-  background: linear-gradient(180deg, rgba(22, 16, 40, 0.96) 0%, rgba(10, 8, 20, 0.99) 100%);
+  background: linear-gradient(180deg, rgba(12, 12, 18, 0.98) 0%, rgba(0, 0, 0, 1) 100%);
   backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
   width: 94%; max-width: 440px; height: 90vh;
   border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 36px; padding: 20px;
@@ -72,7 +72,7 @@ canvas { position: fixed; inset: 0; z-index: 1; }
   position: relative; overflow: hidden;
 }
 .auth-container {
-  background: rgba(20, 15, 36, 0.95); backdrop-filter: blur(30px);
+  background: rgba(12, 12, 18, 0.95); backdrop-filter: blur(30px);
   width: 90%; max-width: 360px; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 28px; padding: 24px;
   box-shadow: 0 30px 80px rgba(0,0,0,0.95); display: flex; flex-direction: column; gap: 16px;
 }
@@ -82,24 +82,24 @@ canvas { position: fixed; inset: 0; z-index: 1; }
 .category-chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
 .category-chips::-webkit-scrollbar { display: none; }
 .chip { 
-  background: rgba(255, 255, 255, 0.06); padding: 8px 18px; border-radius: 30px; font-size: 12px; font-weight: 700; 
+  background: rgba(255, 255, 255, 0.05); padding: 8px 18px; border-radius: 30px; font-size: 12px; font-weight: 700; 
   color: #a0a0b8; border: 1px solid rgba(255, 255, 255, 0.08); cursor: pointer; white-space: nowrap; transition: 0.25s ease; 
 }
-.chip.active, .chip:hover { background: linear-gradient(135deg, #4834d4, #686de0); color: #fff; border-color: transparent; box-shadow: 0 4px 15px rgba(104, 109, 224, 0.4); }
+.chip.active, .chip:hover { background: linear-gradient(135deg, #00b894, #00cec9); color: #000; border-color: transparent; box-shadow: 0 4px 15px rgba(0,206,201,0.4); }
 
 /* Search Bar */
 .search-box-wrapper { display: flex; gap: 8px; align-items: center; width: 100%; }
 input[type="text"], input[type="password"] {
-  flex: 1; padding: 12px 16px; background: rgba(255, 255, 255, 0.06);
+  flex: 1; padding: 12px 16px; background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; border-radius: 20px; outline: none; font-size: 13px; font-weight: 600;
   transition: 0.25s ease;
 }
-input[type="text"]:focus, input[type="password"]:focus { border-color: #686de0; box-shadow: 0 0 20px rgba(104,109,224,0.3); }
+input[type="text"]:focus, input[type="password"]:focus { border-color: #00ffcc; box-shadow: 0 0 20px rgba(0,255,204,0.3); }
 
 button.search-btn-custom {
-  background: linear-gradient(135deg, #4834d4, #686de0); color: white; border: none; padding: 12px 18px;
+  background: linear-gradient(135deg, #00b894, #00cec9); color: #000; border: none; padding: 12px 18px;
   font-size: 13px; font-weight: 700; border-radius: 20px; cursor: pointer; transition: 0.25s ease;
-  box-shadow: 0 6px 20px rgba(72, 52, 212, 0.4); display: flex; align-items: center; gap: 6px;
+  box-shadow: 0 6px 20px rgba(0, 184, 148, 0.4); display: flex; align-items: center; gap: 6px;
   flex-shrink: 0;
 }
 
@@ -108,15 +108,15 @@ button.search-btn-custom {
   z-index: 30; display: none;
 }
 #live-btn {
-  background: linear-gradient(135deg, #6c5ce7, #a29bfe); padding: 16px 44px; font-size: 14px; border-radius: 50px;
-  box-shadow: 0 10px 40px rgba(108, 92, 231, 0.5); color: #000; font-weight: 800; cursor: pointer; border: none;
+  background: linear-gradient(135deg, #00ffcc, #00b894); padding: 16px 44px; font-size: 14px; border-radius: 50px;
+  box-shadow: 0 10px 40px rgba(0, 255, 204, 0.5); color: #000; font-weight: 800; cursor: pointer; border: none;
 }
 
-.section-heading { font-size: 13px; color: #a29bfe; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; margin-top: 4px; display: flex; justify-content: space-between; align-items: center; }
+.section-heading { font-size: 13px; color: #00ffcc; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; margin-top: 4px; display: flex; justify-content: space-between; align-items: center; }
 
 .slideshow-container {
   position: relative; width: 100%; height: 175px; overflow: hidden; border-radius: 24px;
-  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+  background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 15px 35px rgba(0,0,0,0.8);
 }
 .slideshow-track { display: flex; height: 100%; transition: transform 0.45s cubic-bezier(0.25, 1, 0.5, 1); cursor: grab; }
 .slideshow-track:active { cursor: grabbing; }
@@ -131,33 +131,33 @@ button.search-btn-custom {
 
 .slide-banner-card .black-shadow-overlay {
   position: absolute; inset: 0;
-  background: linear-gradient(180deg, rgba(0,0,0,0.1) 30%, rgba(5,3,12,0.92) 85%, rgba(5,3,12,0.98) 100%);
+  background: linear-gradient(180deg, rgba(0,0,0,0.1) 30%, rgba(0,0,0,0.92) 85%, rgba(0,0,0,1) 100%);
   z-index: 2;
 }
 
 .slide-banner-card .banner-info { position: relative; z-index: 3; display: flex; flex-direction: column; gap: 3px; }
 .slide-banner-card .banner-title { font-size: 15px; font-weight: 800; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.9); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.slide-banner-card .banner-sub { font-size: 11px; color: #d0d0e2; font-weight: 600; text-shadow: 0 1px 6px rgba(0,0,0,0.8); }
+.slide-banner-card .banner-sub { font-size: 11px; color: #aaa; font-weight: 600; text-shadow: 0 1px 6px rgba(0,0,0,0.8); }
 
 .slideshow-dots { display: flex; justify-content: center; gap: 6px; margin-top: 4px; }
 .slide-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.2); cursor: pointer; transition: 0.3s; }
-.slide-dot.active { width: 20px; border-radius: 4px; background: #686de0; box-shadow: 0 0 8px rgba(104,109,224,0.8); }
+.slide-dot.active { width: 20px; border-radius: 4px; background: #00ffcc; box-shadow: 0 0 8px rgba(0,255,204,0.8); }
 
 #playlist-picker-modal {
-  position: fixed; inset: 0; background: rgba(5, 3, 12, 0.85); z-index: 200;
+  position: fixed; inset: 0; background: rgba(0, 0, 0, 0.9); z-index: 200;
   display: none; align-items: center; justify-content: center; backdrop-filter: blur(20px);
 }
 .playlist-picker-box {
-  background: #151025; border: 1px solid rgba(255,255,255,0.15); width: 85%; max-width: 320px;
+  background: #0a0a0f; border: 1px solid rgba(255,255,255,0.15); width: 85%; max-width: 320px;
   border-radius: 24px; padding: 20px; display: flex; flex-direction: column; gap: 12px;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.9);
 }
 
 .item-card {
   background: rgba(255, 255, 255, 0.03); padding: 10px 14px; border-radius: 20px;
   display: flex; flex-direction: column; gap: 6px; border: 1px solid rgba(255, 255, 255, 0.06); margin-bottom: 8px; transition: 0.2s;
 }
-.item-card:hover { border-color: rgba(104, 109, 224, 0.4); background: rgba(255, 255, 255, 0.06); }
+.item-card:hover { border-color: rgba(0, 255, 204, 0.4); background: rgba(255, 255, 255, 0.05); }
 .item-row { display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 10px; }
 
 .item-card.on-air-row { background: rgba(255, 71, 87, 0.06); border-color: rgba(255,71,87,0.3); }
@@ -165,30 +165,30 @@ button.search-btn-custom {
 .album-art { width: 42px; height: 42px; border-radius: 12px; object-fit: cover; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.1); }
 .item-info { flex: 1; overflow: hidden; display: flex; flex-direction: column; justify-content: center; gap: 2px; }
 .item-title { font-size: 12px; font-weight: 700; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,0.8); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.item-artist { font-size: 10px; color: #9999b0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item-artist { font-size: 10px; color: #888899; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .round-preview-btn {
   width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.08); color: #fff;
   border: none; display: flex; align-items: center; justify-content: center; font-size: 10px; cursor: pointer; transition: 0.2s;
 }
-.round-preview-btn:hover { background: #686de0; box-shadow: 0 0 12px rgba(104,109,224,0.6); }
+.round-preview-btn:hover { background: #00ffcc; color: #000; box-shadow: 0 0 12px rgba(0,255,204,0.6); }
 
-.save-btn { background: #2ed573; color: #000; border: none; padding: 6px 12px; font-size: 10px; font-weight: 800; border-radius: 16px; cursor: pointer; }
+.save-btn { background: #00ffcc; color: #000; border: none; padding: 6px 12px; font-size: 10px; font-weight: 800; border-radius: 16px; cursor: pointer; }
 .delete-btn { background: rgba(255,71,87,0.2); color: #ff4757; border: none; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
 .bottom-nav-bar {
   display: flex; justify-content: space-around; align-items: center;
-  background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.12); padding: 10px 20px; border-radius: 35px;
-  width: 190px; margin: auto auto 0 auto; flex-shrink: 0; box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1); padding: 10px 20px; border-radius: 35px;
+  width: 190px; margin: auto auto 0 auto; flex-shrink: 0; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
 }
 .nav-item { color: rgba(255,255,255,0.4); font-size: 16px; cursor: pointer; transition: 0.2s; }
-.nav-item.active, .nav-item:hover { color: #8c7ae6; transform: scale(1.15); }
+.nav-item.active, .nav-item:hover { color: #00ffcc; transform: scale(1.15); }
 
 #toast {
   position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px);
-  background: #6c5ce7; color: #fff; padding: 12px 28px; border-radius: 30px;
-  font-size: 13px; font-weight: 800; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  background: #00ffcc; color: #000; padding: 12px 28px; border-radius: 30px;
+  font-size: 13px; font-weight: 800; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
   transition: transform 0.35s ease, opacity 0.3s ease; opacity: 0; pointer-events: none;
 }
 #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
@@ -207,7 +207,8 @@ button.search-btn-custom {
 
   <div class="header-center-controls">
     <select id="viz-mode-select" class="viz-selector-box" onchange="changeVisualizerMode(this.value)">
-      <!-- 10 Unique Modes -->
+      <option value="1">Mode 1: WMP Alchemy Flower Art</option>
+      <option value="2">Mode 2: AMOLED Cyber Quantum Vortex</option>
     </select>
   </div>
 
@@ -231,7 +232,7 @@ button.search-btn-custom {
     <input type="password" id="admin-pass-input" placeholder="Enter password..." onkeydown="if(event.key==='Enter') verifyAdminPassword()">
     <div style="display:flex; gap:10px; justify-content:flex-end;">
       <button onclick="closeAuthModal()" style="background:rgba(255,255,255,0.06); border:none; color:#fff; padding:10px 16px; border-radius:12px; cursor:pointer;">Cancel</button>
-      <button onclick="verifyAdminPassword()" style="background:linear-gradient(135deg, #4834d4, #686de0); color:#fff; border:none; padding:10px 18px; border-radius:12px; font-weight:700; cursor:pointer;">Login</button>
+      <button onclick="verifyAdminPassword()" style="background:linear-gradient(135deg, #00b894, #00cec9); color:#000; border:none; padding:10px 18px; border-radius:12px; font-weight:700; cursor:pointer;">Login</button>
     </div>
   </div>
 </div>
@@ -247,7 +248,7 @@ button.search-btn-custom {
     <div id="playlist-options-container" style="display:flex; flex-direction:column; gap:6px; max-height:140px; overflow-y:auto;"></div>
     <div style="display:flex; gap:6px; margin-top:4px;">
       <input type="text" id="new-category-input" placeholder="Or new category name..." style="font-size:11px; padding:8px 12px;">
-      <button onclick="createNewCategoryAndSave()" style="background:#686de0; color:#fff; border:none; border-radius:14px; padding:8px 12px; font-size:11px; font-weight:700; cursor:pointer;">Add</button>
+      <button onclick="createNewCategoryAndSave()" style="background:#00ffcc; color:#000; border:none; border-radius:14px; padding:8px 12px; font-size:11px; font-weight:700; cursor:pointer;">Add</button>
     </div>
   </div>
 </div>
@@ -314,12 +315,12 @@ button.search-btn-custom {
 <script>
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
-var w = ctx.canvas.width = window.innerWidth;
-var h = ctx.canvas.height = window.innerHeight;
+var w = canvas.width = window.innerWidth;
+var h = canvas.height = window.innerHeight;
 
 window.onresize = function() {
-  w = ctx.canvas.width = window.innerWidth;
-  h = ctx.canvas.height = window.innerHeight;
+  w = canvas.width = window.innerWidth;
+  h = canvas.height = window.innerHeight;
 };
 
 var npt = 0, nrt = 0;
@@ -340,35 +341,16 @@ let currentTabCategory = 'All';
 let pendingSongToSave = null;
 let customCategories = ['Hindi', 'Bhojpuri', 'Bhakti', 'Punjabi'];
 
-// 10 Distinct Unique Visualizer Modes
 let activeVizMode = parseInt(localStorage.getItem('vfy_viz_mode') || '1', 10);
-const UNIQUE_MODES = [
-  { id: 1, name: "1. WMP Alchemy Flower Art" },
-  { id: 2, name: "2. Neon DNA Helix Wave" },
-  { id: 3, name: "3. Cybernetic Radar Sweep" },
-  { id: 4, name: "4. Plasma Fireflies Swarm" },
-  { id: 5, name: "5. Symmetric Star Mandala" },
-  { id: 6, name: "6. Audio Vortex Blackhole" },
-  { id: 7, name: "7. Electric Lightning Storm" },
-  { id: 8, name: "8. Neon Crystal Polygon" },
-  { id: 9, name: "9. Liquid Sine Wave Spectrum" },
-  { id: 10, name: "10. Hypnotic Tunnel Ring" }
-];
 
 function initVisualizerDropdown() {
-  const select = document.getElementById("viz-mode-select");
-  let html = "";
-  UNIQUE_MODES.forEach(item => {
-    const selected = item.id === activeVizMode ? "selected" : "";
-    html += `<option value="${item.id}" ${selected}>${item.name}</option>`;
-  });
-  select.innerHTML = html;
+  document.getElementById("viz-mode-select").value = activeVizMode;
 }
 
 function changeVisualizerMode(val) {
   activeVizMode = parseInt(val, 10);
   localStorage.setItem('vfy_viz_mode', activeVizMode);
-  showToast(`Visualizer: ${UNIQUE_MODES.find(v => v.id === activeVizMode).name}`);
+  showToast(`AMOLED Mode ${activeVizMode} Active`);
 }
 
 function loadLocalPlaylists() {
@@ -393,7 +375,7 @@ function initAudioContext() {
     actx = new AudioContext();
     analyser = actx.createAnalyser();
     analyser.fftSize = 256;
-    analyser.smoothingTimeConstant = 0.65;
+    analyser.smoothingTimeConstant = 0.7;
     sourceNode = actx.createMediaElementSource(audioEl);
     sourceNode.connect(analyser);
     analyser.connect(actx.destination);
@@ -531,7 +513,7 @@ function renderPlaylistUI() {
           <img src="${song.image || config.centerImage}" class="album-art">
           <div class="item-info">
             <div class="item-title">${isOnAir ? '<i class="fa-solid fa-tower-broadcast live-tower-icon"></i> [ON AIR] ' : ''}${song.title}</div>
-            <div class="item-artist">${song.primaryArtists || 'VFY Artist'} • <span style="color:#8c7ae6;">${song.category || 'All'}</span></div>
+            <div class="item-artist">${song.primaryArtists || 'VFY Artist'} • <span style="color:#00ffcc;">${song.category || 'All'}</span></div>
           </div>
           <button class="delete-btn" onclick="event.stopPropagation(); deleteGlobalSong(${globalIndex})"><i class="fa-solid fa-trash"></i></button>
         </div>
@@ -569,7 +551,7 @@ function renderSlideshowBanners() {
         <div class="black-shadow-overlay"></div>
         <div class="banner-info">
           <div class="banner-title">${isOnAir ? '<i class="fa-solid fa-tower-broadcast live-tower-icon"></i> [ON AIR] ' : ''}${song.title}</div>
-          <div class="banner-sub">${song.primaryArtists || 'Featured Live Artist'} • <span style="color:#a29bfe;">${song.category || 'General'}</span></div>
+          <div class="banner-sub">${song.primaryArtists || 'Featured Live Artist'} • <span style="color:#00ffcc;">${song.category || 'General'}</span></div>
         </div>
       </div>
     `;
@@ -721,7 +703,7 @@ function openPlaylistPicker(encodedObj) {
   const container = document.getElementById("playlist-options-container");
   let html = "";
   customCategories.forEach(cat => {
-    html += `<button onclick="confirmSaveToCategory('${cat}')" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px 14px; border-radius:14px; text-align:left; font-weight:700; font-size:12px; cursor:pointer;"><i class="fa-solid fa-folder"></i> ${cat}</button>`;
+    html += `<button onclick="confirmSaveToCategory('${cat}')" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#fff; padding:10px 14px; border-radius:14px; text-align:left; font-weight:700; font-size:12px; cursor:pointer;"><i class="fa-solid fa-folder"></i> ${cat}</button>`;
   });
   container.innerHTML = html;
   document.getElementById("playlist-picker-modal").style.display = "flex";
@@ -832,10 +814,10 @@ function playSongAtIndex(index, baseSeekTime, serverTimestamp) {
 }
 
 // -------------------------------------------------------------
-// 10 UNIQUE FULL-SCREEN VISUALIZER ENGINES
+// PURE AMOLED TRUE BLACK 2 UNIQUE VISUALIZER ENGINES
 // -------------------------------------------------------------
 function clearCanvas(){
-  ctx.fillStyle = "rgba(7, 5, 15, 0.25)";
+  ctx.fillStyle = "#000000"; // Pure Black True AMOLED
   ctx.fillRect(0, 0, w, h);
 }
 
@@ -847,14 +829,14 @@ function getBassPulse() {
 }
 
 function drawCenterAlbumArt(bassPower) {
-  const dynamicZoom = Math.min(w, h) * 0.15 + (bassPower * 0.18);
+  const dynamicZoom = Math.min(w, h) * 0.15 + (bassPower * 0.2);
   if (bgImage.complete && bgImage.src) {
     ctx.save();
     ctx.beginPath();
     ctx.arc(w / 2, h / 2, dynamicZoom, 0, Math.PI * 2);
-    ctx.shadowColor = "#8c7ae6";
-    ctx.shadowBlur = 25 + (bassPower * 0.4);
-    ctx.strokeStyle = "rgba(140, 122, 230, 0.9)";
+    ctx.shadowColor = "#00ffcc";
+    ctx.shadowBlur = 30 + (bassPower * 0.5);
+    ctx.strokeStyle = "rgba(0, 255, 204, 0.9)";
     ctx.lineWidth = 4;
     ctx.stroke();
     ctx.clip();
@@ -863,10 +845,15 @@ function drawCenterAlbumArt(bassPower) {
   }
 }
 
-// Particle pool for Mode 4
-var fireflies = [];
-for(let i=0; i<60; i++) {
-  fireflies.push({ x: Math.random()*window.innerWidth, y: Math.random()*window.innerHeight, vx: (Math.random()-0.5)*2, vy: (Math.random()-0.5)*2, size: Math.random()*3+1 });
+// Particles for Mode 2
+var amoledParticles = [];
+for(let i=0; i<80; i++) {
+  amoledParticles.push({
+    angle: Math.random() * Math.PI * 2,
+    dist: Math.random() * 250 + 50,
+    speed: Math.random() * 0.02 + 0.01,
+    size: Math.random() * 3 + 1
+  });
 }
 
 function render() {
@@ -879,234 +866,55 @@ function render() {
 
   const bass = getBassPulse();
 
-  switch(activeVizMode) {
-    case 1: drawMode1_WMPFlowerArt(bass); break;
-    case 2: drawMode2_NeonDNAHelix(bass); break;
-    case 3: drawMode3_RadarSweep(bass); break;
-    case 4: drawMode4_PlasmaFireflies(bass); break;
-    case 5: drawMode5_StarMandala(bass); break;
-    case 6: drawMode6_AudioVortex(bass); break;
-    case 7: drawMode7_LightningStorm(bass); break;
-    case 8: drawMode8_CrystalPolygon(bass); break;
-    case 9: drawMode9_LiquidSineWave(bass); break;
-    case 10: drawMode10_HypnoticTunnel(bass); break;
-    default: drawMode1_WMPFlowerArt(bass); break;
+  if (activeVizMode === 1) {
+    // Mode 1: WMP Alchemy Flower Art (AMOLED Glowing Edition)
+    const petals = 8;
+    const maxRadius = Math.min(w, h) * 0.44;
+    ctx.save();
+    ctx.translate(w / 2, h / 2);
+    for (let p = 0; p < petals; p++) {
+      ctx.rotate((Math.PI * 2) / petals);
+      ctx.beginPath();
+      let firstPoint = true;
+      for (let i = 0; i < frequencyDataLen; i += 2) {
+        const val = frequencyData[i];
+        const angle = (i / frequencyDataLen) * Math.PI;
+        const radius = 80 + (val / 255) * (maxRadius - 80) + Math.sin(npt + i * 0.1) * bass * 0.3;
+        const x = Math.cos(angle + nrt) * radius;
+        const y = Math.sin(angle * 2 + nrt) * (radius * 0.7);
+        if (firstPoint) { ctx.moveTo(x, y); firstPoint = false; } else { ctx.lineTo(x, y); }
+      }
+      const hue = (p * (360 / petals) + npt * 50) % 360;
+      ctx.strokeStyle = `hsla(${hue}, 100%, 60%, 0.85)`;
+      ctx.lineWidth = 3;
+      ctx.shadowBlur = 20;
+      ctx.shadowColor = `hsla(${hue}, 100%, 50%, 0.8)`;
+      ctx.stroke();
+    }
+    ctx.restore();
+  } else {
+    // Mode 2: AMOLED Cyber Quantum Vortex
+    ctx.save();
+    ctx.translate(w / 2, h / 2);
+    amoledParticles.forEach((p, idx) => {
+      p.angle += p.speed * (1 + bass * 0.01);
+      const val = frequencyData[idx % frequencyDataLen];
+      const currentDist = p.dist + (val * 0.4);
+      const x = Math.cos(p.angle) * currentDist;
+      const y = Math.sin(p.angle) * currentDist;
+
+      ctx.beginPath();
+      ctx.arc(x, y, p.size + (val/255)*3, 0, Math.PI*2);
+      ctx.fillStyle = idx % 2 === 0 ? "#00ffcc" : "#ff007f";
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = ctx.fillStyle;
+      ctx.fill();
+    });
+    ctx.restore();
   }
 
   drawCenterAlbumArt(bass);
   requestAnimationFrame(render);
-}
-
-// Mode 1: WMP Alchemy Flower Art
-function drawMode1_WMPFlowerArt(bass) {
-  const petals = 8;
-  const maxRadius = Math.min(w, h) * 0.44;
-  ctx.save();
-  ctx.translate(w / 2, h / 2);
-  for (let p = 0; p < petals; p++) {
-    ctx.rotate((Math.PI * 2) / petals);
-    ctx.beginPath();
-    let firstPoint = true;
-    for (let i = 0; i < frequencyDataLen; i += 2) {
-      const val = frequencyData[i];
-      const angle = (i / frequencyDataLen) * Math.PI;
-      const radius = 80 + (val / 255) * (maxRadius - 80) + Math.sin(npt + i * 0.1) * bass * 0.3;
-      const x = Math.cos(angle + nrt) * radius;
-      const y = Math.sin(angle * 2 + nrt) * (radius * 0.7);
-      if (firstPoint) { ctx.moveTo(x, y); firstPoint = false; } else { ctx.lineTo(x, y); }
-    }
-    const hue = (p * (360 / petals) + npt * 40) % 360;
-    ctx.strokeStyle = `hsla(${hue}, 90%, 60%, 0.75)`;
-    ctx.lineWidth = 2.5;
-    ctx.shadowBlur = 15;
-    ctx.shadowColor = `hsla(${hue}, 100%, 50%, 0.5)`;
-    ctx.stroke();
-  }
-  ctx.restore();
-}
-
-// Mode 2: Neon DNA Helix Wave
-function drawMode2_NeonDNAHelix(bass) {
-  ctx.save();
-  ctx.translate(w / 2, h / 2);
-  for (let i = 0; i < frequencyDataLen; i += 3) {
-    const val = frequencyData[i];
-    const angle = i * 0.15 + npt;
-    const x1 = Math.cos(angle) * (100 + val * 0.8);
-    const y1 = Math.sin(angle) * (80 + bass * 0.5);
-    const x2 = Math.cos(angle + Math.PI) * (100 + val * 0.8);
-    const y2 = Math.sin(angle + Math.PI) * (80 + bass * 0.5);
-
-    ctx.beginPath();
-    ctx.arc(x1, y1, 3, 0, Math.PI*2);
-    ctx.arc(x2, y2, 3, 0, Math.PI*2);
-    ctx.fillStyle = "#00ffcc";
-    ctx.fill();
-
-    ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
-    ctx.strokeStyle = "rgba(0, 255, 204, 0.3)";
-    ctx.lineWidth = 1;
-    ctx.stroke();
-  }
-  ctx.restore();
-}
-
-// Mode 3: Cybernetic Radar Sweep
-function drawMode3_RadarSweep(bass) {
-  ctx.save();
-  ctx.translate(w / 2, h / 2);
-  ctx.rotate(npt);
-  ctx.beginPath();
-  ctx.moveTo(0, 0);
-  ctx.arc(0, 0, Math.max(w, h)*0.4, 0, Math.PI / 3);
-  ctx.fillStyle = "rgba(46, 213, 115, 0.12)";
-  ctx.fill();
-
-  for(let i=1; i<=4; i++) {
-    ctx.beginPath();
-    ctx.arc(0, 0, i * 60 + bass * 0.2, 0, Math.PI*2);
-    ctx.strokeStyle = "rgba(46, 213, 115, 0.4)";
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-  }
-  ctx.restore();
-}
-
-// Mode 4: Plasma Fireflies Swarm
-function drawMode4_PlasmaFireflies(bass) {
-  fireflies.forEach((f, idx) => {
-    const val = frequencyData[idx % frequencyDataLen];
-    f.x += f.vx * (1 + bass * 0.03);
-    f.y += f.vy * (1 + bass * 0.03);
-    if(f.x < 0 || f.x > w) f.vx *= -1;
-    if(f.y < 0 || f.y > h) f.vy *= -1;
-
-    ctx.beginPath();
-    ctx.arc(f.x, f.y, f.size + (val/255)*4, 0, Math.PI*2);
-    ctx.fillStyle = `hsl(${idx * 10 + npt * 50}, 100%, 65%)`;
-    ctx.shadowBlur = 12;
-    ctx.shadowColor = ctx.fillStyle;
-    ctx.fill();
-  });
-}
-
-// Mode 5: Symmetric Star Mandala
-function drawMode5_StarMandala(bass) {
-  ctx.save();
-  ctx.translate(w / 2, h / 2);
-  const arms = 6;
-  for(let a=0; a<arms; a++) {
-    ctx.rotate((Math.PI * 2) / arms);
-    ctx.beginPath();
-    for(let i=0; i<frequencyDataLen; i+=4) {
-      const val = frequencyData[i];
-      const r = i * 2 + bass * 0.5;
-      const x = Math.cos(i * 0.1 + nrt) * r;
-      const y = Math.sin(i * 0.1 + nrt) * (val * 0.6);
-      if(i===0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-    }
-    ctx.strokeStyle = `hsl(${a * 60 + npt * 30}, 90%, 55%)`;
-    ctx.lineWidth = 2;
-    ctx.stroke();
-  }
-  ctx.restore();
-}
-
-// Mode 6: Audio Vortex Blackhole
-function drawMode6_AudioVortex(bass) {
-  ctx.save();
-  ctx.translate(w / 2, h / 2);
-  for(let i=0; i<frequencyDataLen; i+=2) {
-    const val = frequencyData[i];
-    const angle = i * 0.2 + npt * 2;
-    const r = (i * 1.5) + bass * 0.3;
-    const x = Math.cos(angle) * r;
-    const y = Math.sin(angle) * r;
-
-    ctx.beginPath();
-    ctx.arc(x, y, (val / 255) * 5, 0, Math.PI*2);
-    ctx.fillStyle = `hsl(${i * 3 + npt * 40}, 100%, 60%)`;
-    ctx.fill();
-  }
-  ctx.restore();
-}
-
-// Mode 7: Electric Lightning Storm
-function drawMode7_LightningStorm(bass) {
-  ctx.save();
-  ctx.strokeStyle = "#a29bfe";
-  ctx.lineWidth = 2;
-  for(let l=0; l<3; l++) {
-    ctx.beginPath();
-    let cx = Math.random() * w;
-    let cy = 0;
-    ctx.moveTo(cx, cy);
-    while(cy < h) {
-      cx += (Math.random() - 0.5) * 60;
-      cy += Math.random() * 50 + bass * 0.5;
-      ctx.lineTo(cx, cy);
-    }
-    ctx.stroke();
-  }
-  ctx.restore();
-}
-
-// Mode 8: Neon Crystal Polygon
-function drawMode8_CrystalPolygon(bass) {
-  ctx.save();
-  ctx.translate(w / 2, h / 2);
-  ctx.rotate(npt * 0.5);
-  const sides = 5;
-  const radius = 120 + bass * 0.8;
-  ctx.beginPath();
-  for (let s = 0; s < sides; s++) {
-    const angle = (s * 2 * Math.PI) / sides;
-    const x = Math.cos(angle) * radius;
-    const y = Math.sin(angle) * radius;
-    if (s === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-  }
-  ctx.closePath();
-  ctx.strokeStyle = "#ff4757";
-  ctx.lineWidth = 3;
-  ctx.shadowBlur = 20;
-  ctx.shadowColor = "#ff4757";
-  ctx.stroke();
-  ctx.restore();
-}
-
-// Mode 9: Liquid Sine Wave Spectrum
-function drawMode9_LiquidSineWave(bass) {
-  ctx.save();
-  ctx.beginPath();
-  for (let x = 0; x < w; x += 10) {
-    const idx = Math.floor((x / w) * frequencyDataLen);
-    const val = frequencyData[idx] || 0;
-    const y = (h / 2) + Math.sin(x * 0.01 + npt * 3) * (val * 0.8 + bass * 0.3);
-    if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-  }
-  ctx.strokeStyle = "#00d2d3";
-  ctx.lineWidth = 4;
-  ctx.shadowBlur = 15;
-  ctx.shadowColor = "#00d2d3";
-  ctx.stroke();
-  ctx.restore();
-}
-
-// Mode 10: Hypnotic Tunnel Ring
-function drawMode10_HypnoticTunnel(bass) {
-  ctx.save();
-  ctx.translate(w / 2, h / 2);
-  for (let i = 1; i <= 10; i++) {
-    const r = (i * 30) + ((npt * 50) % 30) + bass * 0.4;
-    ctx.beginPath();
-    ctx.arc(0, 0, r, 0, Math.PI * 2);
-    ctx.strokeStyle = `hsla(${i * 35 + npt * 40}, 90%, 55%, ${1 - i * 0.09})`;
-    ctx.lineWidth = 2.5;
-    ctx.stroke();
-  }
-  ctx.restore();
 }
 </script>
 
