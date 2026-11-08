@@ -217,6 +217,7 @@ button.search-btn-custom {
       <option value="8">8. Crystal Polygon</option>
       <option value="9">9. Liquid Sine</option>
       <option value="10">10. Hypnotic Tunnel</option>
+      <option value="11">🔥 11. AI Chaos Art</option>
     </select>
   </div>
 
@@ -349,7 +350,7 @@ let currentTabCategory = 'All';
 let pendingSongToSave = null;
 let customCategories = ['Hindi', 'Bhojpuri', 'Bhakti', 'Punjabi'];
 
-let activeVizMode = parseInt(localStorage.getItem('vfy_viz_mode') || '1', 10);
+let activeVizMode = parseInt(localStorage.getItem('vfy_viz_mode') || '11', 10);
 
 function initVisualizerDropdown() {
   document.getElementById("viz-mode-select").value = activeVizMode;
@@ -822,10 +823,15 @@ function playSongAtIndex(index, baseSeekTime, serverTimestamp) {
 }
 
 // -------------------------------------------------------------
-// 10 UNIQUE TRUE AMOLED VISUALIZER ENGINES
+// INFINITE PROCEDURAL AI CHAOS ART MACHINE + 10 AMOLED MODES
 // -------------------------------------------------------------
 function clearCanvas(){
-  ctx.fillStyle = "#000000";
+  // Fading trail for generative art blur effect
+  if(activeVizMode === 11) {
+    ctx.fillStyle = "rgba(0, 0, 0, 0.08)";
+  } else {
+    ctx.fillStyle = "#000000";
+  }
   ctx.fillRect(0, 0, w, h);
 }
 
@@ -879,14 +885,15 @@ function render() {
     case 8: drawMode8(bass); break;
     case 9: drawMode9(bass); break;
     case 10: drawMode10(bass); break;
-    default: drawMode1(bass); break;
+    case 11: drawModeAIChaosArt(bass); break; // Infinite Generative Unique Art Machine
+    default: drawModeAIChaosArt(bass); break;
   }
 
   drawCenterAlbumArt(bass);
   requestAnimationFrame(render);
 }
 
-// 1. Flower Art
+// Mode 1: Flower Art
 function drawMode1(bass) {
   const petals = 8;
   const maxRadius = Math.min(w, h) * 0.44;
@@ -914,7 +921,7 @@ function drawMode1(bass) {
   ctx.restore();
 }
 
-// 2. DNA Helix
+// Mode 2: DNA Helix
 function drawMode2(bass) {
   ctx.save();
   ctx.translate(w / 2, h / 2);
@@ -942,7 +949,7 @@ function drawMode2(bass) {
   ctx.restore();
 }
 
-// 3. Radar Sweep
+// Mode 3: Radar Sweep
 function drawMode3(bass) {
   ctx.save();
   ctx.translate(w / 2, h / 2);
@@ -963,7 +970,7 @@ function drawMode3(bass) {
   ctx.restore();
 }
 
-// 4. Fireflies
+// Mode 4: Fireflies
 function drawMode4(bass) {
   pArray.forEach((f, idx) => {
     const val = frequencyData[idx % frequencyDataLen];
@@ -981,7 +988,7 @@ function drawMode4(bass) {
   });
 }
 
-// 5. Star Mandala
+// Mode 5: Star Mandala
 function drawMode5(bass) {
   ctx.save();
   ctx.translate(w / 2, h / 2);
@@ -1003,7 +1010,7 @@ function drawMode5(bass) {
   ctx.restore();
 }
 
-// 6. Vortex Ring
+// Mode 6: Vortex Ring
 function drawMode6(bass) {
   ctx.save();
   ctx.translate(w / 2, h / 2);
@@ -1022,7 +1029,7 @@ function drawMode6(bass) {
   ctx.restore();
 }
 
-// 7. Lightning
+// Mode 7: Lightning
 function drawMode7(bass) {
   ctx.save();
   ctx.strokeStyle = "#00d2d3";
@@ -1042,7 +1049,7 @@ function drawMode7(bass) {
   ctx.restore();
 }
 
-// 8. Crystal Polygon
+// Mode 8: Crystal Polygon
 function drawMode8(bass) {
   ctx.save();
   ctx.translate(w / 2, h / 2);
@@ -1065,7 +1072,7 @@ function drawMode8(bass) {
   ctx.restore();
 }
 
-// 9. Liquid Sine
+// Mode 9: Liquid Sine
 function drawMode9(bass) {
   ctx.save();
   ctx.beginPath();
@@ -1083,7 +1090,7 @@ function drawMode9(bass) {
   ctx.restore();
 }
 
-// 10. Hypnotic Tunnel
+// Mode 10: Hypnotic Tunnel
 function drawMode10(bass) {
   ctx.save();
   ctx.translate(w / 2, h / 2);
@@ -1095,6 +1102,53 @@ function drawMode10(bass) {
     ctx.lineWidth = 3;
     ctx.stroke();
   }
+  ctx.restore();
+}
+
+// Mode 11: INFINITE PROCEDURAL AI CHAOS ART (Never Repeats, Unique Every Millisecond)
+function drawModeAIChaosArt(bass) {
+  ctx.save();
+  ctx.translate(w / 2, h / 2);
+  
+  // Real-time audio responsive variables combined with chaotic trigonometric equations
+  const dynamicSymmetry = Math.floor(5 + (bass % 7)); 
+  const angleStep = (Math.PI * 2) / dynamicSymmetry;
+
+  for (let s = 0; s < dynamicSymmetry; s++) {
+    ctx.rotate(angleStep);
+    ctx.beginPath();
+
+    let prevX = 0, prevY = 0;
+    for (let i = 0; i < frequencyDataLen; i += 3) {
+      const fVal = frequencyData[i];
+      // Procedural noise equation that guarantees infinite non-repeating unique paths
+      const radius = (i * 1.5) + (fVal * 0.8) + Math.sin(npt * 2 + i * 0.2) * (bass * 0.5);
+      const angleOffset = Math.cos(npt + i * 0.05) * 2;
+      
+      const x = Math.cos(angleOffset * i) * radius;
+      const y = Math.sin(angleOffset * i) * radius;
+
+      if (i === 0) {
+        ctx.moveTo(x, y);
+      } else {
+        // Organic quadratic bezier curves for smooth generative art styling
+        const xc = (x + prevX) / 2;
+        const yc = (y + prevY) / 2;
+        ctx.quadraticCurveTo(prevX, prevY, xc, yc);
+      }
+      prevX = x;
+      prevY = y;
+    }
+
+    // Dynamic shifting neon color spectrum driven by sound frequency
+    const randomHue = (npt * 30 + s * 50 + bass * 2) % 360;
+    ctx.strokeStyle = `hsla(${randomHue}, 100%, 60%, 0.75)`;
+    ctx.lineWidth = 2;
+    ctx.shadowBlur = 18;
+    ctx.shadowColor = `hsla(${randomHue}, 100%, 50%, 0.8)`;
+    ctx.stroke();
+  }
+
   ctx.restore();
 }
 </script>
