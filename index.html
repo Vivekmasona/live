@@ -32,12 +32,12 @@ canvas { position: fixed; inset: 0; z-index: 1; }
   display: flex; align-items: center; gap: 8px; flex: 1; justify-content: center;
 }
 
-/* Short Names Dropdown */
+/* WMP Style Selector Dropdown */
 .viz-selector-box {
   background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15);
   color: #00ffcc; border-radius: 16px; padding: 6px 14px; font-size: 11px; font-weight: 700;
   outline: none; cursor: pointer; transition: 0.25s ease; backdrop-filter: blur(15px);
-  max-width: 170px; text-overflow: ellipsis;
+  max-width: 180px; text-overflow: ellipsis;
 }
 .viz-selector-box:hover, .viz-selector-box:focus {
   background: rgba(0, 255, 204, 0.15); border-color: #00ffcc; color: #fff;
@@ -207,17 +207,9 @@ button.search-btn-custom {
 
   <div class="header-center-controls">
     <select id="viz-mode-select" class="viz-selector-box" onchange="changeVisualizerMode(this.value)">
-      <option value="1">1. Flower Art</option>
-      <option value="2">2. DNA Helix</option>
-      <option value="3">3. Radar Sweep</option>
-      <option value="4">4. Fireflies</option>
-      <option value="5">5. Star Mandala</option>
-      <option value="6">6. Vortex Ring</option>
-      <option value="7">7. Lightning</option>
-      <option value="8">8. Crystal Polygon</option>
-      <option value="9">9. Liquid Sine</option>
-      <option value="10">10. Hypnotic Tunnel</option>
-      <option value="11">🔥 11. AI Chaos Art</option>
+      <option value="1">1. WMP Alchemy</option>
+      <option value="2">2. WMP Ambience</option>
+      <option value="3">3. WMP Particles</option>
     </select>
   </div>
 
@@ -350,7 +342,7 @@ let currentTabCategory = 'All';
 let pendingSongToSave = null;
 let customCategories = ['Hindi', 'Bhojpuri', 'Bhakti', 'Punjabi'];
 
-let activeVizMode = parseInt(localStorage.getItem('vfy_viz_mode') || '11', 10);
+let activeVizMode = parseInt(localStorage.getItem('vfy_viz_mode') || '1', 10);
 
 function initVisualizerDropdown() {
   document.getElementById("viz-mode-select").value = activeVizMode;
@@ -359,7 +351,7 @@ function initVisualizerDropdown() {
 function changeVisualizerMode(val) {
   activeVizMode = parseInt(val, 10);
   localStorage.setItem('vfy_viz_mode', activeVizMode);
-  showToast(`Mode ${activeVizMode} Selected`);
+  showToast(`WMP Mode ${activeVizMode} Selected`);
 }
 
 function loadLocalPlaylists() {
@@ -384,7 +376,7 @@ function initAudioContext() {
     actx = new AudioContext();
     analyser = actx.createAnalyser();
     analyser.fftSize = 256;
-    analyser.smoothingTimeConstant = 0.7;
+    analyser.smoothingTimeConstant = 0.75;
     sourceNode = actx.createMediaElementSource(audioEl);
     sourceNode.connect(analyser);
     analyser.connect(actx.destination);
@@ -823,14 +815,13 @@ function playSongAtIndex(index, baseSeekTime, serverTimestamp) {
 }
 
 // -------------------------------------------------------------
-// INFINITE PROCEDURAL AI CHAOS ART MACHINE + 10 AMOLED MODES
+// AUTHENTIC WINDOWS MEDIA PLAYER RENDER ENGINE (TRUE AMOLED)
 // -------------------------------------------------------------
 function clearCanvas(){
-  // Fading trail for generative art blur effect
-  if(activeVizMode === 11) {
-    ctx.fillStyle = "rgba(0, 0, 0, 0.08)";
+  if(activeVizMode === 2) {
+    ctx.fillStyle = "rgba(0, 0, 0, 0.15)"; // WMP Ambience Motion Blur Trail
   } else {
-    ctx.fillStyle = "#000000";
+    ctx.fillStyle = "#000000"; // Pure Black True AMOLED
   }
   ctx.fillRect(0, 0, w, h);
 }
@@ -859,9 +850,15 @@ function drawCenterAlbumArt(bassPower) {
   }
 }
 
-var pArray = [];
-for(let i=0; i<70; i++) {
-  pArray.push({ x: Math.random()*window.innerWidth, y: Math.random()*window.innerHeight, vx: (Math.random()-0.5)*2, vy: (Math.random()-0.5)*2, size: Math.random()*3+1 });
+var wmpParticles = [];
+for(let i=0; i<100; i++) {
+  wmpParticles.push({
+    x: Math.random() * window.innerWidth,
+    y: Math.random() * window.innerHeight,
+    vx: (Math.random() - 0.5) * 1.2,
+    vy: (Math.random() - 0.5) * 1.2,
+    size: Math.random() * 2.5 + 0.8
+  });
 }
 
 function render() {
@@ -875,28 +872,20 @@ function render() {
   const bass = getBassPulse();
 
   switch(activeVizMode) {
-    case 1: drawMode1(bass); break;
-    case 2: drawMode2(bass); break;
-    case 3: drawMode3(bass); break;
-    case 4: drawMode4(bass); break;
-    case 5: drawMode5(bass); break;
-    case 6: drawMode6(bass); break;
-    case 7: drawMode7(bass); break;
-    case 8: drawMode8(bass); break;
-    case 9: drawMode9(bass); break;
-    case 10: drawMode10(bass); break;
-    case 11: drawModeAIChaosArt(bass); break; // Infinite Generative Unique Art Machine
-    default: drawModeAIChaosArt(bass); break;
+    case 1: drawWMP_Alchemy(bass); break;
+    case 2: drawWMP_Ambience(bass); break;
+    case 3: drawWMP_Particles(bass); break;
+    default: drawWMP_Alchemy(bass); break;
   }
 
   drawCenterAlbumArt(bass);
   requestAnimationFrame(render);
 }
 
-// Mode 1: Flower Art
-function drawMode1(bass) {
+// 1. WMP Alchemy (Kaleidoscopic Flower Art - Full Screen)
+function drawWMP_Alchemy(bass) {
   const petals = 8;
-  const maxRadius = Math.min(w, h) * 0.44;
+  const maxRadius = Math.min(w, h) * 0.48;
   ctx.save();
   ctx.translate(w / 2, h / 2);
   for (let p = 0; p < petals; p++) {
@@ -906,249 +895,59 @@ function drawMode1(bass) {
     for (let i = 0; i < frequencyDataLen; i += 2) {
       const val = frequencyData[i];
       const angle = (i / frequencyDataLen) * Math.PI;
-      const radius = 80 + (val / 255) * (maxRadius - 80) + Math.sin(npt + i * 0.1) * bass * 0.3;
+      const radius = 90 + (val / 255) * (maxRadius - 90) + Math.sin(npt + i * 0.1) * bass * 0.4;
       const x = Math.cos(angle + nrt) * radius;
-      const y = Math.sin(angle * 2 + nrt) * (radius * 0.7);
+      const y = Math.sin(angle * 2 + nrt) * (radius * 0.8);
       if (firstPoint) { ctx.moveTo(x, y); firstPoint = false; } else { ctx.lineTo(x, y); }
     }
-    const hue = (p * (360 / petals) + npt * 50) % 360;
+    const hue = (p * (360 / petals) + npt * 40) % 360;
     ctx.strokeStyle = `hsla(${hue}, 100%, 60%, 0.85)`;
     ctx.lineWidth = 3;
-    ctx.shadowBlur = 20;
+    ctx.shadowBlur = 25;
     ctx.shadowColor = `hsla(${hue}, 100%, 50%, 0.8)`;
     ctx.stroke();
   }
   ctx.restore();
 }
 
-// Mode 2: DNA Helix
-function drawMode2(bass) {
+// 2. WMP Ambience (Fluid Plasma Waves Across Screen)
+function drawWMP_Ambience(bass) {
   ctx.save();
-  ctx.translate(w / 2, h / 2);
-  for (let i = 0; i < frequencyDataLen; i += 3) {
-    const val = frequencyData[i];
-    const angle = i * 0.15 + npt;
-    const x1 = Math.cos(angle) * (120 + val * 0.6);
-    const y1 = Math.sin(angle) * (90 + bass * 0.4);
-    const x2 = Math.cos(angle + Math.PI) * (120 + val * 0.6);
-    const y2 = Math.sin(angle + Math.PI) * (90 + bass * 0.4);
-
+  for (let line = 0; line < 5; line++) {
     ctx.beginPath();
-    ctx.arc(x1, y1, 3, 0, Math.PI*2);
-    ctx.arc(x2, y2, 3, 0, Math.PI*2);
-    ctx.fillStyle = "#00ffcc";
-    ctx.fill();
-
-    ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
-    ctx.strokeStyle = "rgba(0, 255, 204, 0.35)";
-    ctx.lineWidth = 1;
+    for (let x = 0; x < w; x += 12) {
+      const idx = Math.floor((x / w) * frequencyDataLen);
+      const val = frequencyData[idx] || 0;
+      const y = (h / 2) + Math.sin(x * 0.008 + npt * 2 + line * 0.5) * (val * 0.9 + bass * 0.5) + (line * 30 - 60);
+      if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    const hue = (line * 50 + npt * 30) % 360;
+    ctx.strokeStyle = `hsla(${hue}, 100%, 55%, 0.75)`;
+    ctx.lineWidth = 2.5;
+    ctx.shadowBlur = 15;
+    ctx.shadowColor = `hsla(${hue}, 100%, 50%, 0.6)`;
     ctx.stroke();
   }
   ctx.restore();
 }
 
-// Mode 3: Radar Sweep
-function drawMode3(bass) {
+// 3. WMP Particles (Audio Responsive Star Storm)
+function drawWMP_Particles(bass) {
   ctx.save();
-  ctx.translate(w / 2, h / 2);
-  ctx.rotate(npt);
-  ctx.beginPath();
-  ctx.moveTo(0, 0);
-  ctx.arc(0, 0, Math.max(w, h)*0.45, 0, Math.PI / 3);
-  ctx.fillStyle = "rgba(0, 255, 128, 0.15)";
-  ctx.fill();
-
-  for(let i=1; i<=4; i++) {
-    ctx.beginPath();
-    ctx.arc(0, 0, i * 70 + bass * 0.3, 0, Math.PI*2);
-    ctx.strokeStyle = "rgba(0, 255, 128, 0.5)";
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-  }
-  ctx.restore();
-}
-
-// Mode 4: Fireflies
-function drawMode4(bass) {
-  pArray.forEach((f, idx) => {
+  wmpParticles.forEach((p, idx) => {
     const val = frequencyData[idx % frequencyDataLen];
-    f.x += f.vx * (1 + bass * 0.03);
-    f.y += f.vy * (1 + bass * 0.03);
-    if(f.x < 0 || f.x > w) f.vx *= -1;
-    if(f.y < 0 || f.y > h) f.vy *= -1;
+    p.x += p.vx * (1 + bass * 0.04);
+    p.y += p.vy * (1 + bass * 0.04);
+    if(p.x < 0 || p.x > w) p.vx *= -1;
+    if(p.y < 0 || p.y > h) p.vy *= -1;
 
     ctx.beginPath();
-    ctx.arc(f.x, f.y, f.size + (val/255)*4, 0, Math.PI*2);
-    ctx.fillStyle = `hsl(${idx * 12 + npt * 60}, 100%, 70%)`;
+    ctx.arc(p.x, p.y, p.size + (val/255)*5, 0, Math.PI*2);
+    ctx.fillStyle = `hsl(${idx * 15 + npt * 50}, 100%, 70%)`;
     ctx.shadowBlur = 15;
     ctx.shadowColor = ctx.fillStyle;
     ctx.fill();
   });
-}
-
-// Mode 5: Star Mandala
-function drawMode5(bass) {
-  ctx.save();
-  ctx.translate(w / 2, h / 2);
-  const arms = 6;
-  for(let a=0; a<arms; a++) {
-    ctx.rotate((Math.PI * 2) / arms);
-    ctx.beginPath();
-    for(let i=0; i<frequencyDataLen; i+=4) {
-      const val = frequencyData[i];
-      const r = i * 2.2 + bass * 0.4;
-      const x = Math.cos(i * 0.1 + nrt) * r;
-      const y = Math.sin(i * 0.1 + nrt) * (val * 0.5);
-      if(i===0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-    }
-    ctx.strokeStyle = `hsl(${a * 60 + npt * 40}, 100%, 60%)`;
-    ctx.lineWidth = 2;
-    ctx.stroke();
-  }
-  ctx.restore();
-}
-
-// Mode 6: Vortex Ring
-function drawMode6(bass) {
-  ctx.save();
-  ctx.translate(w / 2, h / 2);
-  for(let i=0; i<frequencyDataLen; i+=2) {
-    const val = frequencyData[i];
-    const angle = i * 0.2 + npt * 2;
-    const r = (i * 1.8) + bass * 0.4;
-    const x = Math.cos(angle) * r;
-    const y = Math.sin(angle) * r;
-
-    ctx.beginPath();
-    ctx.arc(x, y, (val / 255) * 6, 0, Math.PI*2);
-    ctx.fillStyle = `hsl(${i * 4 + npt * 50}, 100%, 65%)`;
-    ctx.fill();
-  }
-  ctx.restore();
-}
-
-// Mode 7: Lightning
-function drawMode7(bass) {
-  ctx.save();
-  ctx.strokeStyle = "#00d2d3";
-  ctx.lineWidth = 2.5;
-  for(let l=0; l<3; l++) {
-    ctx.beginPath();
-    let cx = Math.random() * w;
-    let cy = 0;
-    ctx.moveTo(cx, cy);
-    while(cy < h) {
-      cx += (Math.random() - 0.5) * 80;
-      cy += Math.random() * 60 + bass * 0.5;
-      ctx.lineTo(cx, cy);
-    }
-    ctx.stroke();
-  }
-  ctx.restore();
-}
-
-// Mode 8: Crystal Polygon
-function drawMode8(bass) {
-  ctx.save();
-  ctx.translate(w / 2, h / 2);
-  ctx.rotate(npt * 0.5);
-  const sides = 6;
-  const radius = 130 + bass * 0.9;
-  ctx.beginPath();
-  for (let s = 0; s < sides; s++) {
-    const angle = (s * 2 * Math.PI) / sides;
-    const x = Math.cos(angle) * radius;
-    const y = Math.sin(angle) * radius;
-    if (s === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-  }
-  ctx.closePath();
-  ctx.strokeStyle = "#ff007f";
-  ctx.lineWidth = 3;
-  ctx.shadowBlur = 25;
-  ctx.shadowColor = "#ff007f";
-  ctx.stroke();
-  ctx.restore();
-}
-
-// Mode 9: Liquid Sine
-function drawMode9(bass) {
-  ctx.save();
-  ctx.beginPath();
-  for (let x = 0; x < w; x += 10) {
-    const idx = Math.floor((x / w) * frequencyDataLen);
-    const val = frequencyData[idx] || 0;
-    const y = (h / 2) + Math.sin(x * 0.015 + npt * 3) * (val * 0.9 + bass * 0.4);
-    if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-  }
-  ctx.strokeStyle = "#00ffcc";
-  ctx.lineWidth = 4;
-  ctx.shadowBlur = 20;
-  ctx.shadowColor = "#00ffcc";
-  ctx.stroke();
-  ctx.restore();
-}
-
-// Mode 10: Hypnotic Tunnel
-function drawMode10(bass) {
-  ctx.save();
-  ctx.translate(w / 2, h / 2);
-  for (let i = 1; i <= 10; i++) {
-    const r = (i * 35) + ((npt * 60) % 35) + bass * 0.5;
-    ctx.beginPath();
-    ctx.arc(0, 0, r, 0, Math.PI * 2);
-    ctx.strokeStyle = `hsla(${i * 35 + npt * 40}, 100%, 60%, ${1 - i * 0.09})`;
-    ctx.lineWidth = 3;
-    ctx.stroke();
-  }
-  ctx.restore();
-}
-
-// Mode 11: INFINITE PROCEDURAL AI CHAOS ART (Never Repeats, Unique Every Millisecond)
-function drawModeAIChaosArt(bass) {
-  ctx.save();
-  ctx.translate(w / 2, h / 2);
-  
-  // Real-time audio responsive variables combined with chaotic trigonometric equations
-  const dynamicSymmetry = Math.floor(5 + (bass % 7)); 
-  const angleStep = (Math.PI * 2) / dynamicSymmetry;
-
-  for (let s = 0; s < dynamicSymmetry; s++) {
-    ctx.rotate(angleStep);
-    ctx.beginPath();
-
-    let prevX = 0, prevY = 0;
-    for (let i = 0; i < frequencyDataLen; i += 3) {
-      const fVal = frequencyData[i];
-      // Procedural noise equation that guarantees infinite non-repeating unique paths
-      const radius = (i * 1.5) + (fVal * 0.8) + Math.sin(npt * 2 + i * 0.2) * (bass * 0.5);
-      const angleOffset = Math.cos(npt + i * 0.05) * 2;
-      
-      const x = Math.cos(angleOffset * i) * radius;
-      const y = Math.sin(angleOffset * i) * radius;
-
-      if (i === 0) {
-        ctx.moveTo(x, y);
-      } else {
-        // Organic quadratic bezier curves for smooth generative art styling
-        const xc = (x + prevX) / 2;
-        const yc = (y + prevY) / 2;
-        ctx.quadraticCurveTo(prevX, prevY, xc, yc);
-      }
-      prevX = x;
-      prevY = y;
-    }
-
-    // Dynamic shifting neon color spectrum driven by sound frequency
-    const randomHue = (npt * 30 + s * 50 + bass * 2) % 360;
-    ctx.strokeStyle = `hsla(${randomHue}, 100%, 60%, 0.75)`;
-    ctx.lineWidth = 2;
-    ctx.shadowBlur = 18;
-    ctx.shadowColor = `hsla(${randomHue}, 100%, 50%, 0.8)`;
-    ctx.stroke();
-  }
-
   ctx.restore();
 }
 </script>
