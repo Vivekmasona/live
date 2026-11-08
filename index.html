@@ -28,22 +28,11 @@ canvas { position: fixed; inset: 0; z-index: 1; }
 .brand-title i { color: #8c7ae6; filter: drop-shadow(0 0 10px rgba(140,122,230,0.8)); }
 .brand-title span { color: #8c7ae6; }
 
-.header-center-controls {
-  display: flex; align-items: center; gap: 8px; flex: 1; justify-content: center;
-}
-
-/* Glassy Visualizer Selector Dropdown */
-.viz-selector-box {
+.header-center-mode-info {
   background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12);
-  color: #a29bfe; border-radius: 16px; padding: 6px 12px; font-size: 11px; font-weight: 700;
-  outline: none; cursor: pointer; transition: 0.25s ease; backdrop-filter: blur(15px);
-  max-width: 210px; text-overflow: ellipsis;
+  color: #a29bfe; border-radius: 16px; padding: 6px 16px; font-size: 11px; font-weight: 700;
+  backdrop-filter: blur(15px); display: flex; align-items: center; gap: 6px;
 }
-.viz-selector-box:hover, .viz-selector-box:focus {
-  background: rgba(108, 92, 231, 0.2); border-color: #8c7ae6; color: #fff;
-  box-shadow: 0 0 15px rgba(140, 122, 230, 0.4);
-}
-.viz-selector-box option { background: #120e20; color: #fff; font-weight: 600; }
 
 .badge-box { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 .badge { background: rgba(255, 255, 255, 0.05); padding: 6px 14px; border-radius: 14px; font-size: 11px; font-weight: 600; color: #aaa; border: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; gap: 6px; }
@@ -205,10 +194,8 @@ button.search-btn-custom {
     <i class="fa-solid fa-compact-disc fa-spin" style="--fa-animation-duration: 6s;"></i> <span>VFY</span> <small style="font-size:9px; color:rgba(255,255,255,0.3);">(3x)</small>
   </div>
 
-  <div class="header-center-controls">
-    <select id="viz-mode-select" class="viz-selector-box" onchange="changeVisualizerMode(this.value)">
-      <!-- Master Unique Visualizers -->
-    </select>
+  <div class="header-center-mode-info">
+    <i class="fa-solid fa-wand-magic-sparkles" style="color:#ff4757;"></i> WMP Alchemy Flower Art
   </div>
 
   <div class="badge-box">
@@ -311,8 +298,6 @@ button.search-btn-custom {
 <audio id="audio-element" crossorigin="anonymous" controlslist="nodownload noplaybackrate" disablepictureinpicture></audio>
 <audio id="preview-audio"></audio>
 
-<script src="https://codepen.io/Tibixx/pen/BbBxRG.js"></script>
-
 <script>
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
@@ -324,8 +309,8 @@ window.onresize = function() {
   h = ctx.canvas.height = window.innerHeight;
 };
 
-var nrt=0, npt=0, dots=[], lines=[];
-var config = { minRadius: 70, maxRadius: 130, multiplier: 45, colorSpeed: 20, hueStart: 220, centerImage: "https://i.imgur.com/8Q5N8bB.png" };
+var npt = 0, nrt = 0;
+var config = { centerImage: "https://i.imgur.com/8Q5N8bB.png" };
 
 var bgImage = new Image();
 bgImage.src = config.centerImage;
@@ -341,37 +326,6 @@ let activePreviewUrl = null;
 let currentTabCategory = 'All';
 let pendingSongToSave = null;
 let customCategories = ['Hindi', 'Bhojpuri', 'Bhakti', 'Punjabi'];
-
-// 10 Distinct Master Visualizer Engines
-let activeVizMode = parseInt(localStorage.getItem('vfy_viz_mode') || '10', 10);
-const MASTER_VIZ_LIST = [
-  { id: 1, name: "1. Circular Spectrum Wave" },
-  { id: 2, name: "2. Full-Screen Dual Equalizer Bars" },
-  { id: 3, name: "3. Floating Quantum Sparks" },
-  { id: 4, name: "4. 3D Warp Field Starburst" },
-  { id: 5, name: "5. Matrix Rain & Screen Equalizer" },
-  { id: 6, name: "6. Concentric Pulsing Audio Rings" },
-  { id: 7, name: "7. Mirror Wave Horizon" },
-  { id: 8, name: "8. Spirograph Cyber Mandala" },
-  { id: 9, name: "9. Cyberpunk Grid Laser Beams" },
-  { id: 10, name: "10. Mixed Master Studio (All In One)" }
-];
-
-function initVisualizerDropdown() {
-  const select = document.getElementById("viz-mode-select");
-  let html = "";
-  MASTER_VIZ_LIST.forEach(item => {
-    const selected = item.id === activeVizMode ? "selected" : "";
-    html += `<option value="${item.id}" ${selected}>${item.name}</option>`;
-  });
-  select.innerHTML = html;
-}
-
-function changeVisualizerMode(val) {
-  activeVizMode = parseInt(val, 10);
-  localStorage.setItem('vfy_viz_mode', activeVizMode);
-  showToast(`Visualizer: ${MASTER_VIZ_LIST.find(v => v.id === activeVizMode).name}`);
-}
 
 function loadLocalPlaylists() {
   const savedCats = localStorage.getItem('vfy_categories');
@@ -395,7 +349,7 @@ function initAudioContext() {
     actx = new AudioContext();
     analyser = actx.createAnalyser();
     analyser.fftSize = 256;
-    analyser.smoothingTimeConstant = 0.55;
+    analyser.smoothingTimeConstant = 0.65;
     sourceNode = actx.createMediaElementSource(audioEl);
     sourceNode.connect(analyser);
     analyser.connect(actx.destination);
@@ -773,7 +727,6 @@ function confirmSaveToCategory(categoryName) {
 }
 
 window.addEventListener('load', () => { 
-  initVisualizerDropdown();
   loadLocalPlaylists();
   autoPlayLiveRadio(); 
 });
@@ -834,37 +787,30 @@ function playSongAtIndex(index, baseSeekTime, serverTimestamp) {
 }
 
 // -------------------------------------------------------------
-// FULL-SCREEN CANVAS RENDER ENGINE & 10 MASTER UNIQUE MODES
+// WMP ALCHEMY / KALEIDOSCOPIC FLOWER ART VISUALIZER ENGINE
 // -------------------------------------------------------------
 function clearCanvas(){
-  ctx.fillStyle = "rgba(7, 5, 15, 0.3)";
+  ctx.fillStyle = "rgba(7, 5, 15, 0.25)";
   ctx.fillRect(0, 0, w, h);
 }
 
 function getBassPulse() { 
   if (!frequencyData) return 0; 
   let bassSum = 0; 
-  for (let i = 0; i < 8; i++) { bassSum += frequencyData[i]; } 
-  return bassSum / 8; 
+  for (let i = 0; i < 6; i++) { bassSum += frequencyData[i]; } 
+  return bassSum / 6; 
 }
 
-function averageFrequency() { 
-  if(!frequencyData) return 0; 
-  let avg = 0; 
-  for (let i = 0; i < frequencyData.length; i++) { avg += frequencyData[i]; } 
-  return avg / frequencyData.length; 
-}
-
-// Draw Center Pulsing Album Cover Image
+// Draw Center Pulsing Album Cover Image with Glow
 function drawCenterAlbumArt(bassPower) {
-  const dynamicZoom = Math.min(w, h) * 0.14 + (bassPower * 0.22);
+  const dynamicZoom = Math.min(w, h) * 0.15 + (bassPower * 0.18);
   if (bgImage.complete && bgImage.src) {
     ctx.save();
     ctx.beginPath();
     ctx.arc(w / 2, h / 2, dynamicZoom, 0, Math.PI * 2);
     ctx.shadowColor = "#8c7ae6";
-    ctx.shadowBlur = 20 + (bassPower * 0.3);
-    ctx.strokeStyle = "rgba(140, 122, 230, 0.8)";
+    ctx.shadowBlur = 25 + (bassPower * 0.4);
+    ctx.strokeStyle = "rgba(140, 122, 230, 0.9)";
     ctx.lineWidth = 4;
     ctx.stroke();
     ctx.clip();
@@ -873,189 +819,59 @@ function drawCenterAlbumArt(bassPower) {
   }
 }
 
-// Particle System State for Mode 3 & 10
-var quantumParticles = [];
-for(let i = 0; i < 70; i++) {
-  quantumParticles.push({
-    x: Math.random() * window.innerWidth,
-    y: Math.random() * window.innerHeight,
-    vx: (Math.random() - 0.5) * 1.5,
-    vy: (Math.random() - 0.5) * 1.5,
-    size: Math.random() * 4 + 2
-  });
-}
-
 function render() {
   if (!playing) return;
   if (analyser) analyser.getByteFrequencyData(frequencyData);
 
   clearCanvas();
-  npt += 0.01;
-  nrt += 0.005;
+  npt += 0.015;
+  nrt += 0.008;
 
   const bass = getBassPulse();
 
-  // Execute Selected Master Mode
-  switch(activeVizMode) {
-    case 1: drawMode1_CircularSpectrum(bass); break;
-    case 2: drawMode2_FullBars(bass); break;
-    case 3: drawMode3_QuantumSparks(bass); break;
-    case 4: drawMode4_WarpStarburst(bass); break;
-    case 5: drawMode5_MatrixEqualizer(bass); break;
-    case 6: drawMode6_AudioRings(bass); break;
-    case 7: drawMode7_MirrorHorizon(bass); break;
-    case 8: drawMode8_SpirographMandala(bass); break;
-    case 9: drawMode9_LaserGrid(bass); break;
-    case 10: drawMode10_MixedMasterStudio(bass); break;
-    default: drawMode10_MixedMasterStudio(bass); break;
+  // WMP Windows Media Player Alchemy Flower Art / Kaleidoscopic Mandala Effect
+  const petals = 8; // Number of flower petals / symmetry arms
+  const maxRadius = Math.min(w, h) * 0.44;
+  
+  ctx.save();
+  ctx.translate(w / 2, h / 2);
+
+  for (let p = 0; p < petals; p++) {
+    ctx.rotate((Math.PI * 2) / petals);
+    ctx.beginPath();
+    
+    let firstPoint = true;
+    for (let i = 0; i < frequencyDataLen; i += 2) {
+      const freqVal = frequencyData[i];
+      const angle = (i / frequencyDataLen) * Math.PI;
+      const radius = 80 + (freqVal / 255) * (maxRadius - 80) + Math.sin(npt + i * 0.1) * bass * 0.3;
+      
+      const x = Math.cos(angle + nrt) * radius;
+      const y = Math.sin(angle * 2 + nrt) * (radius * 0.7);
+
+      if (firstPoint) {
+        ctx.moveTo(x, y);
+        firstPoint = false;
+      } else {
+        ctx.lineTo(x, y);
+      }
+    }
+
+    // Dynamic Random Color Mixing like Windows Media Player Alchemy
+    const hue = (p * (360 / petals) + npt * 40) % 360;
+    ctx.strokeStyle = `hsla(${hue}, 90%, 60%, 0.75)`;
+    ctx.lineWidth = 2.5;
+    ctx.shadowBlur = 15;
+    ctx.shadowColor = `hsla(${hue}, 100%, 50%, 0.5)`;
+    ctx.stroke();
   }
 
-  // Draw Central Glowing Album Cover across all modes
+  ctx.restore();
+
+  // Draw Center Glowing Album Art
   drawCenterAlbumArt(bass);
 
   requestAnimationFrame(render);
-}
-
-// Mode 1: Radial Spectrum Bars
-function drawMode1_CircularSpectrum(bass) {
-  const points = frequencyDataLen;
-  const radius = Math.min(w, h) * 0.16 + (bass * 0.2);
-  for (let i = 0; i < points; i++) {
-    const val = frequencyData[i];
-    const angle = (i / points) * Math.PI * 2;
-    const barLen = (val / 255) * 120;
-    const x1 = w / 2 + Math.cos(angle) * radius;
-    const y1 = h / 2 + Math.sin(angle) * radius;
-    const x2 = w / 2 + Math.cos(angle) * (radius + barLen);
-    const y2 = h / 2 + Math.sin(angle) * (radius + barLen);
-
-    ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
-    ctx.strokeStyle = "hsl(" + (i * 4 + npt * 50) + ", 85%, 60%)";
-    ctx.lineWidth = 3;
-    ctx.stroke();
-  }
-}
-
-// Mode 2: Full Bottom Dual Equalizer Bars
-function drawMode2_FullBars(bass) {
-  const barWidth = (w / frequencyDataLen);
-  for (let i = 0; i < frequencyDataLen; i++) {
-    const barHeight = (frequencyData[i] / 255) * (h * 0.45);
-    ctx.fillStyle = "hsla(" + (i * 4 + npt * 40) + ", 90%, 55%, 0.85)";
-    ctx.fillRect(i * barWidth, h - barHeight, barWidth - 3, barHeight);
-    ctx.fillRect(w - (i * barWidth), 0, barWidth - 3, barHeight * 0.6);
-  }
-}
-
-// Mode 3: Floating Quantum Sparks
-function drawMode3_QuantumSparks(bass) {
-  quantumParticles.forEach((p, idx) => {
-    const freqVal = frequencyData[idx % frequencyDataLen];
-    p.x += p.vx * (1 + bass * 0.02);
-    p.y += p.vy * (1 + bass * 0.02);
-    if (p.x < 0 || p.x > w) p.vx *= -1;
-    if (p.y < 0 || p.y > h) p.vy *= -1;
-
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.size + (freqVal / 255) * 6, 0, Math.PI * 2);
-    ctx.fillStyle = "hsla(" + (idx * 5 + npt * 60) + ", 100%, 65%, 0.9)";
-    ctx.shadowBlur = 10;
-    ctx.shadowColor = ctx.fillStyle;
-    ctx.fill();
-  });
-}
-
-// Mode 4: 3D Warp Field Starburst
-function drawMode4_WarpStarburst(bass) {
-  for (let i = 0; i < frequencyDataLen; i++) {
-    const angle = (i / frequencyDataLen) * Math.PI * 2;
-    const speed = 2 + (frequencyData[i] / 255) * 8;
-    const dist = ((npt * 250 * (i + 1)) % (Math.max(w, h) / 1.8));
-    const sx = w / 2 + Math.cos(angle + nrt) * dist;
-    const sy = h / 2 + Math.sin(angle + nrt) * dist;
-
-    ctx.beginPath();
-    ctx.arc(sx, sy, 2 + (frequencyData[i] / 255) * 5, 0, Math.PI * 2);
-    ctx.fillStyle = "hsl(" + (i * 6 + npt * 80) + ", 100%, 70%)";
-    ctx.fill();
-  }
-}
-
-// Mode 5: Matrix Code Stream & Screen Equalizer
-function drawMode5_MatrixEqualizer(bass) {
-  for (let i = 0; i < 35; i++) {
-    const val = frequencyData[i % frequencyDataLen];
-    const rx = (i / 35) * w;
-    const ry = (npt * 400 + i * 50) % h;
-    ctx.fillStyle = "#00ff88";
-    ctx.font = (12 + val * 0.08) + "px monospace";
-    ctx.fillText(String.fromCharCode(0x30A0 + (i % 96)), rx, ry);
-  }
-}
-
-// Mode 6: Concentric Pulsing Audio Rings
-function drawMode6_AudioRings(bass) {
-  for (let i = 1; i <= 5; i++) {
-    const r = (i * 45) + (bass * 0.8 * i);
-    ctx.beginPath();
-    ctx.arc(w / 2, h / 2, r, 0, Math.PI * 2);
-    ctx.strokeStyle = "hsla(" + (i * 50 + npt * 40) + ", 90%, 60%, " + (1 - i * 0.18) + ")";
-    ctx.lineWidth = 3;
-    ctx.stroke();
-  }
-}
-
-// Mode 7: Mirror Wave Horizon
-function drawMode7_MirrorHorizon(bass) {
-  const midY = h / 2;
-  ctx.beginPath();
-  for (let i = 0; i < w; i += 8) {
-    const idx = Math.floor((i / w) * frequencyDataLen);
-    const amp = (frequencyData[idx] / 255) * 100;
-    const y = midY + Math.sin(i * 0.02 + npt * 4) * amp;
-    if (i === 0) ctx.moveTo(i, y); else ctx.lineTo(i, y);
-  }
-  ctx.strokeStyle = "#ff4757";
-  ctx.lineWidth = 4;
-  ctx.stroke();
-}
-
-// Mode 8: Spirograph Cyber Mandala
-function drawMode8_SpirographMandala(bass) {
-  ctx.beginPath();
-  for (let i = 0; i < frequencyDataLen; i++) {
-    const angle = i * 0.1 + nrt;
-    const r = (frequencyData[i] / 255) * 160 + 50;
-    const x = w / 2 + Math.cos(angle * 3) * r;
-    const y = h / 2 + Math.sin(angle * 2) * r;
-    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-  }
-  ctx.strokeStyle = "#2ed573";
-  ctx.lineWidth = 2;
-  ctx.stroke();
-}
-
-// Mode 9: Cyberpunk Grid Laser Beams
-function drawMode9_LaserGrid(bass) {
-  for (let i = 0; i < 16; i++) {
-    const val = frequencyData[i * 4];
-    const targetX = (i / 16) * w;
-    ctx.beginPath();
-    ctx.moveTo(w / 2, h / 2);
-    ctx.lineTo(targetX, (val / 255) * h);
-    ctx.strokeStyle = "hsla(" + (i * 20 + npt * 60) + ", 100%, 60%, 0.7)";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-  }
-}
-
-// Mode 10: Mixed Master Studio (Combined Visualizer Suite)
-function drawMode10_MixedMasterStudio(bass) {
-  drawMode2_FullBars(bass);
-  drawMode3_QuantumSparks(bass);
-  drawMode1_CircularSpectrum(bass);
 }
 </script>
 
