@@ -199,7 +199,7 @@ button.search-btn-custom {
 .delete-btn { background: rgba(255,71,87,0.2); color: #ff4757; border: none; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
 .bottom-nav-bar {
-  display: flex; justify-content: space-around; align-items: center;
+  display: flex; justify-space-around; align-items: center;
   background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.1); padding: 10px 20px; border-radius: 35px;
   width: 190px; margin: auto auto 0 auto; flex-shrink: 0; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
@@ -934,7 +934,7 @@ function playSongAtIndex(index, baseSeekTime, serverTimestamp) {
 // -------------------------------------------------------------
 function clearCanvas(){
   if(activeVizMode === 2 || activeVizMode === 6 || activeVizMode === 9) {
-    ctx.fillStyle = "rgba(0, 0, 0, 0.15)";
+    ctx.fillStyle = "rgba(0, 0, 0, 0.22)"; // Trail blend for AMOLED depth
   } else {
     ctx.fillStyle = "#000000"; // Pure Black True AMOLED
   }
@@ -947,6 +947,20 @@ function getBassPulse() {
   for (let i = 0; i < 6; i++) { bassSum += frequencyData[i]; } 
   let currentVolume = audioEl.volume;
   return (bassSum / 6) * currentVolume; 
+}
+
+function getAudioBands() {
+  if (!frequencyData) return { bass: 0, mid: 0, high: 0 };
+  let b = 0, m = 0, h = 0;
+  for (let i = 0; i < 8; i++) b += frequencyData[i];
+  for (let i = 8; i < 40; i++) m += frequencyData[i];
+  for (let i = 40; i < 80; i++) h += frequencyData[i];
+  const vol = audioEl.volume || 1;
+  return {
+    bass: (b / 8) * vol,
+    mid: (m / 32) * vol,
+    high: (h / 40) * vol
+  };
 }
 
 function drawCenterAlbumArt(bassPower) {
@@ -1191,46 +1205,52 @@ function drawViz8_AudioWeb(bass) {
   ctx.restore();
 }
 
-// 9. HYPNOTIC PLASMA BLACK HOLE (Replaces Sonic)
+// 9. ULTRA LAG-FREE HYPNOTIC PLASMA BLACK HOLE (WMP Beat Color Mixing)
 function drawViz9_PlasmaHole(bass) {
+  const bands = getAudioBands();
   ctx.save();
   ctx.translate(w / 2, h / 2);
 
-  const spiralRings = 24;
-  const pointsPerRing = 48;
-  const maxRadius = Math.max(w, h) * 0.65;
-  const time = npt * 1.5;
+  // Dynamic Windows Media Player style beat color shift calculation
+  const dynamicHue = (npt * 45 + bands.bass * 0.7 + bands.high * 0.4) % 360;
+  const mixHue = (dynamicHue + 140 + bands.mid * 0.5) % 360;
 
-  // Accretion disk gravity pulse
-  const holeRadius = 60 + bass * 0.4;
+  const spiralRings = 16;
+  const pointsPerRing = 32;
+  const maxRadius = Math.max(w, h) * 0.65;
+  const time = npt * 1.8;
+  const holeRadius = 55 + bands.bass * 0.45;
+
+  // Central Event Horizon Pulse & Dynamic WMP Glow
   ctx.beginPath();
   ctx.arc(0, 0, holeRadius, 0, Math.PI * 2);
   ctx.fillStyle = "#000000";
-  ctx.shadowBlur = 35 + bass * 0.5;
-  ctx.shadowColor = `hsla(${(npt * 60) % 360}, 100%, 50%, 0.9)`;
+  ctx.shadowBlur = 30 + bands.bass * 0.5;
+  ctx.shadowColor = `hsla(${dynamicHue}, 100%, 50%, 0.95)`;
   ctx.fill();
 
+  ctx.shadowBlur = 12;
+
+  // Single-pass high performance tunnel rendering
   for (let r = spiralRings; r > 0; r--) {
     const norm = r / spiralRings;
-    const radius = Math.pow(norm, 2.2) * maxRadius + holeRadius * 0.5;
-    
-    // Inward warping black hole tunnel factor
-    const warpOffset = (time * 0.8 + norm * 4) % 1;
-    const currR = radius * (0.5 + warpOffset * 0.8);
-    if (currR < holeRadius * 0.6) continue;
+    const radius = Math.pow(norm, 2.1) * maxRadius + holeRadius * 0.5;
+    const warpOffset = (time * 0.9 + norm * 3.5) % 1;
+    const currR = radius * (0.45 + warpOffset * 0.75);
+
+    if (currR < holeRadius * 0.7) continue;
 
     ctx.beginPath();
     for (let p = 0; p <= pointsPerRing; p++) {
-      const angle = (p / pointsPerRing) * Math.PI * 2;
-      const audioIdx = Math.floor((p / pointsPerRing) * frequencyDataLen);
+      const stepPct = p / pointsPerRing;
+      const angle = stepPct * Math.PI * 2;
+      const audioIdx = (Math.floor(stepPct * frequencyDataLen)) & (frequencyDataLen - 1);
       const val = frequencyData[audioIdx] || 0;
 
-      // Spiral twist math
-      const twist = angle + (currR * 0.008) - (time * 0.6);
-      
-      // Plasma wave height
-      const wave = Math.sin(angle * 6 + time * 3 + r) * (15 + bass * 0.2);
-      const audioDist = (val / 255) * (20 * norm);
+      // Smooth spiral geometry
+      const twist = angle + (currR * 0.007) - (time * 0.5);
+      const wave = Math.sin(angle * 5 + time * 2.5 + r) * (10 + bands.bass * 0.25);
+      const audioDist = (val / 255) * (18 * norm);
 
       const rFinal = currR + wave + audioDist;
       const x = Math.cos(twist) * rFinal;
@@ -1241,31 +1261,32 @@ function drawViz9_PlasmaHole(bass) {
     }
     ctx.closePath();
 
-    const hue = (norm * 280 + npt * 80 + bass * 0.2) % 360;
-    const alpha = Math.sin(norm * Math.PI) * 0.75;
-    ctx.strokeStyle = `hsla(${hue}, 100%, 65%, ${alpha})`;
-    ctx.lineWidth = 1.8 + norm * 2.2;
-    ctx.shadowBlur = 15;
-    ctx.shadowColor = `hsla(${hue}, 100%, 50%, 0.8)`;
+    // Beat Color Mixing formula (Windows Media Player gradient blend)
+    const ringHue = (dynamicHue + (norm * 180) + (valCount => bands.high * 0.3)) % 360;
+    const opacity = Math.sin(norm * Math.PI) * 0.8;
+
+    ctx.strokeStyle = `hsla(${ringHue}, 100%, ${55 + bands.high * 0.1}%, ${opacity})`;
+    ctx.lineWidth = 1.5 + norm * 2;
+    ctx.shadowColor = `hsla(${mixHue}, 100%, 50%, 0.75)`;
     ctx.stroke();
   }
 
-  // Inward pulled plasma particle rays
-  for (let i = 0; i < 32; i++) {
-    const angle = (i / 32) * Math.PI * 2 + time * 0.4;
-    const val = frequencyData[i * 4] || 0;
-    const pDist = ((time * 180 + i * 25) % (maxRadius - holeRadius)) + holeRadius;
-    
-    const spiralAngle = angle + (pDist * 0.007);
+  // Fast-swirling accretive plasma rays
+  const particleCount = 20;
+  for (let i = 0; i < particleCount; i++) {
+    const angle = (i / particleCount) * Math.PI * 2 + time * 0.5;
+    const val = frequencyData[(i * 4) % frequencyDataLen] || 0;
+    const pDist = ((time * 160 + i * 35) % (maxRadius - holeRadius)) + holeRadius;
+
+    const spiralAngle = angle + (pDist * 0.006);
     const px = Math.cos(spiralAngle) * pDist;
     const py = Math.sin(spiralAngle) * pDist;
 
     ctx.beginPath();
-    ctx.arc(px, py, 1.5 + (val / 255) * 3.5, 0, Math.PI * 2);
-    const pHue = (i * 11 + npt * 90) % 360;
-    ctx.fillStyle = `hsla(${pHue}, 100%, 75%, 0.9)`;
-    ctx.shadowBlur = 12;
-    ctx.shadowColor = `hsla(${pHue}, 100%, 50%, 0.9)`;
+    ctx.arc(px, py, 1.5 + (val / 255) * 3, 0, Math.PI * 2);
+    const pHue = (dynamicHue + i * 18 + bands.mid * 0.4) % 360;
+    ctx.fillStyle = `hsla(${pHue}, 100%, 70%, 0.9)';
+    ctx.shadowColor = `hsla(${pHue}, 100%, 50%, 0.8)`;
     ctx.fill();
   }
 
