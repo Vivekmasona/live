@@ -1,0 +1,712 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hypnotic Plasma Black Hole Audio Visualizer</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;900&family=Inter:wght@300;400;600&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #030308;
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+
+        .font-orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        /* Glassmorphism styling */
+        .glass-panel {
+            background: rgba(10, 10, 20, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        .glass-button {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-button:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(168, 85, 247, 0.5);
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.3);
+            transform: translateY(-1px);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(168, 85, 247, 0.3);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(168, 85, 247, 0.6);
+        }
+
+        /* Canvas Fullscreen */
+        #visualizer-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen relative overflow-hidden select-none bg-black">
+
+    <!-- WebGL Fullscreen Visualizer Canvas -->
+    <canvas id="visualizer-canvas"></canvas>
+
+    <!-- Overlay Vignette and Space Depth Overlay -->
+    <div class="absolute inset-0 pointer-events-none bg-radial from-transparent via-black/30 to-black/90 z-10"></div>
+
+    <!-- UI Layer -->
+    <div class="relative z-20 h-full w-full flex flex-col justify-between p-4 md:p-6 pointer-events-none">
+        
+        <!-- Top Header Navigation -->
+        <header class="flex items-center justify-between pointer-events-auto">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-purple-600/30 border border-purple-500/50 flex items-center justify-center text-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.4)]">
+                    <i class="fa-solid fa-compact-disc fa-spin text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-orbitron font-bold text-lg md:text-xl tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-indigo-300">
+                        HYPNOTIC PLASMA
+                    </h1>
+                    <p class="text-xs text-purple-300/60 font-mono">Deep Cosmic Event Horizon</p>
+                </div>
+            </div>
+
+            <!-- Preset Selector Controls -->
+            <div class="glass-panel rounded-2xl p-1.5 flex items-center gap-1 border border-purple-500/20">
+                <button id="preset-plasma" class="preset-btn px-4 py-2 rounded-xl text-xs font-semibold tracking-wider transition-all bg-purple-600/80 text-white shadow-lg shadow-purple-900/50 flex items-center gap-2">
+                    <i class="fa-solid fa-atom"></i> Hypnotic Plasma
+                </button>
+                <button id="preset-spectrum" class="preset-btn px-4 py-2 rounded-xl text-xs font-semibold tracking-wider transition-all text-gray-400 hover:text-white hover:bg-white/5 flex items-center gap-2">
+                    <i class="fa-solid fa-chart-simple"></i> Neon Spectrum
+                </button>
+                <button id="preset-orb" class="preset-btn px-4 py-2 rounded-xl text-xs font-semibold tracking-wider transition-all text-gray-400 hover:text-white hover:bg-white/5 flex items-center gap-2">
+                    <i class="fa-solid fa-globe"></i> Plasma Orb
+                </button>
+            </div>
+        </header>
+
+        <!-- Center Interactive Overlay / Audio Drop Indicator when Idle -->
+        <div id="drop-zone" class="self-center my-auto glass-panel p-8 md:p-12 rounded-3xl text-center max-w-md w-full border border-purple-500/30 shadow-[0_0_50px_rgba(0,0,0,0.8)] pointer-events-auto transition-all duration-500 hover:border-purple-500/60 group">
+            <div class="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-3xl text-white shadow-[0_0_30px_rgba(168,85,247,0.5)] group-hover:scale-110 transition-transform">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+            </div>
+            <h2 class="font-orbitron text-xl font-bold mb-2 text-purple-100">Hypnotic Visualizer</h2>
+            <p class="text-xs text-gray-400 mb-6 leading-relaxed">
+                Experience infinite non-repeating black hole warp plasma. Upload audio or play built-in cosmic synth waves.
+            </p>
+
+            <div class="flex flex-col gap-3">
+                <button id="btn-demo" class="w-full py-3 px-6 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 font-semibold text-sm tracking-wider text-white shadow-lg shadow-purple-900/50 transition-all transform active:scale-95 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-play"></i> Play Demo Audio Synth
+                </button>
+                <label for="audio-upload" class="w-full py-3 px-6 rounded-xl glass-button text-xs font-semibold tracking-wider text-purple-300 hover:text-white cursor-pointer flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-upload"></i> Load Local Track
+                </label>
+                <input type="file" id="audio-upload" accept="audio/*" class="hidden">
+            </div>
+        </div>
+
+        <!-- Bottom Player Controls -->
+        <footer class="glass-panel rounded-3xl p-4 md:p-6 pointer-events-auto flex flex-col md:flex-row items-center justify-between gap-4 border border-purple-500/20 shadow-2xl">
+            <!-- Track Info -->
+            <div class="flex items-center gap-4 w-full md:w-1/4">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-900/80 to-black border border-purple-500/40 flex items-center justify-center text-purple-300 text-lg shadow-inner">
+                    <i class="fa-solid fa-music"></i>
+                </div>
+                <div class="overflow-hidden">
+                    <h3 id="track-title" class="font-semibold text-sm truncate text-purple-100">Cosmic Void Shift</h3>
+                    <p id="track-artist" class="text-xs text-purple-400/70 truncate">Hypnotic Plasma Generator</p>
+                </div>
+            </div>
+
+            <!-- Central Transport Controls -->
+            <div class="flex flex-col items-center gap-2 w-full md:w-2/4">
+                <div class="flex items-center gap-6">
+                    <button id="btn-prev" class="text-gray-400 hover:text-purple-300 transition-colors text-lg"><i class="fa-solid fa-backward-step"></i></button>
+                    <button id="btn-play" class="w-12 h-12 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 text-white flex items-center justify-center text-xl shadow-[0_0_20px_rgba(168,85,247,0.5)] transition-all transform active:scale-95">
+                        <i id="play-icon" class="fa-solid fa-play ml-0.5"></i>
+                    </button>
+                    <button id="btn-next" class="text-gray-400 hover:text-purple-300 transition-colors text-lg"><i class="fa-solid fa-forward-step"></i></button>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="w-full flex items-center gap-3">
+                    <span id="time-current" class="text-[10px] font-mono text-gray-400 w-8 text-right">0:00</span>
+                    <div id="progress-container" class="relative flex-1 h-2 bg-white/10 rounded-full cursor-pointer overflow-hidden group">
+                        <div id="progress-bar" class="absolute top-0 left-0 h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full w-0 transition-all duration-100"></div>
+                    </div>
+                    <span id="time-total" class="text-[10px] font-mono text-gray-400 w-8">0:00</span>
+                </div>
+            </div>
+
+            <!-- Right Controls: Speed, Reactivity & Volume -->
+            <div class="flex items-center justify-end gap-4 w-full md:w-1/4">
+                <!-- Sensitivity / Warp Intensity -->
+                <div class="flex items-center gap-2 text-xs text-purple-300" title="Visualizer Intensity">
+                    <i class="fa-solid fa-bolt text-xs text-purple-400"></i>
+                    <input type="range" id="slider-intensity" min="0.5" max="2.5" step="0.1" value="1.2" class="w-20 accent-purple-500 cursor-pointer">
+                </div>
+                <!-- Volume Slider -->
+                <div class="flex items-center gap-2 text-xs text-purple-300">
+                    <button id="btn-mute" class="text-gray-400 hover:text-white"><i id="volume-icon" class="fa-solid fa-volume-high"></i></button>
+                    <input type="range" id="slider-volume" min="0" max="1" step="0.01" value="0.8" class="w-20 accent-purple-500 cursor-pointer">
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- WebGL Shaders & Visualizer Audio System -->
+    <script>
+        /**
+         * WebGL Shaders for the Hypnotic Plasma Black Hole Visualizer
+         */
+        const vertexShaderSource = `
+            attribute vec2 a_position;
+            varying vec2 v_uv;
+            void main() {
+                v_uv = a_position * 0.5 + 0.5;
+                gl_Position = vec4(a_position, 0.0, 1.0);
+            }
+        `;
+
+        const fragmentShaderSource = `
+            precision highp float;
+            uniform vec2 u_resolution;
+            uniform float u_time;
+            uniform float u_bass;
+            uniform float u_mid;
+            uniform float u_treble;
+            uniform float u_intensity;
+            uniform int u_preset; // 0: Hypnotic Plasma, 1: Spectrum, 2: Orb
+
+            varying vec2 v_uv;
+
+            #define PI 3.14159265359
+
+            // Seamless smooth noise functions
+            vec2 rotate2D(vec2 p, float a) {
+                float c = cos(a), s = sin(a);
+                return mat2(c, -s, s, c) * p;
+            }
+
+            // Pseudo-3D Raymarched Cosmic Plasma Tunnel / Black Hole Shader
+            void renderPlasmaBlackHole(out vec4 fragColor, in vec2 fragCoord) {
+                // Normalized coordinates centered at origin (-1.0 to 1.0)
+                vec2 uv = (fragCoord - 0.5 * u_resolution.xy) / min(u_resolution.x, u_resolution.y);
+
+                // Polar coordinates
+                float r = length(uv);
+                float angle = atan(uv.y, uv.x);
+
+                // Gravitational Lensing Distortion near central event horizon
+                float blackHoleRadius = 0.12 + u_bass * 0.12;
+                float warp = 1.0 / (r + 0.15);
+                
+                // Infinite non-repeating dynamic logarithmic spiral coordinates
+                float speed = u_time * 0.45;
+                float z = log(r + 0.001) * 1.5 - speed;
+                
+                // Audio reactive warp rotation speed
+                float twist = angle + sin(z * 2.0 + u_time * 0.2) * 1.5 + (u_mid * 0.8);
+                vec2 st = vec2(z, twist);
+
+                // Multilayered Plasma calculation (Non-repeating pattern)
+                float plasma = 0.0;
+                vec2 p = st;
+                
+                for(float i = 1.0; i < 5.0; i++) {
+                    p = rotate2D(p, i * 0.6 + u_time * 0.05);
+                    plasma += sin(p.x * i * 1.8 + u_time * (0.8 + i * 0.2) + sin(p.y * 2.5)) / i;
+                    plasma += cos(p.y * i * 2.2 - u_time * 0.5 + cos(p.x * 3.0)) / i;
+                }
+
+                plasma *= (1.0 + u_treble * 1.5) * u_intensity;
+
+                // Event Horizon (Central Deep Black Hole core)
+                float eventHorizon = smoothstep(blackHoleRadius, blackHoleRadius + 0.18, r);
+                
+                // Accretion Disk Glow
+                float ringGlow = exp(-pow((r - blackHoleRadius * 1.3) * 6.0, 2.0)) * (1.5 + u_bass * 2.5);
+
+                // Color Palette generation (Cosmic Hypnotic Purple, Electric Blue, & Magenta Flare)
+                vec3 baseColor = vec3(0.08, 0.02, 0.2);
+                vec3 col1 = vec3(0.5, 0.1, 0.9); // Electric Purple
+                vec3 col2 = vec3(0.0, 0.7, 1.0); // Cosmic Cyan
+                vec3 col3 = vec3(1.0, 0.1, 0.5); // Radiant Magenta
+
+                // Mix colors based on plasma energy & depth radius
+                vec3 color = mix(col1, col2, sin(plasma + angle * 2.0) * 0.5 + 0.5);
+                color = mix(color, col3, cos(z * 3.0 + plasma) * 0.5 + 0.5);
+                
+                // Add Accretion Ring bright glow
+                color += vec3(0.9, 0.6, 1.0) * ringGlow;
+
+                // Apply Event Horizon Darkness (Sucks light inward)
+                color *= eventHorizon;
+
+                // Edge Vignette & tunnel lighting falloff
+                color *= pow(r, 0.45);
+                
+                // Hypnotic Center Singularity Pulse
+                float singularity = smoothstep(blackHoleRadius * 0.6, 0.0, r);
+                color += vec3(0.2, 0.0, 0.4) * singularity * (sin(u_time * 5.0) * 0.5 + 0.5);
+
+                fragColor = vec4(color, 1.0);
+            }
+
+            // Secondary Preset: Neon Spectrum Bars WebGL
+            void renderSpectrum(out vec4 fragColor, in vec2 fragCoord) {
+                vec2 uv = fragCoord / u_resolution.xy;
+                float barCount = 40.0;
+                float barId = floor(uv.x * barCount);
+                float barUvX = fract(uv.x * barCount);
+
+                float h = sin(barId * 0.5 + u_time * 2.0) * 0.3 + 0.4 + (u_bass * 0.3);
+                
+                float mask = step(uv.y, h) * step(0.15, barUvX) * step(barUvX, 0.85);
+                vec3 col = mix(vec3(0.4, 0.0, 0.9), vec3(0.0, 0.9, 0.9), uv.y);
+                
+                fragColor = vec4(col * mask, 1.0);
+            }
+
+            // Tertiary Preset: Cosmic Plasma Orb
+            void renderOrb(out vec4 fragColor, in vec2 fragCoord) {
+                vec2 uv = (fragCoord - 0.5 * u_resolution.xy) / min(u_resolution.x, u_resolution.y);
+                float r = length(uv);
+                float angle = atan(uv.y, uv.x);
+                
+                float d = 0.35 + u_bass * 0.15;
+                float blob = smoothstep(d, d - 0.2, r);
+                
+                float noise = sin(angle * 8.0 + u_time * 3.0) * cos(r * 20.0 - u_time * 4.0) * u_treble;
+                vec3 color = vec3(0.9, 0.2, 0.5) * (blob + noise);
+                
+                fragColor = vec4(color, 1.0);
+            }
+
+            void main() {
+                if (u_preset == 0) {
+                    renderPlasmaBlackHole(gl_FragColor, gl_FragCoord.xy);
+                } else if (u_preset == 1) {
+                    renderSpectrum(gl_FragColor, gl_FragCoord.xy);
+                } else {
+                    renderOrb(gl_FragColor, gl_FragCoord.xy);
+                }
+            }
+        `;
+
+        /**
+         * Main Application & WebGL Pipeline Initialization
+         */
+        class VisualizerApp {
+            constructor() {
+                this.canvas = document.getElementById('visualizer-canvas');
+                this.gl = this.canvas.getContext('webgl', { antialias: true, alpha: false });
+                
+                if (!this.gl) {
+                    console.error("WebGL not supported");
+                    return;
+                }
+
+                this.preset = 0; // 0 = Hypnotic Plasma Black Hole
+                this.intensity = 1.2;
+                this.audioCtx = null;
+                this.analyser = null;
+                this.dataArray = null;
+                this.isPlaying = false;
+                this.audioSource = null;
+                this.demoOscillator = null;
+
+                // Frequency Bands
+                this.audioData = { bass: 0, mid: 0, treble: 0 };
+
+                this.initWebGL();
+                this.initAudio();
+                this.initEvents();
+                this.resize();
+                
+                this.startTime = performance.now();
+                this.render = this.render.bind(this);
+                requestAnimationFrame(this.render);
+            }
+
+            initWebGL() {
+                const gl = this.gl;
+
+                // Shader Compilation Utility
+                const compileShader = (src, type) => {
+                    const shader = gl.createShader(type);
+                    gl.shaderSource(shader, src);
+                    gl.compileShader(shader);
+                    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                        console.error('Shader compile error:', gl.getShaderInfoLog(shader));
+                        gl.deleteShader(shader);
+                        return null;
+                    }
+                    return shader;
+                };
+
+                const vs = compileShader(vertexShaderSource, gl.VERTEX_SHADER);
+                const fs = compileShader(fragmentShaderSource, gl.FRAGMENT_SHADER);
+                
+                this.program = gl.createProgram();
+                gl.attachShader(this.program, vs);
+                gl.attachShader(this.program, fs);
+                gl.linkProgram(this.program);
+
+                if (!gl.getProgramParameter(this.program, gl.LINK_STATUS)) {
+                    console.error('Program link error:', gl.getProgramInfoLog(this.program));
+                    return;
+                }
+
+                // Fullscreen Quad Buffer
+                const positions = new Float32Array([
+                    -1, -1,
+                     1, -1,
+                    -1,  1,
+                    -1,  1,
+                     1, -1,
+                     1,  1
+                ]);
+
+                const buffer = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+                gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+
+                // Uniform Locations
+                this.locations = {
+                    position: gl.getAttribLocation(this.program, 'a_position'),
+                    resolution: gl.getUniformLocation(this.program, 'u_resolution'),
+                    time: gl.getUniformLocation(this.program, 'u_time'),
+                    bass: gl.getUniformLocation(this.program, 'u_bass'),
+                    mid: gl.getUniformLocation(this.program, 'u_mid'),
+                    treble: gl.getUniformLocation(this.program, 'u_treble'),
+                    intensity: gl.getUniformLocation(this.program, 'u_intensity'),
+                    preset: gl.getUniformLocation(this.program, 'u_preset')
+                };
+
+                gl.enableVertexAttribArray(this.locations.position);
+                gl.vertexAttribPointer(this.locations.position, 2, gl.FLOAT, false, 0, 0);
+            }
+
+            initAudio() {
+                this.audioElement = new Audio();
+                this.audioElement.crossOrigin = "anonymous";
+                this.audioElement.loop = true;
+
+                // Time update listener for progress bar
+                this.audioElement.addEventListener('timeupdate', () => {
+                    if (!this.audioElement.duration) return;
+                    const pct = (this.audioElement.currentTime / this.audioElement.duration) * 100;
+                    document.getElementById('progress-bar').style.width = `${pct}%`;
+                    document.getElementById('time-current').textContent = this.formatTime(this.audioElement.currentTime);
+                    document.getElementById('time-total').textContent = this.formatTime(this.audioElement.duration);
+                });
+
+                this.audioElement.addEventListener('ended', () => {
+                    this.setPlayState(false);
+                });
+            }
+
+            setupAudioContext() {
+                if (this.audioCtx) return;
+
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                this.audioCtx = new AudioContext();
+                this.analyser = this.audioCtx.createAnalyser();
+                this.analyser.fftSize = 512;
+                this.analyser.smoothingTimeConstant = 0.85;
+
+                this.dataArray = new Uint8Array(this.analyser.frequencyBinCount);
+
+                // Connect HTML5 Audio Element to Analyser
+                this.audioSource = this.audioCtx.createMediaElementSource(this.audioElement);
+                this.audioSource.connect(this.analyser);
+                this.analyser.connect(this.audioCtx.destination);
+            }
+
+            formatTime(seconds) {
+                const mins = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60);
+                return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+            }
+
+            updateAudioFrequencies() {
+                if (!this.analyser || !this.isPlaying) {
+                    // Smooth decay to zero when paused
+                    this.audioData.bass += (0 - this.audioData.bass) * 0.05;
+                    this.audioData.mid += (0 - this.audioData.mid) * 0.05;
+                    this.audioData.treble += (0 - this.audioData.treble) * 0.05;
+                    return;
+                }
+
+                this.analyser.getByteFrequencyData(this.dataArray);
+
+                // Split FFT bins into Bass, Mid, and Treble ranges
+                const binCount = this.dataArray.length;
+                const bassBins = this.dataArray.slice(0, Math.floor(binCount * 0.1));
+                const midBins = this.dataArray.slice(Math.floor(binCount * 0.1), Math.floor(binCount * 0.5));
+                const trebleBins = this.dataArray.slice(Math.floor(binCount * 0.5));
+
+                const getAverage = arr => arr.reduce((sum, val) => sum + val, 0) / arr.length;
+
+                // Normalize 0.0 to 1.0 with dynamic response smoothing
+                const targetBass = getAverage(bassBins) / 255.0;
+                const targetMid = getAverage(midBins) / 255.0;
+                const targetTreble = getAverage(trebleBins) / 255.0;
+
+                this.audioData.bass += (targetBass - this.audioData.bass) * 0.2;
+                this.audioData.mid += (targetMid - this.audioData.mid) * 0.2;
+                this.audioData.treble += (targetTreble - this.audioData.treble) * 0.2;
+            }
+
+            setPlayState(playing) {
+                this.isPlaying = playing;
+                const icon = document.getElementById('play-icon');
+                if (playing) {
+                    icon.className = 'fa-solid fa-pause';
+                    document.getElementById('drop-zone').classList.add('opacity-0', 'pointer-events-none', 'scale-95');
+                } else {
+                    icon.className = 'fa-solid fa-play ml-0.5';
+                    document.getElementById('drop-zone').classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
+                }
+            }
+
+            togglePlay() {
+                this.setupAudioContext();
+                if (this.audioCtx.state === 'suspended') {
+                    this.audioCtx.resume();
+                }
+
+                if (this.isPlaying) {
+                    this.audioElement.pause();
+                    this.setPlayState(false);
+                } else {
+                    if (!this.audioElement.src) {
+                        this.playSynthDemo();
+                    } else {
+                        this.audioElement.play().then(() => this.setPlayState(true)).catch(console.error);
+                    }
+                }
+            }
+
+            playSynthDemo() {
+                // Procedurally generated ambient cosmic wave audio sample via Web Audio Data URL
+                this.setupAudioContext();
+                
+                // Create synthetic cosmic ambient sound via OfflineAudioContext
+                const offlineCtx = new OfflineAudioContext(2, 44100 * 30, 44100);
+                
+                // Sub Bass Oscillator
+                const osc = offlineCtx.createOscillator();
+                const gain = offlineCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(55, 0); // A1 note
+                osc.frequency.exponentialRampToValueAtTime(110, 15);
+                osc.frequency.exponentialRampToValueAtTime(55, 30);
+                
+                // Filter for dark deep cosmic tone
+                const filter = offlineCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(200, 0);
+                filter.frequency.linearRampToValueAtTime(800, 15);
+                filter.frequency.linearRampToValueAtTime(200, 30);
+
+                osc.connect(filter);
+                filter.connect(gain);
+                gain.connect(offlineCtx.destination);
+                gain.gain.setValueAtTime(0.7, 0);
+
+                osc.start(0);
+                osc.stop(30);
+
+                offlineCtx.startRendering().then(renderedBuffer => {
+                    // Convert Buffer to Wave Blob and play
+                    const wavBlob = bufferToWave(renderedBuffer, 44100 * 30);
+                    const url = URL.createObjectURL(wavBlob);
+                    this.audioElement.src = url;
+                    this.audioElement.play();
+                    this.setPlayState(true);
+                    
+                    document.getElementById('track-title').textContent = "Cosmic Plasma Resonance";
+                    document.getElementById('track-artist').textContent = "Procedural Web Audio Synth";
+                });
+            }
+
+            initEvents() {
+                window.addEventListener('resize', () => this.resize());
+
+                // Controls
+                document.getElementById('btn-play').addEventListener('click', () => this.togglePlay());
+                document.getElementById('btn-demo').addEventListener('click', () => this.playSynthDemo());
+
+                // Preset selector buttons
+                const presets = [
+                    { id: 'preset-plasma', index: 0 },
+                    { id: 'preset-spectrum', index: 1 },
+                    { id: 'preset-orb', index: 2 }
+                ];
+
+                presets.forEach(p => {
+                    document.getElementById(p.id).addEventListener('click', (e) => {
+                        this.preset = p.index;
+                        presets.forEach(btn => {
+                            const el = document.getElementById(btn.id);
+                            if (btn.id === p.id) {
+                                el.className = 'preset-btn px-4 py-2 rounded-xl text-xs font-semibold tracking-wider transition-all bg-purple-600/80 text-white shadow-lg shadow-purple-900/50 flex items-center gap-2';
+                            } else {
+                                el.className = 'preset-btn px-4 py-2 rounded-xl text-xs font-semibold tracking-wider transition-all text-gray-400 hover:text-white hover:bg-white/5 flex items-center gap-2';
+                            }
+                        });
+                    });
+                });
+
+                // Intensity Slider
+                document.getElementById('slider-intensity').addEventListener('input', (e) => {
+                    this.intensity = parseFloat(e.target.value);
+                });
+
+                // Volume Slider
+                document.getElementById('slider-volume').addEventListener('input', (e) => {
+                    const vol = parseFloat(e.target.value);
+                    this.audioElement.volume = vol;
+                    const icon = document.getElementById('volume-icon');
+                    if (vol === 0) icon.className = 'fa-solid fa-volume-xmark';
+                    else if (vol < 0.5) icon.className = 'fa-solid fa-volume-low';
+                    else icon.className = 'fa-solid fa-volume-high';
+                });
+
+                // Progress Bar seeking
+                document.getElementById('progress-container').addEventListener('click', (e) => {
+                    if (!this.audioElement.duration) return;
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const clickX = e.clientX - rect.left;
+                    const pct = clickX / rect.width;
+                    this.audioElement.currentTime = pct * this.audioElement.duration;
+                });
+
+                // File Upload
+                document.getElementById('audio-upload').addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const url = URL.createObjectURL(file);
+                        this.setupAudioContext();
+                        this.audioElement.src = url;
+                        this.audioElement.play().then(() => this.setPlayState(true)).catch(console.error);
+
+                        document.getElementById('track-title').textContent = file.name.replace(/\.[^/.]+$/, "");
+                        document.getElementById('track-artist').textContent = "Local Audio File";
+                    }
+                });
+            }
+
+            resize() {
+                const width = window.innerWidth;
+                const height = window.innerHeight;
+                const dpr = Math.min(window.devicePixelRatio || 1, 2); // Cap at 2 for performance
+
+                this.canvas.width = width * dpr;
+                this.canvas.height = height * dpr;
+                this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+            }
+
+            render(now) {
+                const gl = this.gl;
+                const elapsedTime = (now - this.startTime) * 0.001;
+
+                this.updateAudioFrequencies();
+
+                gl.useProgram(this.program);
+
+                // Send Uniforms to WebGL Shader
+                gl.uniform2f(this.locations.resolution, this.canvas.width, this.canvas.height);
+                gl.uniform1f(this.locations.time, elapsedTime);
+                gl.uniform1f(this.locations.bass, this.audioData.bass);
+                gl.uniform1f(this.locations.mid, this.audioData.mid);
+                gl.uniform1f(this.locations.treble, this.audioData.treble);
+                gl.uniform1f(this.locations.intensity, this.intensity);
+                gl.uniform1i(this.locations.preset, this.preset);
+
+                gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+                requestAnimationFrame(this.render);
+            }
+        }
+
+        /**
+         * Helper Function: Convert AudioBuffer to WAV File Blob
+         */
+        function bufferToWave(abuffer, len) {
+            let numOfChan = abuffer.numberOfChannels,
+                length = len * numOfChan * 2 + 44,
+                buffer = new ArrayBuffer(length),
+                view = new DataView(buffer),
+                channels = [], i, sample,
+                offset = 0,
+                pos = 0;
+
+            function setUint16(data) { view.setUint16(pos, data, true); pos += 2; }
+            function setUint32(data) { view.setUint32(pos, data, true); pos += 4; }
+
+            setUint32(0x46464952); // "RIFF"
+            setUint32(length - 8); 
+            setUint32(0x45564157); // "WAVE"
+            setUint32(0x20746d66); // "fmt " chunk
+            setUint32(16);         // length = 16
+            setUint16(1);          // PCM (uncompressed)
+            setUint16(numOfChan);
+            setUint32(abuffer.sampleRate);
+            setUint32(abuffer.sampleRate * 2 * numOfChan); 
+            setUint16(numOfChan * 2); 
+            setUint16(16);         // 16-bit
+            setUint32(0x61746164); // "data" chunk
+            setUint32(length - pos - 4);
+
+            for(i = 0; i < abuffer.numberOfChannels; i++) channels.push(abuffer.getChannelData(i));
+
+            while(pos < length) {
+                for(i = 0; i < numOfChan; i++) {
+                    sample = Math.max(-1, Math.min(1, channels[i][offset]));
+                    sample = (0.5 + sample < 0 ? sample * 32768 : sample * 32767) | 0;
+                    view.setInt16(pos, sample, true);
+                    pos += 2;
+                }
+                offset++;
+            }
+
+            return new Blob([buffer], { type: "audio/wav" });
+        }
+
+        // Initialize Application on Window Load
+        window.onload = () => {
+            new VisualizerApp();
+        };
+    </script>
+</body>
+</html>
