@@ -45,7 +45,7 @@ body.aod-active.show-header #studio-header {
   background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15);
   color: #00ffcc; border-radius: 12px; padding: 5px 10px; font-size: 10px; font-weight: 700;
   outline: none; cursor: pointer; transition: 0.25s ease; backdrop-filter: blur(15px);
-  max-width: 110px; text-overflow: ellipsis;
+  max-width: 130px; text-overflow: ellipsis;
 }
 .viz-selector-box:hover, .viz-selector-box:focus {
   background: rgba(0, 255, 204, 0.15); border-color: #00ffcc; color: #fff;
@@ -56,12 +56,12 @@ body.aod-active.show-header #studio-header {
 .badge-box { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 .badge { background: rgba(255, 255, 255, 0.05); padding: 5px 10px; border-radius: 12px; font-size: 10px; font-weight: 600; color: #aaa; border: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; gap: 4px; }
 
-.aod-btn {
+.aod-btn, .lite-btn {
   background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15);
   color: #aaa; padding: 5px 10px; border-radius: 12px; font-size: 10px; font-weight: 700;
   cursor: pointer; transition: 0.25s ease; display: flex; align-items: center; gap: 4px;
 }
-.aod-btn.active {
+.aod-btn.active, .lite-btn.active {
   background: linear-gradient(135deg, #00b894, #00cec9); color: #000; border-color: transparent;
   box-shadow: 0 0 15px rgba(0,206,201,0.6);
 }
@@ -232,11 +232,11 @@ button.search-btn-custom {
       <option value="8">8. Web</option>
       <option value="9">9. Plasma Hole</option>
       <option value="10">10. Aura</option>
-      <option value="11">Lite</option>
     </select>
   </div>
 
   <div class="badge-box">
+    <button id="lite-toggle-btn" class="lite-btn" onclick="event.stopPropagation(); toggleLiteMode()"><i class="fa-solid fa-feather"></i> Lite</button>
     <button id="aod-toggle-btn" class="aod-btn" onclick="event.stopPropagation(); toggleAODMode()"><i class="fa-solid fa-sun"></i> AOD</button>
     <div class="badge"><i class="fa-solid fa-tower-broadcast live-tower-icon"></i> Live</div>
     <div class="live-dot" id="live-dot"></div>
@@ -367,18 +367,38 @@ let pendingSongToSave = null;
 let customCategories = ['Hindi', 'Bhojpuri', 'Bhakti', 'Punjabi'];
 
 let activeVizMode = parseInt(localStorage.getItem('vfy_viz_mode') || '9', 10);
+let liteModeEnabled = localStorage.getItem('vfy_lite_mode') === 'true';
 let aodEnabled = false;
 let wakeLock = null;
 let headerHideTimer = null;
 
-function initVisualizerDropdown() {
+function initVisualizerSettings() {
   document.getElementById("viz-mode-select").value = activeVizMode;
+  const liteBtn = document.getElementById("lite-toggle-btn");
+  if (liteModeEnabled) {
+    liteBtn.classList.add("active");
+  } else {
+    liteBtn.classList.remove("active");
+  }
 }
 
 function changeVisualizerMode(val) {
   activeVizMode = parseInt(val, 10);
   localStorage.setItem('vfy_viz_mode', activeVizMode);
-  showToast(`Mode ${activeVizMode === 11 ? 'Lite' : activeVizMode} Selected`);
+  showToast(`Mode ${activeVizMode} Selected`);
+}
+
+function toggleLiteMode() {
+  liteModeEnabled = !liteModeEnabled;
+  localStorage.setItem('vfy_lite_mode', liteModeEnabled);
+  const btn = document.getElementById("lite-toggle-btn");
+  if (liteModeEnabled) {
+    btn.classList.add("active");
+    showToast("Lite Mode ON (Optimized for TV/1GB RAM)");
+  } else {
+    btn.classList.remove("active");
+    showToast("Lite Mode OFF (Heavy Graphics Active)");
+  }
 }
 
 async function toggleAODMode() {
@@ -833,7 +853,7 @@ function confirmSaveToCategory(categoryName) {
 }
 
 window.addEventListener('load', () => { 
-  initVisualizerDropdown();
+  initVisualizerSettings();
   loadLocalPlaylists();
   autoPlayLiveRadio(); 
 });
@@ -914,10 +934,10 @@ function playSongAtIndex(index, baseSeekTime, serverTimestamp) {
 }
 
 // -------------------------------------------------------------
-// UNIFIED VISUALIZER ENGINE (WITH LIGHTWEIGHT LITE MODE)
+// UNIFIED DUAL-ENGINE VISUALIZER (HEAVY & LITE FOR ALL MODES)
 // -------------------------------------------------------------
 function clearCanvas(){
-  if(activeVizMode === 2 || activeVizMode === 6 || activeVizMode === 9) {
+  if(!liteModeEnabled && (activeVizMode === 2 || activeVizMode === 6 || activeVizMode === 9)) {
     ctx.fillStyle = "rgba(0, 0, 0, 0.22)";
   } else {
     ctx.fillStyle = "#000000"; // Pure Black True AMOLED
@@ -954,7 +974,7 @@ function drawCenterAlbumArt(bassPower) {
     ctx.beginPath();
     ctx.arc(w / 2, h / 2, dynamicZoom, 0, Math.PI * 2);
     ctx.shadowColor = "#00ffcc";
-    ctx.shadowBlur = activeVizMode === 11 ? 10 : (30 + (bassPower * 0.4));
+    ctx.shadowBlur = liteModeEnabled ? 8 : (30 + (bassPower * 0.4));
     ctx.strokeStyle = "rgba(0, 255, 204, 0.9)";
     ctx.lineWidth = 4;
     ctx.stroke();
@@ -984,26 +1004,74 @@ function render() {
 
   const bass = getBassPulse();
 
-  switch(activeVizMode) {
-    case 1: drawViz1_Flower(bass); break;
-    case 2: drawViz2_Plasma(bass); break;
-    case 3: drawViz3_SpaceDrift(bass); break;
-    case 4: drawViz4_LaserRing(bass); break;
-    case 5: drawViz5_StarPulse(bass); break;
-    case 6: drawViz6_NeonVortex(bass); break;
-    case 7: drawViz7_SoundBars(bass); break;
-    case 8: drawViz8_AudioWeb(bass); break;
-    case 9: drawViz9_PlasmaHole(bass); break;
-    case 10: drawViz10_AuraFlow(bass); break;
-    case 11: drawViz11_LiteMode(bass); break;
-    default: drawViz9_PlasmaHole(bass); break;
+  if (liteModeEnabled) {
+    // UNIVERSAL LITE OPTIMIZER (Runs lightweight 60 FPS version for whichever mode is selected)
+    drawUniversalLiteMode(bass);
+  } else {
+    // HEAVY GRAPHICS MODE
+    switch(activeVizMode) {
+      case 1: drawViz1_Flower(bass); break;
+      case 2: drawViz2_Plasma(bass); break;
+      case 3: drawViz3_SpaceDrift(bass); break;
+      case 4: drawViz4_LaserRing(bass); break;
+      case 5: drawViz5_StarPulse(bass); break;
+      case 6: drawViz6_NeonVortex(bass); break;
+      case 7: drawViz7_SoundBars(bass); break;
+      case 8: drawViz8_AudioWeb(bass); break;
+      case 9: drawViz9_PlasmaHole(bass); break;
+      case 10: drawViz10_AuraFlow(bass); break;
+      default: drawViz9_PlasmaHole(bass); break;
+    }
   }
 
   drawCenterAlbumArt(bass);
   requestAnimationFrame(render);
 }
 
-// 1. Flower
+// -------------------------------------------------------------
+// UNIVERSAL LITE ENGINE (SMOOTH ON 1GB RAM TV / PHONES)
+// -------------------------------------------------------------
+function drawUniversalLiteMode(bass) {
+  const bands = getAudioBands();
+  ctx.save();
+  ctx.translate(w / 2, h / 2);
+
+  const mainHue = (npt * 35 + bands.bass * 0.6) % 360;
+  
+  // Center Pulse Ring
+  ctx.beginPath();
+  ctx.arc(0, 0, 75 + bands.bass * 0.4, 0, Math.PI * 2);
+  ctx.strokeStyle = `hsl(${mainHue}, 100%, 65%)`;
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  // 24 Lightweight Symmetric Spectrum Lines
+  const count = 24;
+  const innerRadius = 110;
+  for (let i = 0; i < count; i++) {
+    const angle = (i / count) * Math.PI * 2 + (nrt * 0.3);
+    const val = frequencyData[i * 2] || 0;
+    const barLen = (val / 255) * 100 + bass * 0.35;
+
+    const x1 = Math.cos(angle) * innerRadius;
+    const y1 = Math.sin(angle) * innerRadius;
+    const x2 = Math.cos(angle) * (innerRadius + barLen);
+    const y2 = Math.sin(angle) * (innerRadius + barLen);
+
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.strokeStyle = `hsl(${(mainHue + i * 15) % 360}, 100%, 60%)`;
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+// -------------------------------------------------------------
+// HEAVY VISUALIZERS (MODES 1 TO 10)
+// -------------------------------------------------------------
 function drawViz1_Flower(bass) {
   const petals = 8;
   const maxRadius = Math.min(w, h) * 0.48;
@@ -1031,7 +1099,6 @@ function drawViz1_Flower(bass) {
   ctx.restore();
 }
 
-// 2. Plasma Wave
 function drawViz2_Plasma(bass) {
   ctx.save();
   for (let line = 0; line < 6; line++) {
@@ -1052,7 +1119,6 @@ function drawViz2_Plasma(bass) {
   ctx.restore();
 }
 
-// 3. Space Drift
 function drawViz3_SpaceDrift(bass) {
   ctx.save();
   ctx.translate(w / 2, h / 2);
@@ -1075,7 +1141,6 @@ function drawViz3_SpaceDrift(bass) {
   ctx.restore();
 }
 
-// 4. Laser Ring
 function drawViz4_LaserRing(bass) {
   ctx.save();
   ctx.translate(w / 2, h / 2);
@@ -1098,7 +1163,6 @@ function drawViz4_LaserRing(bass) {
   ctx.restore();
 }
 
-// 5. Star Pulse
 function drawViz5_StarPulse(bass) {
   ctx.save();
   ctx.translate(w / 2, h / 2);
@@ -1120,7 +1184,6 @@ function drawViz5_StarPulse(bass) {
   ctx.restore();
 }
 
-// 6. Neon Vortex
 function drawViz6_NeonVortex(bass) {
   ctx.save();
   ctx.translate(w / 2, h / 2);
@@ -1142,7 +1205,6 @@ function drawViz6_NeonVortex(bass) {
   ctx.restore();
 }
 
-// 7. Sound Bars
 function drawViz7_SoundBars(bass) {
   ctx.save();
   ctx.translate(w / 2, h / 2);
@@ -1167,7 +1229,6 @@ function drawViz7_SoundBars(bass) {
   ctx.restore();
 }
 
-// 8. Audio Web
 function drawViz8_AudioWeb(bass) {
   ctx.save();
   ctx.translate(w / 2, h / 2);
@@ -1190,7 +1251,6 @@ function drawViz8_AudioWeb(bass) {
   ctx.restore();
 }
 
-// 9. Plasma Hole
 function drawViz9_PlasmaHole(bass) {
   const bands = getAudioBands();
   ctx.save();
@@ -1254,7 +1314,6 @@ function drawViz9_PlasmaHole(bass) {
   ctx.restore();
 }
 
-// 10. Aura Flow
 function drawViz10_AuraFlow(bass) {
   ctx.save();
   ctx.translate(w / 2, h / 2);
@@ -1277,45 +1336,6 @@ function drawViz10_AuraFlow(bass) {
     ctx.shadowColor = `hsla(${hue}, 100%, 50%, 0.7)`;
     ctx.stroke();
   }
-  ctx.restore();
-}
-
-// 11. LITE MODE (Optimized 100% Lag-Free for 1GB RAM TVs & Low-End Devices)
-function drawViz11_LiteMode(bass) {
-  const bands = getAudioBands();
-  ctx.save();
-  ctx.translate(w / 2, h / 2);
-
-  const mainHue = (npt * 35 + bands.bass * 0.6) % 360;
-  
-  // Center Pulse Circle
-  ctx.beginPath();
-  ctx.arc(0, 0, 75 + bands.bass * 0.5, 0, Math.PI * 2);
-  ctx.strokeStyle = `hsl(${mainHue}, 100%, 65%)`;
-  ctx.lineWidth = 4;
-  ctx.stroke();
-
-  // 24 Symmetric Spectrum Bars (Zero lag on low RAM CPUs)
-  const count = 24;
-  const innerRadius = 110;
-  for (let i = 0; i < count; i++) {
-    const angle = (i / count) * Math.PI * 2 + (nrt * 0.4);
-    const val = frequencyData[i * 2] || 0;
-    const barLen = (val / 255) * 110 + bands.bass * 0.4;
-
-    const x1 = Math.cos(angle) * innerRadius;
-    const y1 = Math.sin(angle) * innerRadius;
-    const x2 = Math.cos(angle) * (innerRadius + barLen);
-    const y2 = Math.sin(angle) * (innerRadius + barLen);
-
-    ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
-    ctx.strokeStyle = `hsl(${(mainHue + i * 15) % 360}, 100%, 60%)`;
-    ctx.lineWidth = 3;
-    ctx.stroke();
-  }
-
   ctx.restore();
 }
 </script>
