@@ -45,7 +45,7 @@ body.aod-active.show-header #studio-header {
   background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15);
   color: #00ffcc; border-radius: 12px; padding: 5px 10px; font-size: 10px; font-weight: 700;
   outline: none; cursor: pointer; transition: 0.25s ease; backdrop-filter: blur(15px);
-  max-width: 120px; text-overflow: ellipsis;
+  max-width: 110px; text-overflow: ellipsis;
 }
 .viz-selector-box:hover, .viz-selector-box:focus {
   background: rgba(0, 255, 204, 0.15); border-color: #00ffcc; color: #fff;
@@ -232,7 +232,7 @@ button.search-btn-custom {
       <option value="8">8. Web</option>
       <option value="9">9. Plasma Hole</option>
       <option value="10">10. Aura</option>
-      <option value="11">11. Lite (TV Mode)</option>
+      <option value="11">Lite</option>
     </select>
   </div>
 
@@ -378,7 +378,7 @@ function initVisualizerDropdown() {
 function changeVisualizerMode(val) {
   activeVizMode = parseInt(val, 10);
   localStorage.setItem('vfy_viz_mode', activeVizMode);
-  showToast(`Mode ${activeVizMode} Selected`);
+  showToast(`Mode ${activeVizMode === 11 ? 'Lite' : activeVizMode} Selected`);
 }
 
 async function toggleAODMode() {
@@ -914,7 +914,7 @@ function playSongAtIndex(index, baseSeekTime, serverTimestamp) {
 }
 
 // -------------------------------------------------------------
-// VISUALIZER ENGINE (WITH "LITE" MODE OPTIMIZED FOR TV)
+// UNIFIED VISUALIZER ENGINE (WITH LIGHTWEIGHT LITE MODE)
 // -------------------------------------------------------------
 function clearCanvas(){
   if(activeVizMode === 2 || activeVizMode === 6 || activeVizMode === 9) {
