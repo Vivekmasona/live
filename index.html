@@ -934,7 +934,7 @@ function playSongAtIndex(index, baseSeekTime, serverTimestamp) {
 }
 
 // -------------------------------------------------------------
-// DUAL-RENDER VISUALIZER ENGINE (OPTIMIZED & SMOOTH)
+// DUAL-RENDER VISUALIZER ENGINE (FIXED & FULLY UNIQUE LITE MODES)
 // -------------------------------------------------------------
 function clearCanvas(){
   if(!liteModeEnabled && (activeVizMode === 2 || activeVizMode === 6 || activeVizMode === 9)) {
@@ -1005,7 +1005,7 @@ function render() {
   const bass = getBassPulse();
 
   if (liteModeEnabled) {
-    // 💡 LITE MODE: Unique Lightweight Styles for Each Visualizer Mode (1GB RAM Friendly)
+    // 💡 LITE MODE: Distinct, Lightweight Styles for Every Selected Mode
     switch(activeVizMode) {
       case 1: drawLite_Flower(bass); break;
       case 2: drawLite_Plasma(bass); break;
@@ -1017,7 +1017,7 @@ function render() {
       case 8: drawLite_AudioWeb(bass); break;
       case 9: drawLite_PlasmaHole(bass); break;
       case 10: drawLite_AuraFlow(bass); break;
-      default: drawLite_PlasmaHole(bass); break;
+      default: drawLite_Flower(bass); break;
     }
   } else {
     // ⚡ HEAVY MODE: Full Detailed Visualizer Selection
@@ -1041,19 +1041,22 @@ function render() {
 }
 
 // -------------------------------------------------------------
-// UNIQUE LITE MODE STYLES FOR EACH VIZ (LIGHTWEIGHT & UNIQUE)
+// UNIQUE & CLEAN LITE MODE STYLES (NO OVERLAPPING ART)
 // -------------------------------------------------------------
 function drawLite_Flower(bass) {
   const bands = getAudioBands();
   ctx.save();
   ctx.translate(w / 2, h / 2);
   const petals = 6;
+  const orbitRadius = Math.min(w, h) * 0.28; // Properly distanced outside album art
   for (let p = 0; p < petals; p++) {
-    ctx.rotate((Math.PI * 2) / petals);
+    const angle = (p / petals) * Math.PI * 2 + nrt;
+    const x = Math.cos(angle) * orbitRadius;
+    const y = Math.sin(angle) * orbitRadius;
     ctx.beginPath();
-    ctx.arc(80 + bands.bass * 0.3, 0, 30 + (bands.mid * 0.2), 0, Math.PI * 2);
-    ctx.strokeStyle = `hsl(${(p * 60 + npt * 30) % 360}, 100%, 60%)`;
-    ctx.lineWidth = 2.5;
+    ctx.arc(x, y, 22 + (bands.bass * 0.25), 0, Math.PI * 2);
+    ctx.strokeStyle = `hsl(${(p * 60 + npt * 30) % 360}, 100%, 65%)`;
+    ctx.lineWidth = 3;
     ctx.stroke();
   }
   ctx.restore();
@@ -1062,13 +1065,13 @@ function drawLite_Flower(bass) {
 function drawLite_Plasma(bass) {
   const bands = getAudioBands();
   ctx.save();
-  for (let line = 0; line < 4; line++) {
+  for (let line = 0; line < 3; line++) {
     ctx.beginPath();
-    for (let x = 0; x < w; x += 30) {
-      const y = (h / 2) + Math.sin(x * 0.008 + npt * 3 + line) * (40 + bands.bass * 0.4) + (line * 30 - 45);
+    for (let x = 0; x < w; x += 35) {
+      const y = (h / 2) + Math.sin(x * 0.007 + npt * 2.5 + line) * (50 + bands.bass * 0.35) + (line * 45 - 45);
       if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
     }
-    ctx.strokeStyle = `hsl(${(line * 90 + npt * 40) % 360}, 100%, 60%)`;
+    ctx.strokeStyle = `hsl(${(line * 120 + npt * 40) % 360}, 100%, 60%)`;
     ctx.lineWidth = 3;
     ctx.stroke();
   }
@@ -1079,14 +1082,14 @@ function drawLite_SpaceDrift(bass) {
   const bands = getAudioBands();
   ctx.save();
   ctx.translate(w / 2, h / 2);
-  for (let i = 0; i < 20; i++) {
-    const angle = (i / 20) * Math.PI * 2 + nrt;
-    const dist = 90 + (i * 8) + (bands.bass * 0.2);
+  for (let i = 0; i < 16; i++) {
+    const angle = (i / 16) * Math.PI * 2 + nrt;
+    const dist = 110 + (i * 6) + (bands.bass * 0.2);
     const x = Math.cos(angle) * dist;
     const y = Math.sin(angle) * dist;
     ctx.beginPath();
-    ctx.arc(x, y, 2.5, 0, Math.PI * 2);
-    ctx.fillStyle = `hsl(${(i * 18 + npt * 30) % 360}, 100%, 70%)`;
+    ctx.arc(x, y, 3, 0, Math.PI * 2);
+    ctx.fillStyle = `hsl(${(i * 22 + npt * 30) % 360}, 100%, 70%)`;
     ctx.fill();
   }
   ctx.restore();
@@ -1098,8 +1101,8 @@ function drawLite_LaserRing(bass) {
   ctx.translate(w / 2, h / 2);
   for (let r = 1; r <= 3; r++) {
     ctx.beginPath();
-    ctx.arc(0, 0, 80 + (r * 40) + (bands.bass * 0.3), 0, Math.PI * 2);
-    ctx.strokeStyle = `hsl(${(r * 100 + npt * 40) % 360}, 100%, 60%)`;
+    ctx.arc(0, 0, 95 + (r * 35) + (bands.bass * 0.25), 0, Math.PI * 2);
+    ctx.strokeStyle = `hsl(${(r * 90 + npt * 40) % 360}, 100%, 60%)`;
     ctx.lineWidth = 2.5;
     ctx.stroke();
   }
@@ -1113,9 +1116,9 @@ function drawLite_StarPulse(bass) {
   const count = 8;
   for (let i = 0; i < count; i++) {
     const angle = (i / count) * Math.PI * 2 + nrt;
-    const len = 90 + (bands.bass * 0.6);
+    const len = 110 + (bands.bass * 0.5);
     ctx.beginPath();
-    ctx.moveTo(Math.cos(angle) * 60, Math.sin(angle) * 60);
+    ctx.moveTo(Math.cos(angle) * 75, Math.sin(angle) * 75);
     ctx.lineTo(Math.cos(angle) * len, Math.sin(angle) * len);
     ctx.strokeStyle = `hsl(${(i * 45 + npt * 50) % 360}, 100%, 65%)`;
     ctx.lineWidth = 3;
@@ -1129,12 +1132,12 @@ function drawLite_NeonVortex(bass) {
   ctx.save();
   ctx.translate(w / 2, h / 2);
   ctx.rotate(npt * 0.8);
-  for (let i = 0; i < 16; i++) {
-    const angle = (i / 16) * Math.PI * 2;
-    const r = 90 + (bands.bass * 0.3);
+  for (let i = 0; i < 14; i++) {
+    const angle = (i / 14) * Math.PI * 2;
+    const r = 110 + (bands.bass * 0.3);
     ctx.beginPath();
     ctx.arc(Math.cos(angle) * r, Math.sin(angle) * r, 4, 0, Math.PI * 2);
-    ctx.fillStyle = `hsl(${(i * 22 + npt * 40) % 360}, 100%, 60%)`;
+    ctx.fillStyle = `hsl(${(i * 25 + npt * 40) % 360}, 100%, 60%)`;
     ctx.fill();
   }
   ctx.restore();
@@ -1145,10 +1148,10 @@ function drawLite_SoundBars(bass) {
   ctx.save();
   ctx.translate(w / 2, h / 2);
   const count = 16;
-  const radius = 90;
+  const radius = 105;
   for (let i = 0; i < count; i++) {
     const angle = (i / count) * Math.PI * 2;
-    const barLen = 40 + (bands.bass * 0.5);
+    const barLen = 35 + (bands.bass * 0.4);
     const x1 = Math.cos(angle) * radius;
     const y1 = Math.sin(angle) * radius;
     const x2 = Math.cos(angle) * (radius + barLen);
@@ -1156,7 +1159,7 @@ function drawLite_SoundBars(bass) {
     ctx.beginPath();
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
-    ctx.strokeStyle = `hsl(${(i * 20 + npt * 30) % 360}, 100%, 60%)`;
+    ctx.strokeStyle = `hsl(${(i * 22 + npt * 30) % 360}, 100%, 60%)`;
     ctx.lineWidth = 3.5;
     ctx.stroke();
   }
@@ -1168,9 +1171,9 @@ function drawLite_AudioWeb(bass) {
   ctx.save();
   ctx.translate(w / 2, h / 2);
   ctx.beginPath();
-  for (let i = 0; i < 12; i++) {
-    const angle = (i / 12) * Math.PI * 2 + nrt;
-    const r = 90 + (i % 2 === 0 ? bands.bass * 0.4 : 10);
+  for (let i = 0; i < 10; i++) {
+    const angle = (i / 10) * Math.PI * 2 + nrt;
+    const r = 100 + (i % 2 === 0 ? bands.bass * 0.35 : 15);
     const x = Math.cos(angle) * r;
     const y = Math.sin(angle) * r;
     if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
@@ -1186,10 +1189,10 @@ function drawLite_PlasmaHole(bass) {
   const bands = getAudioBands();
   ctx.save();
   ctx.translate(w / 2, h / 2);
-  for (let r = 1; r <= 4; r++) {
+  for (let r = 1; r <= 3; r++) {
     ctx.beginPath();
-    ctx.arc(0, 0, 70 + (r * 25) + (bands.bass * 0.3), 0, Math.PI * 2);
-    ctx.strokeStyle = `hsl(${(r * 70 + npt * 40) % 360}, 100%, 60%)`;
+    ctx.arc(0, 0, 85 + (r * 30) + (bands.bass * 0.25), 0, Math.PI * 2);
+    ctx.strokeStyle = `hsl(${(r * 80 + npt * 40) % 360}, 100%, 60%)`;
     ctx.lineWidth = 2;
     ctx.stroke();
   }
@@ -1202,14 +1205,14 @@ function drawLite_AuraFlow(bass) {
   ctx.translate(w / 2, h / 2);
   for (let l = 1; l <= 3; l++) {
     ctx.beginPath();
-    for (let a = 0; a < Math.PI * 2; a += 0.3) {
-      const r = (l * 40) + 60 + (bands.bass * 0.3) + Math.sin(npt * 2 + a * 2) * 10;
+    for (let a = 0; a < Math.PI * 2; a += 0.35) {
+      const r = (l * 35) + 75 + (bands.bass * 0.25) + Math.sin(npt * 2 + a * 2) * 8;
       const x = Math.cos(a + nrt * l) * r;
       const y = Math.sin(a + nrt * l) * r;
       if (a === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
     }
     ctx.closePath();
-    ctx.strokeStyle = `hsl(${(l * 100 + npt * 30) % 360}, 100%, 60%)`;
+    ctx.strokeStyle = `hsl(${(l * 120 + npt * 30) % 360}, 100%, 60%)`;
     ctx.lineWidth = 2;
     ctx.stroke();
   }
@@ -1217,7 +1220,7 @@ function drawLite_AuraFlow(bass) {
 }
 
 // -------------------------------------------------------------
-// HEAVY VISUALIZERS (MODES 1 TO 10 - OPTIMIZED BLACK HOLE / PLASMA HOLE)
+// HEAVY VISUALIZERS (MODES 1 TO 10 - FULL HD GRAPHICS)
 // -------------------------------------------------------------
 function drawViz1_Flower(bass) {
   const petals = 8;
@@ -1398,14 +1401,13 @@ function drawViz8_AudioWeb(bass) {
   ctx.restore();
 }
 
-// 9. PLASMA HOLE / BLACK HOLE (Optimized & Smooth in Heavy Mode)
 function drawViz9_PlasmaHole(bass) {
   const bands = getAudioBands();
   ctx.save();
   ctx.translate(w / 2, h / 2);
 
   const dynamicHue = (npt * 45 + bands.bass * 0.7) % 360;
-  const spiralRings = 10; // Optimized ring count for buttery smooth performance
+  const spiralRings = 10;
   const maxRadius = Math.max(w, h) * 0.55;
   const time = npt * 1.5;
   const holeRadius = 55 + bands.bass * 0.4;
@@ -1420,7 +1422,6 @@ function drawViz9_PlasmaHole(bass) {
   for (let r = spiralRings; r > 0; r--) {
     const norm = r / spiralRings;
     const radius = norm * maxRadius + holeRadius;
-    const twist = time + (norm * 3);
 
     ctx.beginPath();
     ctx.arc(0, 0, radius, 0, Math.PI * 2);
