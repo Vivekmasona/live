@@ -232,7 +232,7 @@ button.search-btn-custom {
       <option value="8">8. Web</option>
       <option value="9">9. Plasma Hole</option>
       <option value="10">10. Aura</option>
-      <option value="11">11. 📺 TV Mode (Lag-Free)</option>
+      <option value="11">11. Lite (TV Mode)</option>
     </select>
   </div>
 
@@ -449,7 +449,7 @@ function initAudioContext() {
   if (!actx && AudioContext) {
     actx = new AudioContext();
     analyser = actx.createAnalyser();
-    analyser.fftSize = 128; // Optimized low FFT size for buttery smooth TV & Mobile rendering
+    analyser.fftSize = 128;
     analyser.smoothingTimeConstant = 0.8;
     
     gainNode = actx.createGain();
@@ -914,7 +914,7 @@ function playSongAtIndex(index, baseSeekTime, serverTimestamp) {
 }
 
 // -------------------------------------------------------------
-// UNIFIED VISUALIZER ENGINE (PHONE + TV MODE 11)
+// VISUALIZER ENGINE (WITH "LITE" MODE OPTIMIZED FOR TV)
 // -------------------------------------------------------------
 function clearCanvas(){
   if(activeVizMode === 2 || activeVizMode === 6 || activeVizMode === 9) {
@@ -995,7 +995,7 @@ function render() {
     case 8: drawViz8_AudioWeb(bass); break;
     case 9: drawViz9_PlasmaHole(bass); break;
     case 10: drawViz10_AuraFlow(bass); break;
-    case 11: drawViz11_TVLiteMode(bass); break;
+    case 11: drawViz11_LiteMode(bass); break;
     default: drawViz9_PlasmaHole(bass); break;
   }
 
@@ -1190,7 +1190,7 @@ function drawViz8_AudioWeb(bass) {
   ctx.restore();
 }
 
-// 9. Plasma Hole (Phone Default)
+// 9. Plasma Hole
 function drawViz9_PlasmaHole(bass) {
   const bands = getAudioBands();
   ctx.save();
@@ -1280,8 +1280,8 @@ function drawViz10_AuraFlow(bass) {
   ctx.restore();
 }
 
-// 11. 📺 TV MODE (100% Lag-Free for 1GB RAM Android TVs)
-function drawViz11_TVLiteMode(bass) {
+// 11. LITE MODE (Optimized 100% Lag-Free for 1GB RAM TVs & Low-End Devices)
+function drawViz11_LiteMode(bass) {
   const bands = getAudioBands();
   ctx.save();
   ctx.translate(w / 2, h / 2);
