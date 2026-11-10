@@ -394,7 +394,7 @@ function toggleLiteMode() {
   const btn = document.getElementById("lite-toggle-btn");
   if (liteModeEnabled) {
     btn.classList.add("active");
-    showToast("Lite Mode ON (Optimized for TV/1GB RAM)");
+    showToast("Lite Mode ON (Smooth 60FPS for TV/1GB RAM)");
   } else {
     btn.classList.remove("active");
     showToast("Lite Mode OFF (Heavy Graphics Active)");
@@ -934,7 +934,7 @@ function playSongAtIndex(index, baseSeekTime, serverTimestamp) {
 }
 
 // -------------------------------------------------------------
-// DUAL-RENDER VISUALIZER ENGINE (HEAVY & LITE ADAPTER FOR ALL MODES)
+// DUAL-RENDER VISUALIZER ENGINE (OPTIMIZED & SMOOTH)
 // -------------------------------------------------------------
 function clearCanvas(){
   if(!liteModeEnabled && (activeVizMode === 2 || activeVizMode === 6 || activeVizMode === 9)) {
@@ -1005,7 +1005,7 @@ function render() {
   const bass = getBassPulse();
 
   if (liteModeEnabled) {
-    // 💡 LITE MODE ACTIVE: Dropdown se jo bhi select ho, uska lightweight smooth version chalega (1GB RAM friendly)
+    // 💡 LITE MODE: Unique Lightweight Styles for Each Visualizer Mode (1GB RAM Friendly)
     switch(activeVizMode) {
       case 1: drawLite_Flower(bass); break;
       case 2: drawLite_Plasma(bass); break;
@@ -1020,7 +1020,7 @@ function render() {
       default: drawLite_PlasmaHole(bass); break;
     }
   } else {
-    // ⚡ HEAVY MODE ACTIVE: Full high-end graphics as selected in dropdown
+    // ⚡ HEAVY MODE: Full Detailed Visualizer Selection
     switch(activeVizMode) {
       case 1: drawViz1_Flower(bass); break;
       case 2: drawViz2_Plasma(bass); break;
@@ -1041,73 +1041,183 @@ function render() {
 }
 
 // -------------------------------------------------------------
-// LITE VERSIONS FOR ALL MODES (LIGHTWEIGHT & SMOOTH)
+// UNIQUE LITE MODE STYLES FOR EACH VIZ (LIGHTWEIGHT & UNIQUE)
 // -------------------------------------------------------------
-function drawLite_Flower(bass) { drawLiteCircularBars(bass, 16); }
-function drawLite_Plasma(bass) { drawLiteWave(bass, 3); }
-function drawLite_SpaceDrift(bass) { drawLiteCircularBars(bass, 20); }
-function drawLite_LaserRing(bass) { drawLiteCircularBars(bass, 24); }
-function drawLite_StarPulse(bass) { drawLiteCircularBars(bass, 12); }
-function drawLite_NeonVortex(bass) { drawLiteCircularBars(bass, 20); }
-function drawLite_SoundBars(bass) { drawLiteCircularBars(bass, 32); }
-function drawLite_AudioWeb(bass) { drawLiteCircularBars(bass, 18); }
-function drawLite_PlasmaHole(bass) { drawLiteCircularBars(bass, 24); }
-function drawLite_AuraFlow(bass) { drawLiteCircularBars(bass, 20); }
-
-function drawLiteCircularBars(bass, count) {
+function drawLite_Flower(bass) {
   const bands = getAudioBands();
   ctx.save();
   ctx.translate(w / 2, h / 2);
-
-  const mainHue = (npt * 35 + bands.bass * 0.6) % 360;
-  
-  ctx.beginPath();
-  ctx.arc(0, 0, 75 + bands.bass * 0.4, 0, Math.PI * 2);
-  ctx.strokeStyle = `hsl(${mainHue}, 100%, 65%)`;
-  ctx.lineWidth = 3;
-  ctx.stroke();
-
-  const innerRadius = 110;
-  for (let i = 0; i < count; i++) {
-    const angle = (i / count) * Math.PI * 2 + (nrt * 0.3);
-    const val = frequencyData[i * 2] || 0;
-    const barLen = (val / 255) * 90 + bass * 0.3;
-
-    const x1 = Math.cos(angle) * innerRadius;
-    const y1 = Math.sin(angle) * innerRadius;
-    const x2 = Math.cos(angle) * (innerRadius + barLen);
-    const y2 = Math.sin(angle) * (innerRadius + barLen);
-
+  const petals = 6;
+  for (let p = 0; p < petals; p++) {
+    ctx.rotate((Math.PI * 2) / petals);
     ctx.beginPath();
-    ctx.moveTo(x1, y1);
-    ctx.lineTo(x2, y2);
-    ctx.strokeStyle = `hsl(${(mainHue + i * 14) % 360}, 100%, 60%)`;
+    ctx.arc(80 + bands.bass * 0.3, 0, 30 + (bands.mid * 0.2), 0, Math.PI * 2);
+    ctx.strokeStyle = `hsl(${(p * 60 + npt * 30) % 360}, 100%, 60%)`;
     ctx.lineWidth = 2.5;
     ctx.stroke();
   }
   ctx.restore();
 }
 
-function drawLiteWave(bass, linesCount) {
+function drawLite_Plasma(bass) {
+  const bands = getAudioBands();
   ctx.save();
-  for (let line = 0; line < linesCount; line++) {
+  for (let line = 0; line < 4; line++) {
     ctx.beginPath();
-    for (let x = 0; x < w; x += 20) {
-      const idx = Math.floor((x / w) * frequencyDataLen);
-      const val = frequencyData[idx] || 0;
-      const y = (h / 2) + Math.sin(x * 0.005 + npt * 2 + line * 0.5) * (val * 0.5 + bass * 0.3) + (line * 30 - 45);
+    for (let x = 0; x < w; x += 30) {
+      const y = (h / 2) + Math.sin(x * 0.008 + npt * 3 + line) * (40 + bands.bass * 0.4) + (line * 30 - 45);
       if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
     }
-    const hue = (line * 90 + npt * 30) % 360;
-    ctx.strokeStyle = `hsla(${hue}, 100%, 60%, 0.8)`;
+    ctx.strokeStyle = `hsl(${(line * 90 + npt * 40) % 360}, 100%, 60%)`;
+    ctx.lineWidth = 3;
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawLite_SpaceDrift(bass) {
+  const bands = getAudioBands();
+  ctx.save();
+  ctx.translate(w / 2, h / 2);
+  for (let i = 0; i < 20; i++) {
+    const angle = (i / 20) * Math.PI * 2 + nrt;
+    const dist = 90 + (i * 8) + (bands.bass * 0.2);
+    const x = Math.cos(angle) * dist;
+    const y = Math.sin(angle) * dist;
+    ctx.beginPath();
+    ctx.arc(x, y, 2.5, 0, Math.PI * 2);
+    ctx.fillStyle = `hsl(${(i * 18 + npt * 30) % 360}, 100%, 70%)`;
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawLite_LaserRing(bass) {
+  const bands = getAudioBands();
+  ctx.save();
+  ctx.translate(w / 2, h / 2);
+  for (let r = 1; r <= 3; r++) {
+    ctx.beginPath();
+    ctx.arc(0, 0, 80 + (r * 40) + (bands.bass * 0.3), 0, Math.PI * 2);
+    ctx.strokeStyle = `hsl(${(r * 100 + npt * 40) % 360}, 100%, 60%)`;
     ctx.lineWidth = 2.5;
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawLite_StarPulse(bass) {
+  const bands = getAudioBands();
+  ctx.save();
+  ctx.translate(w / 2, h / 2);
+  const count = 8;
+  for (let i = 0; i < count; i++) {
+    const angle = (i / count) * Math.PI * 2 + nrt;
+    const len = 90 + (bands.bass * 0.6);
+    ctx.beginPath();
+    ctx.moveTo(Math.cos(angle) * 60, Math.sin(angle) * 60);
+    ctx.lineTo(Math.cos(angle) * len, Math.sin(angle) * len);
+    ctx.strokeStyle = `hsl(${(i * 45 + npt * 50) % 360}, 100%, 65%)`;
+    ctx.lineWidth = 3;
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawLite_NeonVortex(bass) {
+  const bands = getAudioBands();
+  ctx.save();
+  ctx.translate(w / 2, h / 2);
+  ctx.rotate(npt * 0.8);
+  for (let i = 0; i < 16; i++) {
+    const angle = (i / 16) * Math.PI * 2;
+    const r = 90 + (bands.bass * 0.3);
+    ctx.beginPath();
+    ctx.arc(Math.cos(angle) * r, Math.sin(angle) * r, 4, 0, Math.PI * 2);
+    ctx.fillStyle = `hsl(${(i * 22 + npt * 40) % 360}, 100%, 60%)`;
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawLite_SoundBars(bass) {
+  const bands = getAudioBands();
+  ctx.save();
+  ctx.translate(w / 2, h / 2);
+  const count = 16;
+  const radius = 90;
+  for (let i = 0; i < count; i++) {
+    const angle = (i / count) * Math.PI * 2;
+    const barLen = 40 + (bands.bass * 0.5);
+    const x1 = Math.cos(angle) * radius;
+    const y1 = Math.sin(angle) * radius;
+    const x2 = Math.cos(angle) * (radius + barLen);
+    const y2 = Math.sin(angle) * (radius + barLen);
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.strokeStyle = `hsl(${(i * 20 + npt * 30) % 360}, 100%, 60%)`;
+    ctx.lineWidth = 3.5;
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawLite_AudioWeb(bass) {
+  const bands = getAudioBands();
+  ctx.save();
+  ctx.translate(w / 2, h / 2);
+  ctx.beginPath();
+  for (let i = 0; i < 12; i++) {
+    const angle = (i / 12) * Math.PI * 2 + nrt;
+    const r = 90 + (i % 2 === 0 ? bands.bass * 0.4 : 10);
+    const x = Math.cos(angle) * r;
+    const y = Math.sin(angle) * r;
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  }
+  ctx.closePath();
+  ctx.strokeStyle = `hsl(${(npt * 50) % 360}, 100%, 60%)`;
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawLite_PlasmaHole(bass) {
+  const bands = getAudioBands();
+  ctx.save();
+  ctx.translate(w / 2, h / 2);
+  for (let r = 1; r <= 4; r++) {
+    ctx.beginPath();
+    ctx.arc(0, 0, 70 + (r * 25) + (bands.bass * 0.3), 0, Math.PI * 2);
+    ctx.strokeStyle = `hsl(${(r * 70 + npt * 40) % 360}, 100%, 60%)`;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawLite_AuraFlow(bass) {
+  const bands = getAudioBands();
+  ctx.save();
+  ctx.translate(w / 2, h / 2);
+  for (let l = 1; l <= 3; l++) {
+    ctx.beginPath();
+    for (let a = 0; a < Math.PI * 2; a += 0.3) {
+      const r = (l * 40) + 60 + (bands.bass * 0.3) + Math.sin(npt * 2 + a * 2) * 10;
+      const x = Math.cos(a + nrt * l) * r;
+      const y = Math.sin(a + nrt * l) * r;
+      if (a === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.strokeStyle = `hsl(${(l * 100 + npt * 30) % 360}, 100%, 60%)`;
+    ctx.lineWidth = 2;
     ctx.stroke();
   }
   ctx.restore();
 }
 
 // -------------------------------------------------------------
-// HEAVY VISUALIZERS (MODES 1 TO 10 - FULL GRAPHICS)
+// HEAVY VISUALIZERS (MODES 1 TO 10 - OPTIMIZED BLACK HOLE / PLASMA HOLE)
 // -------------------------------------------------------------
 function drawViz1_Flower(bass) {
   const petals = 8;
@@ -1288,63 +1398,35 @@ function drawViz8_AudioWeb(bass) {
   ctx.restore();
 }
 
+// 9. PLASMA HOLE / BLACK HOLE (Optimized & Smooth in Heavy Mode)
 function drawViz9_PlasmaHole(bass) {
   const bands = getAudioBands();
   ctx.save();
   ctx.translate(w / 2, h / 2);
 
-  const dynamicHue = (npt * 45 + bands.bass * 0.7 + bands.high * 0.4) % 360;
-  const mixHue = (dynamicHue + 140 + bands.mid * 0.5) % 360;
-
-  const spiralRings = 16;
-  const pointsPerRing = 32;
-  const maxRadius = Math.max(w, h) * 0.65;
-  const time = npt * 1.8;
-  const holeRadius = 55 + bands.bass * 0.45;
+  const dynamicHue = (npt * 45 + bands.bass * 0.7) % 360;
+  const spiralRings = 10; // Optimized ring count for buttery smooth performance
+  const maxRadius = Math.max(w, h) * 0.55;
+  const time = npt * 1.5;
+  const holeRadius = 55 + bands.bass * 0.4;
 
   ctx.beginPath();
   ctx.arc(0, 0, holeRadius, 0, Math.PI * 2);
   ctx.fillStyle = "#000000";
-  ctx.shadowBlur = 30 + bands.bass * 0.5;
-  ctx.shadowColor = `hsla(${dynamicHue}, 100%, 50%, 0.95)`;
+  ctx.shadowBlur = 20;
+  ctx.shadowColor = `hsla(${dynamicHue}, 100%, 50%, 0.8)`;
   ctx.fill();
-
-  ctx.shadowBlur = 12;
 
   for (let r = spiralRings; r > 0; r--) {
     const norm = r / spiralRings;
-    const radius = Math.pow(norm, 2.1) * maxRadius + holeRadius * 0.5;
-    const warpOffset = (time * 0.9 + norm * 3.5) % 1;
-    const currR = radius * (0.45 + warpOffset * 0.75);
-
-    if (currR < holeRadius * 0.7) continue;
+    const radius = norm * maxRadius + holeRadius;
+    const twist = time + (norm * 3);
 
     ctx.beginPath();
-    for (let p = 0; p <= pointsPerRing; p++) {
-      const stepPct = p / pointsPerRing;
-      const angle = stepPct * Math.PI * 2;
-      const audioIdx = (Math.floor(stepPct * frequencyDataLen)) & (frequencyDataLen - 1);
-      const val = frequencyData[audioIdx] || 0;
-
-      const twist = angle + (currR * 0.007) - (time * 0.5);
-      const wave = Math.sin(angle * 5 + time * 2.5 + r) * (10 + bands.bass * 0.25);
-      const audioDist = (val / 255) * (18 * norm);
-
-      const rFinal = currR + wave + audioDist;
-      const x = Math.cos(twist) * rFinal;
-      const y = Math.sin(twist) * rFinal;
-
-      if (p === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    }
-    ctx.closePath();
-
-    const ringHue = (dynamicHue + (norm * 180)) % 360;
-    const opacity = Math.sin(norm * Math.PI) * 0.8;
-
-    ctx.strokeStyle = `hsla(${ringHue}, 100%, ${55 + bands.high * 0.1}%, ${opacity})`;
-    ctx.lineWidth = 1.5 + norm * 2;
-    ctx.shadowColor = `hsla(${mixHue}, 100%, 50%, 0.75)`;
+    ctx.arc(0, 0, radius, 0, Math.PI * 2);
+    const ringHue = (dynamicHue + (norm * 120)) % 360;
+    ctx.strokeStyle = `hsla(${ringHue}, 100%, 60%, ${Math.sin(norm * Math.PI) * 0.7})`;
+    ctx.lineWidth = 2 + norm * 2;
     ctx.stroke();
   }
 
