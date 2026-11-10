@@ -10,7 +10,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 html, body {
-  margin: 0; padding: 0; overflow: hidden; background: #000000; /* Pure Black AMOLED */
+  margin: 0; padding: 0; overflow: hidden; background: #000000;
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; color: #fff;
 }
 canvas { position: fixed; inset: 0; z-index: 1; }
@@ -33,7 +33,6 @@ body.aod-active.show-header #studio-header {
   opacity: 1; pointer-events: auto; transform: translateY(-50%) translateX(0);
 }
 
-/* VERTICAL WRITTEN TEXT STYLES */
 .vertical-text {
   writing-mode: vertical-rl;
   transform: rotate(180deg);
@@ -48,7 +47,6 @@ body.aod-active.show-header #studio-header {
 .brand-title i { color: #00ffcc; filter: drop-shadow(0 0 8px rgba(0,255,204,0.8)); font-size: 14px; }
 .brand-title span { color: #00ffcc; font-size: 11px; }
 
-/* CUSTOM TAP DROPDOWN BUTTON */
 .viz-custom-btn {
   background: rgba(0, 255, 204, 0.08); border: 1px solid rgba(0, 255, 204, 0.3);
   color: #00ffcc; border-radius: 12px; padding: 10px 2px; font-size: 10px; font-weight: 700;
@@ -88,7 +86,6 @@ body.aod-active.show-header #studio-header {
 .live-dot { width: 6px; height: 6px; background: #ff4757; border-radius: 50%; box-shadow: 0 0 8px #ff4757; transition: 0.3s; }
 .live-dot.active { background: #ff4757; box-shadow: 0 0 12px #ff4757; }
 
-/* CUSTOM MODE SELECTOR MODAL */
 #mode-picker-modal {
   position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 250;
   display: none; align-items: center; justify-content: center; backdrop-filter: blur(20px);
@@ -378,9 +375,9 @@ button.search-btn-custom {
 
 <div id="toast">Track saved successfully!</div>
 
-<audio id="audio-element" crossorigin="anonymous" controlslist="nodownload noplaybackrate" disablepictureinpicture></audio>
+<!-- 🚀 MAIN AUDIO ENGINE WITH PRELOAD & AUTO-NEXT BUFFERING -->
+<audio id="audio-element" crossorigin="anonymous" preload="auto" controlslist="nodownload noplaybackrate" disablepictureinpicture></audio>
 <audio id="preview-audio"></audio>
-<audio id="preload-audio" preload="auto"></audio> <!-- 🚀 BACKGROUND PRELOAD AUDIO NODE -->
 
 <script>
 var canvas = document.getElementById("canvas");
@@ -404,7 +401,6 @@ var actx, analyser, gainNode, sourceNode, frequencyData, frequencyDataLen;
 var playing = false;
 var audioEl = document.getElementById("audio-element");
 var previewAudio = document.getElementById("preview-audio");
-var preloadAudio = document.getElementById("preload-audio");
 const liveDot = document.getElementById("live-dot");
 
 let activePreviewUrl = null;
@@ -430,7 +426,6 @@ let liteModeEnabled = localStorage.getItem('vfy_lite_mode') === 'true';
 let aodEnabled = false;
 let wakeLock = null;
 let headerHideTimer = null;
-let lastPreloadedIndex = -1;
 
 function initVisualizerSettings() {
   updateVizButtonLabel();
@@ -984,20 +979,6 @@ function setupMediaSession(song) {
   }
 }
 
-// 🚀 BACKGROUND PRELOAD NEXT SONG (approx 20% buffer)
-function preloadNextSong() {
-  if (globalPlaylist.length <= 1) return;
-  let nextIdx = (activeIndex + 1) % globalPlaylist.length;
-  if (lastPreloadedIndex === nextIdx) return; // Already preloaded
-
-  const nextSong = globalPlaylist[nextIdx];
-  if (nextSong && nextSong.url) {
-    lastPreloadedIndex = nextIdx;
-    preloadAudio.src = nextSong.url;
-    preloadAudio.load(); // Forces browser to download header & initial chunks (approx 20%)
-  }
-}
-
 function playSongAtIndex(index, baseSeekTime, serverTimestamp) {
   if (globalPlaylist.length === 0) return;
   activeIndex = index % globalPlaylist.length;
@@ -1010,14 +991,12 @@ function playSongAtIndex(index, baseSeekTime, serverTimestamp) {
   renderSlideshowBanners();
   renderPlaylistUI();
 
-  // Trigger background preloading for the subsequent track right now
-  preloadNextSong();
-
   const networkDelay = (Date.now() - serverTimestamp) / 1000;
   const exactTargetSeek = baseSeekTime + Math.max(0, networkDelay);
 
   if (audioEl.src !== song.url) {
     audioEl.src = song.url;
+    audioEl.preload = "auto"; // Browser automatically pre-loads chunks of current & next tracks
     audioEl.currentTime = exactTargetSeek;
   } else {
     if (Math.abs(audioEl.currentTime - exactTargetSeek) > 0.6) {
