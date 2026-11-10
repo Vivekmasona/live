@@ -15,15 +15,15 @@ html, body {
 }
 canvas { position: fixed; inset: 0; z-index: 1; }
 
-/* 🚀 UNIQUE LEFT VERTICAL HEADER PANEL */
+/* 🚀 STRICT 25px ULTRA-SLEEK VERTICAL SIDEBAR */
 #studio-header {
-  position: fixed; top: 16px; left: 16px; z-index: 40;
-  background: rgba(10, 10, 15, 0.85); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
-  padding: 14px 10px; border-radius: 24px;
-  display: flex; flex-direction: column; align-items: center; gap: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.12); box-shadow: 0 20px 50px rgba(0,0,0,0.9); user-select: none;
+  position: fixed; top: 12px; left: 8px; z-index: 40;
+  width: 25px; box-sizing: border-box;
+  background: rgba(10, 10, 15, 0.9); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+  padding: 12px 2px; border-radius: 20px;
+  display: flex; flex-direction: column; align-items: center; gap: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12); box-shadow: 0 10px 40px rgba(0,0,0,0.95); user-select: none;
   transition: opacity 0.4s ease, transform 0.4s ease;
-  width: auto; max-width: 130px;
 }
 
 body.aod-active #studio-header {
@@ -33,12 +33,20 @@ body.aod-active.show-header #studio-header {
   opacity: 1; pointer-events: auto; transform: translateX(0);
 }
 
-.brand-title { 
-  font-size: 13px; font-weight: 800; color: #fff; cursor: pointer; 
-  display: flex; flex-direction: column; align-items: center; gap: 2px; letter-spacing: 0.5px; flex-shrink: 0;
+/* KHADA / VERTICAL WRITTEN TEXT STYLES */
+.vertical-text {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  white-space: nowrap;
+  letter-spacing: 1px;
 }
-.brand-title i { color: #00ffcc; filter: drop-shadow(0 0 8px rgba(0,255,204,0.8)); font-size: 16px; }
-.brand-title span { color: #00ffcc; font-size: 12px; }
+
+.brand-title { 
+  font-size: 11px; font-weight: 800; color: #fff; cursor: pointer; 
+  display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0;
+}
+.brand-title i { color: #00ffcc; filter: drop-shadow(0 0 8px rgba(0,255,204,0.8)); font-size: 12px; }
+.brand-title span { color: #00ffcc; font-size: 11px; }
 
 .header-center-controls {
   display: flex; flex-direction: column; align-items: center; width: 100%;
@@ -46,38 +54,43 @@ body.aod-active.show-header #studio-header {
 
 .viz-selector-box {
   background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #00ffcc; border-radius: 12px; padding: 6px 8px; font-size: 10px; font-weight: 700;
+  color: #00ffcc; border-radius: 8px; padding: 6px 1px; font-size: 10px; font-weight: 700;
   outline: none; cursor: pointer; transition: 0.25s ease; backdrop-filter: blur(15px);
-  width: 100%; text-overflow: ellipsis; text-align: center;
+  width: 21px; height: 110px; writing-mode: vertical-rl; transform: rotate(180deg);
+  text-align: center; border: 1px solid rgba(0,255,204,0.3);
 }
 .viz-selector-box:hover, .viz-selector-box:focus {
   background: rgba(0, 255, 204, 0.15); border-color: #00ffcc; color: #fff;
-  box-shadow: 0 0 15px rgba(0,255,204,0.4);
+  box-shadow: 0 0 10px rgba(0,255,204,0.4);
 }
-.viz-selector-box option { background: #050505; color: #fff; font-weight: 600; text-align: left; }
+.viz-selector-box option { background: #050505; color: #fff; font-weight: 600; writing-mode: horizontal-tb; }
 
-.badge-box { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; }
-.badge { background: rgba(255, 255, 255, 0.05); padding: 5px 10px; border-radius: 12px; font-size: 9px; font-weight: 600; color: #aaa; border: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; gap: 4px; }
+.badge-box { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; }
+.badge { 
+  background: rgba(255, 255, 255, 0.05); padding: 6px 2px; border-radius: 8px; font-size: 9px; 
+  font-weight: 600; color: #aaa; border: 1px solid rgba(255,255,255,0.08); 
+  display: flex; flex-direction: column; align-items: center; gap: 4px; 
+}
 
 .aod-btn, .lite-btn {
   background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #aaa; padding: 6px 10px; border-radius: 12px; font-size: 10px; font-weight: 700;
-  cursor: pointer; transition: 0.25s ease; display: flex; align-items: center; justify-content: center; gap: 4px;
-  width: 100%; box-sizing: border-box;
+  color: #aaa; padding: 8px 2px; border-radius: 8px; font-size: 9px; font-weight: 700;
+  cursor: pointer; transition: 0.25s ease; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  width: 21px; box-sizing: border-box;
 }
 .aod-btn.active, .lite-btn.active {
   background: linear-gradient(135deg, #00b894, #00cec9); color: #000; border-color: transparent;
-  box-shadow: 0 0 15px rgba(0,206,201,0.6);
+  box-shadow: 0 0 12px rgba(0,206,201,0.6);
 }
 
-.live-tower-icon { color: #ff4757; animation: redTowerGlow 1.8s infinite ease-in-out; }
+.live-tower-icon { color: #ff4757; animation: redTowerGlow 1.8s infinite ease-in-out; font-size: 10px; }
 @keyframes redTowerGlow {
   0% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(255,71,87,0.4)); }
   50% { transform: scale(1.15); filter: drop-shadow(0 0 10px rgba(255,71,87,0.9)); }
   100% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(255,71,87,0.4)); }
 }
 
-.live-dot { width: 7px; height: 7px; background: #ff4757; border-radius: 50%; box-shadow: 0 0 8px #ff4757; transition: 0.3s; }
+.live-dot { width: 6px; height: 6px; background: #ff4757; border-radius: 50%; box-shadow: 0 0 8px #ff4757; transition: 0.3s; }
 .live-dot.active { background: #ff4757; box-shadow: 0 0 12px #ff4757; }
 
 #studio-modal, #auth-modal {
@@ -219,12 +232,11 @@ button.search-btn-custom {
 
 <canvas id="canvas"></canvas>
 
-<!-- LEFT SIDEBAR HEADER -->
+<!-- 🚀 STRICT 25px VERTICAL WRITTEN SIDEBAR -->
 <div id="studio-header">
   <div class="brand-title" id="brand-title">
     <i class="fa-solid fa-compact-disc fa-spin" style="--fa-animation-duration: 6s;"></i> 
-    <span>VFY</span> 
-    <small style="font-size:7px; color:rgba(255,255,255,0.3);">(3x)</small>
+    <span class="vertical-text">VFY</span> 
   </div>
 
   <div class="header-center-controls">
@@ -243,9 +255,18 @@ button.search-btn-custom {
   </div>
 
   <div class="badge-box">
-    <button id="lite-toggle-btn" class="lite-btn" onclick="event.stopPropagation(); toggleLiteMode()"><i class="fa-solid fa-feather"></i> Lite</button>
-    <button id="aod-toggle-btn" class="aod-btn" onclick="event.stopPropagation(); toggleAODMode()"><i class="fa-solid fa-sun"></i> AOD</button>
-    <div class="badge"><i class="fa-solid fa-tower-broadcast live-tower-icon"></i> Live</div>
+    <button id="lite-toggle-btn" class="lite-btn" onclick="event.stopPropagation(); toggleLiteMode()">
+      <i class="fa-solid fa-feather" style="font-size:9px;"></i>
+      <span class="vertical-text">Lite</span>
+    </button>
+    <button id="aod-toggle-btn" class="aod-btn" onclick="event.stopPropagation(); toggleAODMode()">
+      <i class="fa-solid fa-sun" style="font-size:9px;"></i>
+      <span class="vertical-text" id="aod-btn-text">AOD</span>
+    </button>
+    <div class="badge">
+      <i class="fa-solid fa-tower-broadcast live-tower-icon"></i>
+      <span class="vertical-text">Live</span>
+    </div>
     <div class="live-dot" id="live-dot"></div>
   </div>
 </div>
@@ -401,22 +422,23 @@ function toggleLiteMode() {
   const btn = document.getElementById("lite-toggle-btn");
   if (liteModeEnabled) {
     btn.classList.add("active");
-    showToast("Lite Mode ON (Smooth 60FPS for TV/1GB RAM)");
+    showToast("Lite Mode ON");
   } else {
     btn.classList.remove("active");
-    showToast("Lite Mode OFF (Heavy Graphics Active)");
+    showToast("Lite Mode OFF");
   }
 }
 
 async function toggleAODMode() {
   aodEnabled = !aodEnabled;
   const btn = document.getElementById("aod-toggle-btn");
+  const btnText = document.getElementById("aod-btn-text");
   
   if (aodEnabled) {
     btn.classList.add("active");
-    btn.innerHTML = `<i class="fa-solid fa-bolt"></i> AOD`;
+    btnText.innerText = "AOD";
     document.body.classList.add("aod-active");
-    showToast("AOD ON: Pure Visualizer Mode Active");
+    showToast("AOD ON");
     
     if ('wakeLock' in navigator) {
       try {
@@ -429,7 +451,7 @@ async function toggleAODMode() {
     }
   } else {
     btn.classList.remove("active");
-    btn.innerHTML = `<i class="fa-solid fa-sun"></i> AOD`;
+    btnText.innerText = "AOD";
     document.body.classList.remove("aod-active");
     document.body.classList.remove("show-header");
     if (headerHideTimer) clearTimeout(headerHideTimer);
@@ -941,13 +963,13 @@ function playSongAtIndex(index, baseSeekTime, serverTimestamp) {
 }
 
 // -------------------------------------------------------------
-// DUAL-RENDER VISUALIZER ENGINE (OPTIMIZED & SMOOTH)
+// VISUALIZER RENDER ENGINE
 // -------------------------------------------------------------
 function clearCanvas(){
   if(!liteModeEnabled && (activeVizMode === 2 || activeVizMode === 6 || activeVizMode === 9)) {
     ctx.fillStyle = "rgba(0, 0, 0, 0.22)";
   } else {
-    ctx.fillStyle = "#000000"; // Pure Black True AMOLED
+    ctx.fillStyle = "#000000";
   }
   ctx.fillRect(0, 0, w, h);
 }
@@ -1045,9 +1067,7 @@ function render() {
   requestAnimationFrame(render);
 }
 
-// -------------------------------------------------------------
-// UNIQUE & CLEAN LITE MODE STYLES
-// -------------------------------------------------------------
+// LITE MODES
 function drawLite_Flower(bass) {
   const bands = getAudioBands();
   ctx.save();
@@ -1224,9 +1244,7 @@ function drawLite_AuraFlow(bass) {
   ctx.restore();
 }
 
-// -------------------------------------------------------------
 // HEAVY VISUALIZERS
-// -------------------------------------------------------------
 function drawViz1_Flower(bass) {
   const petals = 8;
   const maxRadius = Math.min(w, h) * 0.48;
