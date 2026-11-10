@@ -934,7 +934,7 @@ function playSongAtIndex(index, baseSeekTime, serverTimestamp) {
 }
 
 // -------------------------------------------------------------
-// UNIFIED DUAL-ENGINE VISUALIZER (HEAVY & LITE FOR ALL MODES)
+// DUAL-RENDER VISUALIZER ENGINE (HEAVY & LITE ADAPTER FOR ALL MODES)
 // -------------------------------------------------------------
 function clearCanvas(){
   if(!liteModeEnabled && (activeVizMode === 2 || activeVizMode === 6 || activeVizMode === 9)) {
@@ -1005,10 +1005,22 @@ function render() {
   const bass = getBassPulse();
 
   if (liteModeEnabled) {
-    // UNIVERSAL LITE OPTIMIZER (Runs lightweight 60 FPS version for whichever mode is selected)
-    drawUniversalLiteMode(bass);
+    // 💡 LITE MODE ACTIVE: Dropdown se jo bhi select ho, uska lightweight smooth version chalega (1GB RAM friendly)
+    switch(activeVizMode) {
+      case 1: drawLite_Flower(bass); break;
+      case 2: drawLite_Plasma(bass); break;
+      case 3: drawLite_SpaceDrift(bass); break;
+      case 4: drawLite_LaserRing(bass); break;
+      case 5: drawLite_StarPulse(bass); break;
+      case 6: drawLite_NeonVortex(bass); break;
+      case 7: drawLite_SoundBars(bass); break;
+      case 8: drawLite_AudioWeb(bass); break;
+      case 9: drawLite_PlasmaHole(bass); break;
+      case 10: drawLite_AuraFlow(bass); break;
+      default: drawLite_PlasmaHole(bass); break;
+    }
   } else {
-    // HEAVY GRAPHICS MODE
+    // ⚡ HEAVY MODE ACTIVE: Full high-end graphics as selected in dropdown
     switch(activeVizMode) {
       case 1: drawViz1_Flower(bass); break;
       case 2: drawViz2_Plasma(bass); break;
@@ -1029,29 +1041,37 @@ function render() {
 }
 
 // -------------------------------------------------------------
-// UNIVERSAL LITE ENGINE (SMOOTH ON 1GB RAM TV / PHONES)
+// LITE VERSIONS FOR ALL MODES (LIGHTWEIGHT & SMOOTH)
 // -------------------------------------------------------------
-function drawUniversalLiteMode(bass) {
+function drawLite_Flower(bass) { drawLiteCircularBars(bass, 16); }
+function drawLite_Plasma(bass) { drawLiteWave(bass, 3); }
+function drawLite_SpaceDrift(bass) { drawLiteCircularBars(bass, 20); }
+function drawLite_LaserRing(bass) { drawLiteCircularBars(bass, 24); }
+function drawLite_StarPulse(bass) { drawLiteCircularBars(bass, 12); }
+function drawLite_NeonVortex(bass) { drawLiteCircularBars(bass, 20); }
+function drawLite_SoundBars(bass) { drawLiteCircularBars(bass, 32); }
+function drawLite_AudioWeb(bass) { drawLiteCircularBars(bass, 18); }
+function drawLite_PlasmaHole(bass) { drawLiteCircularBars(bass, 24); }
+function drawLite_AuraFlow(bass) { drawLiteCircularBars(bass, 20); }
+
+function drawLiteCircularBars(bass, count) {
   const bands = getAudioBands();
   ctx.save();
   ctx.translate(w / 2, h / 2);
 
   const mainHue = (npt * 35 + bands.bass * 0.6) % 360;
   
-  // Center Pulse Ring
   ctx.beginPath();
   ctx.arc(0, 0, 75 + bands.bass * 0.4, 0, Math.PI * 2);
   ctx.strokeStyle = `hsl(${mainHue}, 100%, 65%)`;
   ctx.lineWidth = 3;
   ctx.stroke();
 
-  // 24 Lightweight Symmetric Spectrum Lines
-  const count = 24;
   const innerRadius = 110;
   for (let i = 0; i < count; i++) {
     const angle = (i / count) * Math.PI * 2 + (nrt * 0.3);
     const val = frequencyData[i * 2] || 0;
-    const barLen = (val / 255) * 100 + bass * 0.35;
+    const barLen = (val / 255) * 90 + bass * 0.3;
 
     const x1 = Math.cos(angle) * innerRadius;
     const y1 = Math.sin(angle) * innerRadius;
@@ -1061,16 +1081,33 @@ function drawUniversalLiteMode(bass) {
     ctx.beginPath();
     ctx.moveTo(x1, y1);
     ctx.lineTo(x2, y2);
-    ctx.strokeStyle = `hsl(${(mainHue + i * 15) % 360}, 100%, 60%)`;
+    ctx.strokeStyle = `hsl(${(mainHue + i * 14) % 360}, 100%, 60%)`;
     ctx.lineWidth = 2.5;
     ctx.stroke();
   }
+  ctx.restore();
+}
 
+function drawLiteWave(bass, linesCount) {
+  ctx.save();
+  for (let line = 0; line < linesCount; line++) {
+    ctx.beginPath();
+    for (let x = 0; x < w; x += 20) {
+      const idx = Math.floor((x / w) * frequencyDataLen);
+      const val = frequencyData[idx] || 0;
+      const y = (h / 2) + Math.sin(x * 0.005 + npt * 2 + line * 0.5) * (val * 0.5 + bass * 0.3) + (line * 30 - 45);
+      if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    const hue = (line * 90 + npt * 30) % 360;
+    ctx.strokeStyle = `hsla(${hue}, 100%, 60%, 0.8)`;
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+  }
   ctx.restore();
 }
 
 // -------------------------------------------------------------
-// HEAVY VISUALIZERS (MODES 1 TO 10)
+// HEAVY VISUALIZERS (MODES 1 TO 10 - FULL GRAPHICS)
 // -------------------------------------------------------------
 function drawViz1_Flower(bass) {
   const petals = 8;
